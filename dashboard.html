@@ -1,84 +1,133 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard - MarketNest</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MarketNest Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBuYXfr-_q-BJskWHN4chB8SZqMc-P9odw",
+  authDomain: "toolnest-8e42d.firebaseapp.com",
+  projectId: "toolnest-8e42d",
+  storageBucket: "toolnest-8e42d.firebasestorage.app",
+  messagingSenderId: "988256036107",
+  appId: "1:988256036107:web:90f7e40f07593dff8e2e0e"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+window.addEventListener('DOMContentLoaded', () => {
+  onAuthStateChanged(auth, user => {
+    if (!user) window.location.href = "index.html";
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    signOut(auth).then(() => window.location.href = "index.html");
+  });
+});
+</script>
 </head>
-<body class="bg-gray-100 text-gray-800 min-h-screen">
+<body class="bg-gray-100 min-h-screen font-sans">
 
-  <!-- Navbar -->
-  <nav class="bg-white shadow-md p-4 flex justify-between items-center">
-    <h1 class="text-2xl font-bold text-blue-600">MarketNest Dashboard</h1>
-    <button id="logoutBtn" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">Logout</button>
-  </nav>
+<!-- Navbar -->
+<nav class="bg-white shadow-md p-4 flex justify-between items-center">
+  <h1 class="text-2xl font-bold text-blue-600">MarketNest Dashboard</h1>
+  <button id="logoutBtn" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">Logout</button>
+</nav>
 
-  <!-- Dashboard Tools -->
-  <section class="p-6 grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-    <!-- Finance & Accounting Tools -->
-    <div class="bg-white p-4 rounded-xl shadow hover:shadow-lg">
-      <h3 class="font-semibold text-lg">ROI Calculator</h3>
-    </div>
-    <div class="bg-white p-4 rounded-xl shadow hover:shadow-lg">
-      <h3 class="font-semibold text-lg">Profit Margin Calculator</h3>
-    </div>
-    <div class="bg-white p-4 rounded-xl shadow hover:shadow-lg">
-      <h3 class="font-semibold text-lg">Break-even Analyzer</h3>
-    </div>
+<!-- Dashboard Tools Container -->
+<main class="max-w-7xl mx-auto p-6 space-y-12">
 
-    <!-- Google & Excel Sheets -->
-    <div class="bg-white p-4 rounded-xl shadow hover:shadow-lg">
-      <h3 class="font-semibold text-lg">Google Sheets Templates</h3>
+  <!-- 1. Finance & Accounting Tools -->
+  <section>
+    <h2 class="text-2xl font-semibold mb-4 text-purple-600">💰 Finance & Accounting</h2>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="tool-card bg-white p-4 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition-all">
+        <img src="https://img.icons8.com/ios-filled/40/000000/coin.png" class="mb-2"/>
+        <h3 class="font-semibold text-lg">ROI Calculator</h3>
+      </div>
+      <div class="tool-card bg-white p-4 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition-all">
+        <img src="https://img.icons8.com/ios-filled/40/000000/money.png" class="mb-2"/>
+        <h3 class="font-semibold text-lg">Profit Margin Calculator</h3>
+      </div>
+      <div class="tool-card bg-white p-4 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition-all">
+        <img src="https://img.icons8.com/ios-filled/40/000000/break-even.png" class="mb-2"/>
+        <h3 class="font-semibold text-lg">Break-even Analyzer</h3>
+      </div>
+      <div class="tool-card bg-white p-4 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition-all">
+        <img src="https://img.icons8.com/ios-filled/40/000000/calculator.png" class="mb-2"/>
+        <h3 class="font-semibold text-lg">Loan EMI Calculator</h3>
+      </div>
     </div>
-    <div class="bg-white p-4 rounded-xl shadow hover:shadow-lg">
-      <h3 class="font-semibold text-lg">Excel Business Templates</h3>
-    </div>
-
-    <!-- AI & Automation -->
-    <div class="bg-white p-4 rounded-xl shadow hover:shadow-lg">
-      <h3 class="font-semibold text-lg">ChatGPT Assistant</h3>
-    </div>
-    <div class="bg-white p-4 rounded-xl shadow hover:shadow-lg">
-      <h3 class="font-semibold text-lg">Gemini UI</h3>
-      <p class="text-gray-500 text-sm">Coming Soon</p>
-    </div>
-
-    <!-- Add all other categories similarly (Marketing, SEO, Design, Communication etc.) -->
-    <!-- Use same card structure for each tool -->
   </section>
 
-  <footer class="text-center p-4 bg-white mt-12 shadow-inner text-gray-500">
-    © 2025 MarketNest. All rights reserved.
-  </footer>
+  <!-- 2. Business Management Tools -->
+  <section>
+    <h2 class="text-2xl font-semibold mb-4 text-green-600">📊 Business Management</h2>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="tool-card bg-white p-4 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition-all">
+        <img src="https://img.icons8.com/ios-filled/40/000000/line-chart.png" class="mb-2"/>
+        <h3 class="font-semibold text-lg">Revenue Forecast Tool</h3>
+      </div>
+      <div class="tool-card bg-white p-4 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition-all">
+        <img src="https://img.icons8.com/ios-filled/40/000000/budget.png" class="mb-2"/>
+        <h3 class="font-semibold text-lg">Budget Planner</h3>
+      </div>
+      <div class="tool-card bg-white p-4 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition-all">
+        <img src="https://img.icons8.com/ios-filled/40/000000/attendance.png" class="mb-2"/>
+        <h3 class="font-semibold text-lg">Employee Attendance Tracker</h3>
+      </div>
+    </div>
+  </section>
 
-  <script>
-    // Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyBuYXfr-_q-BJskWHN4chB8SZqMc-P9odw",
-      authDomain: "toolnest-8e42d.firebaseapp.com",
-      projectId: "toolnest-8e42d",
-      storageBucket: "toolnest-8e42d.firebasestorage.app",
-      messagingSenderId: "988256036107",
-      appId: "1:988256036107:web:90f7e40f07593dff8e2e0e"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
+  <!-- 3. E-commerce & Marketing Tools -->
+  <section>
+    <h2 class="text-2xl font-semibold mb-4 text-blue-600">🛒 E-commerce & Marketing</h2>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="tool-card bg-white p-4 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition-all">
+        <img src="https://img.icons8.com/ios-filled/40/000000/price-tag.png" class="mb-2"/>
+        <h3 class="font-semibold text-lg">Product Pricing Calculator</h3>
+      </div>
+      <div class="tool-card bg-white p-4 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition-all">
+        <img src="https://img.icons8.com/ios-filled/40/000000/discount.png" class="mb-2"/>
+        <h3 class="font-semibold text-lg">Discount Finder</h3>
+      </div>
+      <div class="tool-card bg-white p-4 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition-all">
+        <img src="https://img.icons8.com/ios-filled/40/000000/shopping-cart.png" class="mb-2"/>
+        <h3 class="font-semibold text-lg">Inventory Tracker</h3>
+      </div>
+    </div>
+  </section>
 
-    // Logout button
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-      auth.signOut().then(() => {
-        window.location.href = "../index.html";
-      });
-    });
+  <!-- 4. AI & Productivity Tools -->
+  <section>
+    <h2 class="text-2xl font-semibold mb-4 text-red-600">🤖 AI & Productivity</h2>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="tool-card bg-white p-4 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition-all">
+        <img src="https://img.icons8.com/ios-filled/40/000000/robot.png" class="mb-2"/>
+        <h3 class="font-semibold text-lg">ChatGPT Assistant</h3>
+      </div>
+      <div class="tool-card bg-white p-4 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition-all">
+        <img src="https://img.icons8.com/ios-filled/40/000000/idea.png" class="mb-2"/>
+        <h3 class="font-semibold text-lg">Gemini UI</h3>
+      </div>
+      <div class="tool-card bg-white p-4 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition-all">
+        <img src="https://img.icons8.com/ios-filled/40/000000/email.png" class="mb-2"/>
+        <h3 class="font-semibold text-lg">Auto Email Generator</h3>
+      </div>
+    </div>
+  </section>
 
-    // Redirect to login if not logged in
-    auth.onAuthStateChanged(user => {
-      if (!user) window.location.href = "../index.html";
-    });
-  </script>
+</main>
+
+<footer class="text-center p-4 bg-white mt-12 shadow-inner text-gray-500">
+© 2025 MarketNest. All rights reserved.
+</footer>
 
 </body>
 </html>
