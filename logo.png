@@ -1,6 +1,0 @@
-<!-- Logo + Website Name -->
-<div class="text-center mb-4 flex flex-col items-center space-y-2">
-  <!-- Replace this URL with the actual path of your logo file in GitHub Pages -->
-  <img src="https://alis670.github.io/ToolNest/logo.png" alt="MarketNest Logo" class="w-20 h-20 object-contain"/>
-  <h1 class="text-3xl font-bold text-blue-600">MarketNest</h1>
-</div>
