@@ -8,7 +8,6 @@
 </head>
 <body class="bg-gray-100 text-gray-800">
 
-  <!-- Navbar -->
   <nav class="bg-white shadow-md p-4 flex justify-between items-center">
     <h1 class="text-2xl font-bold text-blue-600">ToolNest</h1>
     <div id="userControls">
@@ -17,7 +16,6 @@
     </div>
   </nav>
 
-  <!-- Hero Section -->
   <section class="text-center py-16 bg-gradient-to-r from-blue-600 to-purple-500 text-white">
     <h2 class="text-4xl font-bold mb-4">All Your Business Tools in One Place</h2>
     <p class="text-lg mb-6">Access calculators, sheets, AI bots, and analytics globally.</p>
@@ -26,31 +24,16 @@
     </button>
   </section>
 
-  <!-- Tools Section -->
-  <section class="p-6 grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-    <div class="bg-white p-4 rounded-xl shadow hover:shadow-lg">
-      <h3 class="font-semibold text-lg">Finance Calculator</h3>
-      <p class="text-gray-600">Simple ROI & profit margin tools.</p>
-    </div>
-    <div class="bg-white p-4 rounded-xl shadow hover:shadow-lg">
-      <h3 class="font-semibold text-lg">Google Sheets Templates</h3>
-      <p class="text-gray-600">Ready-made sheets for business tracking.</p>
-    </div>
-    <div class="bg-white p-4 rounded-xl shadow hover:shadow-lg">
-      <h3 class="font-semibold text-lg">AI Chat Assistants</h3>
-      <p class="text-gray-600">ChatGPT, Gemini & more integrated bots.</p>
-    </div>
-  </section>
-
   <!-- Auth Modal -->
   <div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center">
     <div class="bg-white rounded-xl w-96 p-6 shadow-lg relative">
       <button id="closeModal" class="absolute top-2 right-2 text-gray-500 text-xl">&times;</button>
-      <h2 id="modalTitle" class="text-2xl font-bold mb-4 text-center">Login</h2>
+      <h2 id="modalTitle" class="text-2xl font-bold mb-4 text-center">Login / Signup</h2>
 
-      <input type="email" id="email" placeholder="Email" class="w-full p-2 border rounded mb-3" />
-      <input type="password" id="password" placeholder="Password" class="w-full p-2 border rounded mb-4" />
+      <input type="text" id="userInput" placeholder="Email or Phone (e.g. +923001234567)" class="w-full p-2 border rounded mb-3" />
+      <input type="password" id="password" placeholder="Password (for email login only)" class="w-full p-2 border rounded mb-4" />
 
+      <div id="recaptcha-container" class="my-2"></div>
       <button id="submitAuth" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold">Continue</button>
 
       <p id="toggleAuth" class="text-center text-sm text-blue-500 mt-3 cursor-pointer">Create an account</p>
@@ -58,15 +41,13 @@
     </div>
   </div>
 
-  <!-- Footer -->
   <footer class="text-center p-4 bg-white mt-12 shadow-inner text-gray-500">
     © 2025 ToolNest. All rights reserved.
   </footer>
 
-  <!-- Firebase + Auth Logic -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBuYXfr-_q-BJskWHN4chB8SZqMc-P9odw",
@@ -80,24 +61,25 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    // UI Elements
     const authModal = document.getElementById('authModal');
     const openSignup = document.getElementById('openSignup');
     const loginBtn = document.getElementById('loginBtn');
     const logoutBtn = document.getElementById('logoutBtn');
     const closeModal = document.getElementById('closeModal');
-    const modalTitle = document.getElementById('modalTitle');
     const submitAuth = document.getElementById('submitAuth');
     const toggleAuth = document.getElementById('toggleAuth');
     const forgotPass = document.getElementById('forgotPass');
-    const emailInput = document.getElementById('email');
+    const userInput = document.getElementById('userInput');
     const passInput = document.getElementById('password');
+    const modalTitle = document.getElementById('modalTitle');
 
     let isSignup = false;
+    let confirmationResult;
 
-    openSignup.onclick = () => { openModal(true); };
-    loginBtn.onclick = () => { openModal(false); };
-    closeModal.onclick = () => { authModal.classList.add('hidden'); };
+    openSignup.onclick = () => openModal(true);
+    loginBtn.onclick = () => openModal(false);
+    closeModal.onclick = () => authModal.classList.add('hidden');
+    toggleAuth.onclick = () => openModal(!isSignup);
 
     function openModal(signup) {
       isSignup = signup;
@@ -105,27 +87,47 @@
       submitAuth.innerText = signup ? 'Sign Up' : 'Login';
       toggleAuth.innerText = signup ? 'Already have an account?' : 'Create an account';
       authModal.classList.remove('hidden');
+      renderCaptcha();
     }
 
-    toggleAuth.onclick = () => openModal(!isSignup);
+    function renderCaptcha() {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        size: 'invisible'
+      });
+    }
 
     submitAuth.onclick = async () => {
-      const email = emailInput.value;
-      const pass = passInput.value;
-      if (!email || !pass) return alert('Please fill all fields');
+      const input = userInput.value.trim();
+      const pass = passInput.value.trim();
 
-      try {
-        if (isSignup) {
-          await createUserWithEmailAndPassword(auth, email, pass);
-          alert('Account created successfully!');
-        } else {
-          await signInWithEmailAndPassword(auth, email, pass);
-          alert('Logged in!');
+      // Check if phone or email
+      if (input.startsWith('+')) {
+        // Phone auth flow
+        try {
+          confirmationResult = await signInWithPhoneNumber(auth, input, window.recaptchaVerifier);
+          const code = prompt("Enter the OTP sent to your phone:");
+          await confirmationResult.confirm(code);
+          alert("✅ Logged in with phone!");
+          authModal.classList.add('hidden');
+          updateUI();
+        } catch (err) {
+          alert("Error: " + err.message);
         }
-        authModal.classList.add('hidden');
-        updateUI();
-      } catch (e) {
-        alert('Error: ' + e.message);
+      } else {
+        // Email auth flow
+        try {
+          if (isSignup) {
+            await createUserWithEmailAndPassword(auth, input, pass);
+            alert("✅ Account created!");
+          } else {
+            await signInWithEmailAndPassword(auth, input, pass);
+            alert("✅ Logged in!");
+          }
+          authModal.classList.add('hidden');
+          updateUI();
+        } catch (err) {
+          alert("Error: " + err.message);
+        }
       }
     };
 
@@ -135,7 +137,7 @@
     };
 
     forgotPass.onclick = async () => {
-      const email = emailInput.value;
+      const email = userInput.value;
       if (!email) return alert('Enter your email first');
       await sendPasswordResetEmail(auth, email);
       alert('Password reset email sent!');
