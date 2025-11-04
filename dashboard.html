@@ -8,42 +8,32 @@
 <style>
 @keyframes fadeIn {0%{opacity:0}100%{opacity:1}}
 .animate-fadeIn {animation:fadeIn 0.5s ease-in;}
-.tool-card:hover {transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.15);}
 </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col">
+<body class="bg-gray-100 min-h-screen">
 
 <!-- Header -->
-<header class="bg-white shadow-md sticky top-0 z-50 flex justify-between items-center px-6 py-3">
+<header class="bg-white shadow-md p-4 flex justify-between items-center">
   <div class="flex items-center space-x-2">
-    <img src="https://alis670.github.io/ToolNest/toolnest-logo.png" alt="ToolNest Logo" class="w-10 h-10 object-contain"/>
-    <h1 class="text-2xl font-bold text-gray-700">ToolNest</h1>
+    <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">TN</div>
+    <h1 class="text-2xl font-bold text-gray-800">ToolNest</h1>
   </div>
-  <button id="logoutBtn" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">Logout</button>
 </header>
 
-<!-- Search & Filter -->
-<section class="px-6 py-4 bg-white shadow-md flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
-  <input id="searchInput" type="text" placeholder="Search tools..." class="w-full md:w-1/3 p-2 border rounded"/>
-  <div id="categoryTabs" class="flex flex-wrap gap-2">
-    <!-- Category buttons injected by JS -->
-  </div>
-</section>
+<!-- Search Bar -->
+<div class="max-w-6xl mx-auto p-6">
+  <input type="text" id="searchInput" placeholder="Search tools..." class="w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+</div>
 
-<!-- Dashboard Container -->
-<main id="dashboardContainer" class="max-w-7xl mx-auto p-6 grid gap-6 md:grid-cols-3"></main>
+<!-- Tools Section -->
+<main id="toolsContainer" class="max-w-6xl mx-auto p-6 grid gap-6 md:grid-cols-3 lg:grid-cols-4"></main>
 
-<!-- Toast Container -->
-<div id="toastContainer" class="fixed top-5 right-5 z-50"></div>
-
-<!-- Footer -->
-<footer class="text-center p-4 bg-white mt-auto shadow-inner text-gray-500">
-  © 2025 ToolNest. All rights reserved.
-</footer>
+<!-- Logout Button -->
+<button id="logoutBtn" class="fixed bottom-5 right-5 px-4 py-2 bg-red-500 text-white rounded-lg shadow-lg">Logout</button>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBuYXfr-_q-BJskWHN4chB8SZqMc-P9odw",
@@ -57,78 +47,113 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-// Toast function
-const toastContainer = document.getElementById('toastContainer');
-function showToast(message,type="success"){
-  const toast = document.createElement('div');
-  toast.innerText = message;
-  toast.className = `px-4 py-2 mb-2 rounded shadow-lg text-white ${type==="success"?"bg-green-500":"bg-red-500"} animate-fadeIn`;
-  toastContainer.appendChild(toast);
-  setTimeout(()=>toast.remove(),3000);
-}
-
-// Logout
-const logoutBtn = document.getElementById('logoutBtn');
-logoutBtn.onclick = async ()=>{
-  try{
-    await signOut(auth);
-    showToast("Logged out successfully!");
-    window.location.href="index.html"; 
-  }catch(e){showToast(e.message,"error")}
-}
-
-// Tools Data
-const toolsData = [
-  { category: "Finance & Accounting", tools: ["ROI Calculator","Profit Margin Calculator","Break-even Point Analyzer","Loan EMI Calculator","Tax / GST / VAT Calculator","Currency Converter","Expense Tracker","Cash Flow Analyzer","Salary / Payroll Sheet"] },
-  { category: "Business Management", tools: ["Revenue Forecast Tool","Budget Planner","Employee Attendance Tracker","Invoice Generator","Business Proposal Template","Time Tracking Tool","Meeting Notes Template"] },
-  { category: "E-commerce & Marketing", tools: ["Product Pricing Calculator","Discount Finder","Inventory Tracker","Keyword Research Tool","Competitor Tracker","Profit & Fee Calculator","Product Launch Planner"] },
-  { category: "Data & Productivity", tools: ["Google Sheets Templates","Excel Business Templates","CSV → Excel Converter","Sheet Merger Tool","Data Cleaner","Dashboard Template"] },
-  { category: "AI & Automation", tools: ["ChatGPT Assistant","Gemini UI","Auto Email Generator","Task Automation Templates","AI Name / Slogan Generator","Document Summarizer"] },
-  { category: "Design & Branding", tools: ["Logo Maker","Business Card Template","Brand Color Palette Generator","Social Media Post Caption Generator"] },
-  { category: "Website & SEO", tools: ["Meta Tag Generator","SEO Keyword Density Checker","Backlink Tracker","Sitemap XML Generator","Page Speed Tester"] },
-  { category: "Communication & Management", tools: ["Project Task Manager","Team Chat UI","Client Feedback Form","Email Signature Generator"] },
-  { category: "Upcoming / Premium", tools: ["MarketNest Pro Analyzer","Business Intelligence Dashboard","AI Data Visualizer","Multi-user Team Workspace"] }
+// Tools List - 50+ tools
+const tools = [
+  // Finance & Accounting
+  {name:"ROI Calculator", category:"Finance", desc:"Calculate your ROI easily."},
+  {name:"Profit Margin Calculator", category:"Finance", desc:"Track your profit margins."},
+  {name:"Break-even Analyzer", category:"Finance", desc:"Know your break-even point."},
+  {name:"Loan EMI Calculator", category:"Finance", desc:"EMI calculation for loans."},
+  {name:"Tax / GST / VAT Calculator", category:"Finance", desc:"Quick tax calculations."},
+  {name:"Currency Converter", category:"Finance", desc:"Live exchange rates."},
+  {name:"Expense Tracker", category:"Finance", desc:"Manage daily expenses."},
+  {name:"Cash Flow Analyzer", category:"Finance", desc:"Track business cash flow."},
+  {name:"Salary / Payroll Sheet", category:"Finance", desc:"Employee salary tracker."},
+  
+  // Business Management
+  {name:"Revenue Forecast Tool", category:"Business", desc:"Predict your revenue growth."},
+  {name:"Budget Planner", category:"Business", desc:"Plan monthly budgets."},
+  {name:"Employee Attendance Tracker", category:"Business", desc:"Monitor attendance."},
+  {name:"Invoice Generator", category:"Business", desc:"Create professional invoices."},
+  {name:"Business Proposal Template", category:"Business", desc:"Ready-made proposal format."},
+  {name:"Time Tracking Tool", category:"Business", desc:"Track project hours."},
+  {name:"Meeting Notes Template", category:"Business", desc:"Organize your meetings."},
+  
+  // E-commerce & Marketing
+  {name:"Product Pricing Calculator", category:"E-commerce", desc:"Price your products smartly."},
+  {name:"Discount Finder", category:"E-commerce", desc:"Find best discounts."},
+  {name:"Inventory Tracker", category:"E-commerce", desc:"Track stock levels."},
+  {name:"Keyword Research Tool", category:"E-commerce", desc:"SEO keyword suggestions."},
+  {name:"Competitor Tracker", category:"E-commerce", desc:"Track competitor products."},
+  {name:"Profit & Fee Calculator", category:"E-commerce", desc:"Amazon/eBay profit calculation."},
+  {name:"Product Launch Planner", category:"E-commerce", desc:"Plan your launches."},
+  
+  // Data & Productivity
+  {name:"Google Sheets Templates", category:"Productivity", desc:"Ready-to-use sheets."},
+  {name:"Excel Business Templates", category:"Productivity", desc:"Excel templates for business."},
+  {name:"CSV → Excel Converter", category:"Productivity", desc:"Convert CSV to Excel."},
+  {name:"Sheet Merger Tool", category:"Productivity", desc:"Merge multiple sheets."},
+  {name:"Data Cleaner", category:"Productivity", desc:"Remove duplicates quickly."},
+  {name:"Dashboard Template", category:"Productivity", desc:"Business reporting template."},
+  
+  // AI & Automation
+  {name:"ChatGPT Assistant", category:"AI", desc:"AI chatbot for business."},
+  {name:"Gemini UI", category:"AI", desc:"Future AI bot interface."},
+  {name:"Auto Email Generator", category:"AI", desc:"Generate business emails."},
+  {name:"Task Automation Templates", category:"AI", desc:"Zapier style task templates."},
+  {name:"AI Name / Slogan Generator", category:"AI", desc:"Generate catchy names."},
+  {name:"Document Summarizer", category:"AI", desc:"Summarize documents quickly."},
+  
+  // Design & Branding
+  {name:"Logo Maker", category:"Design", desc:"Create a basic logo."},
+  {name:"Business Card Template", category:"Design", desc:"Editable card template."},
+  {name:"Brand Color Palette Generator", category:"Design", desc:"Generate brand colors."},
+  {name:"Social Media Caption Generator", category:"Design", desc:"Generate captions for posts."},
+  
+  // Website & SEO
+  {name:"Meta Tag Generator", category:"SEO", desc:"Generate website meta tags."},
+  {name:"SEO Keyword Density Checker", category:"SEO", desc:"Check keyword density."},
+  {name:"Backlink Tracker", category:"SEO", desc:"Track backlinks manually."},
+  {name:"Sitemap XML Generator", category:"SEO", desc:"Generate sitemap for website."},
+  {name:"Page Speed Tester", category:"SEO", desc:"Test website speed."},
+  
+  // Communication & Management
+  {name:"Project Task Manager", category:"Communication", desc:"Kanban style project manager."},
+  {name:"Team Chat UI", category:"Communication", desc:"Team chat interface."},
+  {name:"Client Feedback Form", category:"Communication", desc:"Collect client feedback."},
+  {name:"Email Signature Generator", category:"Communication", desc:"Generate email signatures."},
+  
+  // Upcoming / Premium
+  {name:"MarketNest Pro Analyzer", category:"Premium", desc:"AI product finder (Coming Soon)."},
+  {name:"Business Intelligence Dashboard", category:"Premium", desc:"Analytics dashboard (Coming Soon)."},
+  {name:"AI Data Visualizer", category:"Premium", desc:"Visualize data (Coming Soon)."},
+  {name:"Multi-user Team Workspace", category:"Premium", desc:"Team collaboration (Coming Soon)."}
 ];
 
-// Generate category tabs
-const categoryTabs = document.getElementById('categoryTabs');
-toolsData.forEach(cat=>{
-  const btn = document.createElement('button');
-  btn.innerText = cat.category;
-  btn.className = "px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition";
-  btn.onclick = ()=>displayTools(cat.category);
-  categoryTabs.appendChild(btn);
-});
+// UI Elements
+const toolsContainer = document.getElementById('toolsContainer');
+const searchInput = document.getElementById('searchInput');
+const logoutBtn = document.getElementById('logoutBtn');
 
-// Display tools
-const dashboardContainer = document.getElementById('dashboardContainer');
-function displayTools(selectedCategory){
-  dashboardContainer.innerHTML = "";
-  const filtered = toolsData.find(c=>c.category===selectedCategory);
-  filtered.tools.forEach(tool=>{
-    const card = document.createElement('div');
-    card.className="tool-card bg-white p-4 rounded-xl shadow hover:shadow-lg cursor-pointer transition duration-200 flex items-center space-x-2";
-    card.innerHTML=`<div class="w-10 h-10 bg-blue-200 flex items-center justify-center rounded-lg">🛠️</div><h3 class="font-semibold text-lg">${tool}</h3>`;
-    card.onclick = ()=>showToast(`Opened ${tool}`);
-    dashboardContainer.appendChild(card);
-  });
+// Render tools
+function renderTools(filter=""){
+  toolsContainer.innerHTML = "";
+  tools
+    .filter(t => t.name.toLowerCase().includes(filter.toLowerCase()) || t.category.toLowerCase().includes(filter.toLowerCase()))
+    .forEach(tool=>{
+      const card = document.createElement('div');
+      card.className = "bg-white p-4 rounded-xl shadow hover:shadow-lg transition transform hover:-translate-y-1";
+      card.innerHTML = `<h3 class="font-semibold text-lg">${tool.name}</h3><p class="text-gray-600">${tool.desc}</p><span class="text-sm text-blue-500 mt-2 block">${tool.category}</span>`;
+      toolsContainer.appendChild(card);
+    });
 }
 
-// Search Filter
-const searchInput = document.getElementById('searchInput');
-searchInput.addEventListener('input', ()=>{
-  const term = searchInput.value.toLowerCase();
-  dashboardContainer.querySelectorAll('.tool-card').forEach(card=>{
-    card.style.display = card.innerText.toLowerCase().includes(term) ? "flex" : "none";
-  });
-});
+// Search filter
+searchInput.addEventListener('input', (e)=>renderTools(e.target.value));
 
-// Display first category by default
-displayTools(toolsData[0].category);
+// Logout
+logoutBtn.onclick = async ()=>{
+  await signOut(auth);
+  window.location.href = "index.html";
+}
 
-// Auth state check
+// Auth check
 onAuthStateChanged(auth,user=>{
-  if(!user) window.location.href="index.html";
+  if(!user){
+    window.location.href = "index.html";
+  }else{
+    renderTools();
+  }
 });
 </script>
 </body>
