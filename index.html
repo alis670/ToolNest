@@ -1,584 +1,74 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ToolNest — All Business Tools</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MarketNest - Smart Business Tools</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <meta name="theme-color" content="#06b6d4" />
-  <style>
-    /* small niceties */
-    .collapse-btn { transition: transform .2s; }
-    .collapsed + .collapse-btn { transform: rotate(-90deg); }
-  </style>
+
+  <!-- Firebase CDN -->
+  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js"></script>
 </head>
-<body class="bg-slate-50 text-slate-800">
+<body class="bg-gray-100 text-gray-800">
 
-  <!-- HEADER -->
-  <header class="bg-white shadow sticky top-0 z-40">
-    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-11 h-11 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-black font-bold">TN</div>
-        <div>
-          <div class="font-bold text-lg">ToolNest</div>
-          <div class="text-xs text-slate-500">All your business tools in one nest</div>
-        </div>
-      </div>
-
-      <div class="flex items-center gap-3">
-        <button id="adsBtn" class="text-xs text-slate-500 hidden md:inline">Ads</button>
-        <div id="userControls" class="flex items-center gap-2">
-          <div id="userEmail" class="text-sm text-slate-600 hidden"></div>
-          <button id="openAuthBtn" class="px-3 py-2 bg-cyan-600 text-white rounded-md text-sm">Login / Sign up</button>
-          <button id="logoutBtn" class="px-3 py-2 bg-red-500 text-white rounded-md text-sm hidden">Logout</button>
-        </div>
-      </div>
+  <!-- Navbar -->
+  <nav class="bg-white shadow-md p-4 flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-blue-600">MarketNest</h1>
+    <div id="userControls">
+      <button id="loginBtn" class="px-4 py-2 bg-blue-500 text-white rounded-lg">Login / Signup</button>
     </div>
-  </header>
+  </nav>
 
-  <!-- HERO -->
-  <section class="text-center py-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-    <div class="max-w-4xl mx-auto px-4">
-      <h1 class="text-3xl md:text-4xl font-extrabold">All Business Tools — Sorted by Category</h1>
-      <p class="mt-3 text-lg">Calculators, templates, AI assistants, MarketNest product research and more — all free for early users. Upgrade (Coming Soon).</p>
-      <div class="mt-6 flex justify-center gap-3">
-        <button id="openAuthPrimary" class="bg-white text-blue-600 px-5 py-2 rounded-md font-semibold shadow">Get Started Free</button>
-        <a href="#categories" class="px-5 py-2 border border-white/30 rounded-md">Browse Tools</a>
-      </div>
+  <!-- Hero Section -->
+  <section class="text-center py-16 bg-gradient-to-r from-blue-600 to-purple-500 text-white">
+    <h2 class="text-4xl font-bold mb-4">All Your Business Tools in One Place</h2>
+    <p class="text-lg mb-6">Access calculators, sheets, AI bots, and analytics globally.</p>
+    <button id="openSignup" class="bg-white text-blue-600 font-semibold px-6 py-2 rounded-lg shadow-md hover:bg-gray-100">
+      Get Started Free
+    </button>
+  </section>
+
+  <!-- Tools Section -->
+  <section class="p-6 grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+    <div class="bg-white p-4 rounded-xl shadow hover:shadow-lg">
+      <h3 class="font-semibold text-lg">Finance Calculator</h3>
+      <p class="text-gray-600">Simple ROI & profit margin tools.</p>
+    </div>
+    <div class="bg-white p-4 rounded-xl shadow hover:shadow-lg">
+      <h3 class="font-semibold text-lg">Google & Excel Sheets</h3>
+      <p class="text-gray-600">Ready-made templates for business tracking.</p>
+    </div>
+    <div class="bg-white p-4 rounded-xl shadow hover:shadow-lg">
+      <h3 class="font-semibold text-lg">AI Chat Assistants</h3>
+      <p class="text-gray-600">ChatGPT, Gemini & more integrated bots.</p>
     </div>
   </section>
 
-  <!-- MAIN: categories -->
-  <main id="categories" class="max-w-6xl mx-auto px-4 py-8 space-y-6">
-
-    <!-- Intro -->
-    <section class="bg-white p-5 rounded-xl shadow">
-      <div class="flex items-start justify-between">
-        <div>
-          <h2 class="text-xl font-semibold">Tool Index</h2>
-          <p class="text-sm text-slate-600 mt-1">Below is the complete ToolNest / MarketNest tool list — categorized and collapsible. Click any tool's Open button to go to its page (placeholder pages included).</p>
-        </div>
-        <div class="text-sm text-slate-500">All tools free • Premium: Coming Soon</div>
-      </div>
-    </section>
-
-    <!-- Category Template: Finance & Accounting Tools -->
-    <section class="bg-white p-4 rounded-xl shadow">
-      <button class="w-full flex items-center justify-between p-3 text-left" data-toggle="finance">
-        <div>
-          <h3 class="text-lg font-semibold">💼 Finance & Accounting Tools</h3>
-          <p class="text-sm text-slate-500 mt-1">Must-have calculators and finance sheets for every business.</p>
-        </div>
-        <div class="text-slate-400 collapse-btn">▾</div>
-      </button>
-
-      <div id="finance" class="hidden mt-3 space-y-3">
-        <!-- list items -->
-        <div class="grid md:grid-cols-2 gap-3">
-          <article class="p-4 border rounded">
-            <div class="flex justify-between items-start">
-              <div>
-                <h4 class="font-semibold">ROI Calculator</h4>
-                <p class="text-sm text-slate-600">Calculate return on investment quickly.</p>
-              </div>
-              <div class="text-sm"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/roi-calculator.html">Open Tool</button></div>
-            </div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <div class="flex justify-between items-start">
-              <div>
-                <h4 class="font-semibold">Profit Margin Calculator</h4>
-                <p class="text-sm text-slate-600">Compute gross & net margins.</p>
-              </div>
-              <div class="text-sm"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/profit-margin.html">Open Tool</button></div>
-            </div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <div class="flex justify-between items-start">
-              <div>
-                <h4 class="font-semibold">Break-even Point Analyzer</h4>
-                <p class="text-sm text-slate-600">Find units/revenue needed to break even.</p>
-              </div>
-              <div class="text-sm"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/breakeven.html">Open Tool</button></div>
-            </div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <div class="flex justify-between items-start">
-              <div>
-                <h4 class="font-semibold">Loan EMI Calculator</h4>
-                <p class="text-sm text-slate-600">EMI schedule & interest summary.</p>
-              </div>
-              <div class="text-sm"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/emi.html">Open Tool</button></div>
-            </div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <div class="flex justify-between items-start">
-              <div>
-                <h4 class="font-semibold">Tax / GST / VAT Calculator</h4>
-                <p class="text-sm text-slate-600">Compute taxes for invoices & sales.</p>
-              </div>
-              <div class="text-sm"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/tax.html">Open Tool</button></div>
-            </div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <div class="flex justify-between items-start">
-              <div>
-                <h4 class="font-semibold">Currency Converter (Live API Ready)</h4>
-                <p class="text-sm text-slate-600">Supports multiple currencies; API hook ready.</p>
-              </div>
-              <div class="text-sm"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/currency.html">Open Tool</button></div>
-            </div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <div class="flex justify-between items-start">
-              <div>
-                <h4 class="font-semibold">Expense Tracker (Sheets & Excel)</h4>
-                <p class="text-sm text-slate-600">Downloadable templates for tracking expenses.</p>
-              </div>
-              <div class="flex gap-2">
-                <a class="px-3 py-1 bg-emerald-500 text-white rounded" href="templates/expense-tracker.xlsx" download>Download Excel</a>
-                <a class="px-3 py-1 bg-blue-500 text-white rounded" target="_blank" href="https://docs.google.com/spreadsheets/">Open Google Sheet</a>
-              </div>
-            </div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <div class="flex justify-between items-start">
-              <div>
-                <h4 class="font-semibold">Cash Flow Analyzer</h4>
-                <p class="text-sm text-slate-600">Monthly cash flow projection template.</p>
-              </div>
-              <div class="text-sm"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/cashflow.html">Open Tool</button></div>
-            </div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <div class="flex justify-between items-start">
-              <div>
-                <h4 class="font-semibold">Salary / Payroll Sheet</h4>
-                <p class="text-sm text-slate-600">Payroll Excel & sheet templates included.</p>
-              </div>
-              <div class="flex gap-2">
-                <a class="px-3 py-1 bg-emerald-500 text-white rounded" href="templates/payroll.xlsx" download>Download Excel</a>
-                <a class="px-3 py-1 bg-blue-500 text-white rounded" target="_blank" href="https://docs.google.com/spreadsheets/">Open Google Sheet</a>
-              </div>
-            </div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- Business Management Tools -->
-    <section class="bg-white p-4 rounded-xl shadow">
-      <button class="w-full flex items-center justify-between p-3 text-left" data-toggle="business">
-        <div>
-          <h3 class="text-lg font-semibold">🔧 Business Management Tools</h3>
-          <p class="text-sm text-slate-500 mt-1">Planning, tracking and management templates.</p>
-        </div>
-        <div class="text-slate-400 collapse-btn">▾</div>
-      </button>
-
-      <div id="business" class="hidden mt-3 space-y-3">
-        <div class="grid md:grid-cols-2 gap-3">
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Revenue Forecast Tool</h4>
-            <p class="text-sm text-slate-600">Simple revenue projection input/output.</p>
-            <div class="mt-3"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/revenue-forecast.html">Open Tool</button></div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Budget Planner</h4>
-            <p class="text-sm text-slate-600">Monthly & yearly budgeting template.</p>
-            <div class="mt-3"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/budget.html">Open Tool</button></div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Employee Attendance Tracker</h4>
-            <p class="text-sm text-slate-600">Excel sheet for attendance & hours.</p>
-            <div class="mt-3">
-              <a href="templates/attendance.xlsx" download class="px-3 py-1 bg-emerald-500 text-white rounded">Download Excel</a>
-            </div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Invoice Generator</h4>
-            <p class="text-sm text-slate-600">Create professional invoices in seconds.</p>
-            <div class="mt-3"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/invoice.html">Open Tool</button></div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Business Proposal Template (Word / PDF)</h4>
-            <p class="text-sm text-slate-600">Downloadable proposal templates.</p>
-            <div class="mt-3">
-              <a href="templates/proposal.docx" download class="px-3 py-1 bg-emerald-500 text-white rounded">Download</a>
-            </div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Time Tracking Tool</h4>
-            <p class="text-sm text-slate-600">Basic timer & log export.</p>
-            <div class="mt-3"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/time-tracker.html">Open Tool</button></div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Meeting Notes Template</h4>
-            <p class="text-sm text-slate-600">Quick meeting notes & action items template.</p>
-            <div class="mt-3"><a href="templates/meeting-notes.docx" download class="px-3 py-1 bg-emerald-500 text-white rounded">Download</a></div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- E-commerce & Marketing Tools -->
-    <section class="bg-white p-4 rounded-xl shadow">
-      <button class="w-full flex items-center justify-between p-3 text-left" data-toggle="ecommerce">
-        <div>
-          <h3 class="text-lg font-semibold">🛍️ E-commerce & Marketing Tools</h3>
-          <p class="text-sm text-slate-500 mt-1">Pricing, keywords, inventory and competitor tools.</p>
-        </div>
-        <div class="text-slate-400 collapse-btn">▾</div>
-      </button>
-
-      <div id="ecommerce" class="hidden mt-3 space-y-3">
-        <div class="grid md:grid-cols-2 gap-3">
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Product Pricing Calculator</h4>
-            <p class="text-sm text-slate-600">Calculate price after fees & margins.</p>
-            <div class="mt-3"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/pricing.html">Open Tool</button></div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Discount Finder</h4>
-            <p class="text-sm text-slate-600">Best discount strategies & calculations.</p>
-            <div class="mt-3"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/discount.html">Open Tool</button></div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Inventory Tracker</h4>
-            <p class="text-sm text-slate-600">Stock, reorder alerts (sheet templates).</p>
-            <div class="mt-3"><a href="templates/inventory.xlsx" download class="px-3 py-1 bg-emerald-500 text-white rounded">Download Excel</a></div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Keyword Research Tool (MarketNest Analyzer)</h4>
-            <p class="text-sm text-slate-600">Search volume & trend insights (Beta).</p>
-            <div class="mt-3"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/marketnest.html">Open MarketNest</button></div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Competitor Tracker (sheet)</h4>
-            <p class="text-sm text-slate-600">Manual tracker template for competitors.</p>
-            <div class="mt-3"><a href="templates/competitor-tracker.xlsx" download class="px-3 py-1 bg-emerald-500 text-white rounded">Download</a></div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Profit & Fee Calculator (Amazon/eBay style)</h4>
-            <p class="text-sm text-slate-600">Fees, shipping & net profit calculation.</p>
-            <div class="mt-3"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/fees.html">Open Tool</button></div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Product Launch Planner</h4>
-            <p class="text-sm text-slate-600">Checklist & timeline template for launches.</p>
-            <div class="mt-3"><a href="templates/launch-planner.xlsx" download class="px-3 py-1 bg-emerald-500 text-white rounded">Download</a></div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- Data & Productivity Tools -->
-    <section class="bg-white p-4 rounded-xl shadow">
-      <button class="w-full flex items-center justify-between p-3 text-left" data-toggle="data">
-        <div>
-          <h3 class="text-lg font-semibold">📊 Data & Productivity Tools</h3>
-          <p class="text-sm text-slate-500 mt-1">Sheets, converters, cleaners and reporting templates.</p>
-        </div>
-        <div class="text-slate-400 collapse-btn">▾</div>
-      </button>
-
-      <div id="data" class="hidden mt-3 space-y-3">
-        <div class="grid md:grid-cols-2 gap-3">
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Google Sheets Templates</h4>
-            <p class="text-sm text-slate-600">Quick access to our templates collection.</p>
-            <div class="mt-3"><a href="templates/" class="px-3 py-1 bg-blue-500 text-white rounded" target="_blank">Open Templates</a></div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Excel Business Templates</h4>
-            <p class="text-sm text-slate-600">Downloadable ready-to-use Excel files.</p>
-            <div class="mt-3"><a href="templates/" class="px-3 py-1 bg-emerald-500 text-white rounded">Download Excel</a></div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">CSV → Excel Converter</h4>
-            <p class="text-sm text-slate-600">Convert CSV files to Excel format (client-side).</p>
-            <div class="mt-3"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/csv-to-excel.html">Open Tool</button></div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Sheet Merger Tool</h4>
-            <p class="text-sm text-slate-600">Merge multiple CSV/Sheets into one (client side).</p>
-            <div class="mt-3"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/merge-sheets.html">Open Tool</button></div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Data Cleaner (remove duplicates)</h4>
-            <p class="text-sm text-slate-600">Simple duplicate remover & cleaner.</p>
-            <div class="mt-3"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/data-cleaner.html">Open Tool</button></div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Dashboard Template for Reporting</h4>
-            <p class="text-sm text-slate-600">Excel/Sheets dashboard examples for reporting.</p>
-            <div class="mt-3"><a href="templates/report-dashboard.xlsx" download class="px-3 py-1 bg-emerald-500 text-white rounded">Download</a></div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- AI & Automation Tools -->
-    <section class="bg-white p-4 rounded-xl shadow">
-      <button class="w-full flex items-center justify-between p-3 text-left" data-toggle="ai">
-        <div>
-          <h3 class="text-lg font-semibold">🤖 AI & Automation Tools</h3>
-          <p class="text-sm text-slate-500 mt-1">Assistants, generators and automations to speed up work.</p>
-        </div>
-        <div class="text-slate-400 collapse-btn">▾</div>
-      </button>
-
-      <div id="ai" class="hidden mt-3 space-y-3">
-        <div class="grid md:grid-cols-2 gap-3">
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">ChatGPT Assistant (Free UI)</h4>
-            <p class="text-sm text-slate-600">OpenAI chat interface (opens official chat for now).</p>
-            <div class="mt-3"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-open="https://chat.openai.com">Open</button></div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Gemini UI (dummy)</h4>
-            <p class="text-sm text-slate-600">Placeholder for Google Gemini integration later.</p>
-            <div class="mt-3"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/gemini.html">Open</button></div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Auto Email Generator</h4>
-            <p class="text-sm text-slate-600">Generate professional business emails & proposals.</p>
-            <div class="mt-3"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/email-generator.html">Open Tool</button></div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Task Automation Templates (Zapier style)</h4>
-            <p class="text-sm text-slate-600">Ready tasks & automation templates.</p>
-            <div class="mt-3"><a class="px-3 py-1 bg-blue-500 text-white rounded" target="_blank" href="https://zapier.com">Zapier Examples</a></div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">AI Name / Slogan Generator</h4>
-            <p class="text-sm text-slate-600">Generate brand names and slogans fast.</p>
-            <div class="mt-3"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/name-generator.html">Open Tool</button></div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Document Summarizer</h4>
-            <p class="text-sm text-slate-600">Summarize long docs to key points.</p>
-            <div class="mt-3"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/summarizer.html">Open Tool</button></div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- Design & Branding Tools -->
-    <section class="bg-white p-4 rounded-xl shadow">
-      <button class="w-full flex items-center justify-between p-3 text-left" data-toggle="design">
-        <div>
-          <h3 class="text-lg font-semibold">🎨 Design & Branding Tools</h3>
-          <p class="text-sm text-slate-500 mt-1">Logos, cards, palettes and social copy helpers.</p>
-        </div>
-        <div class="text-slate-400 collapse-btn">▾</div>
-      </button>
-
-      <div id="design" class="hidden mt-3 space-y-3">
-        <div class="grid md:grid-cols-2 gap-3">
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Logo Maker (basic)</h4>
-            <p class="text-sm text-slate-600">Simple logo creator template (downloadable).</p>
-            <div class="mt-3"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/logo-maker.html">Open</button></div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Business Card Template</h4>
-            <p class="text-sm text-slate-600">Canva-style editable template link.</p>
-            <div class="mt-3"><a href="#" class="px-3 py-1 bg-blue-500 text-white rounded" target="_blank">Open Template</a></div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Brand Color Palette Generator</h4>
-            <p class="text-sm text-slate-600">Pick color sets for branding.</p>
-            <div class="mt-3"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/colors.html">Open</button></div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Social Media Post Caption Generator</h4>
-            <p class="text-sm text-slate-600">Captions for Instagram, Facebook & LinkedIn.</p>
-            <div class="mt-3"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/captions.html">Open</button></div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- Website & SEO Tools -->
-    <section class="bg-white p-4 rounded-xl shadow">
-      <button class="w-full flex items-center justify-between p-3 text-left" data-toggle="seo">
-        <div>
-          <h3 class="text-lg font-semibold">🌐 Website & SEO Tools</h3>
-          <p class="text-sm text-slate-500 mt-1">Meta tags, SEO checks and sitemaps.</p>
-        </div>
-        <div class="text-slate-400 collapse-btn">▾</div>
-      </button>
-
-      <div id="seo" class="hidden mt-3 space-y-3">
-        <div class="grid md:grid-cols-2 gap-3">
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Meta Tag Generator</h4>
-            <p class="text-sm text-slate-600">Generate meta tags for pages quickly.</p>
-            <div class="mt-3"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/meta.html">Open</button></div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">SEO Keyword Density Checker</h4>
-            <p class="text-sm text-slate-600">Analyze text for keyword density.</p>
-            <div class="mt-3"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/keyword-density.html">Open</button></div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Backlink Tracker (manual)</h4>
-            <p class="text-sm text-slate-600">Manual backlink sheet and tracker.</p>
-            <div class="mt-3"><a href="templates/backlinks.xlsx" download class="px-3 py-1 bg-emerald-500 text-white rounded">Download</a></div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Sitemap XML Generator</h4>
-            <p class="text-sm text-slate-600">Create sitemap.xml for your site.</p>
-            <div class="mt-3"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/sitemap.html">Open</button></div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Page Speed Tester (API-ready)</h4>
-            <p class="text-sm text-slate-600">UX: API-ready UI to test page speed.</p>
-            <div class="mt-3"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/speed-test.html">Open</button></div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- Communication & Management -->
-    <section class="bg-white p-4 rounded-xl shadow">
-      <button class="w-full flex items-center justify-between p-3 text-left" data-toggle="comm">
-        <div>
-          <h3 class="text-lg font-semibold">🗂️ Communication & Management</h3>
-          <p class="text-sm text-slate-500 mt-1">Project & team management templates and tools.</p>
-        </div>
-        <div class="text-slate-400 collapse-btn">▾</div>
-      </button>
-
-      <div id="comm" class="hidden mt-3 space-y-3">
-        <div class="grid md:grid-cols-2 gap-3">
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Project Task Manager (Kanban sheet)</h4>
-            <p class="text-sm text-slate-600">Kanban-style tracker using Sheets/Excel.</p>
-            <div class="mt-3"><a href="templates/kanban.xlsx" download class="px-3 py-1 bg-emerald-500 text-white rounded">Download</a></div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Team Chat UI (dummy)</h4>
-            <p class="text-sm text-slate-600">Placeholder chat UI (future upgrade).</p>
-            <div class="mt-3"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/chat-ui.html">Open</button></div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Client Feedback Form</h4>
-            <p class="text-sm text-slate-600">Simple feedback form template & sheet.</p>
-            <div class="mt-3"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/feedback.html">Open</button></div>
-          </article>
-
-          <article class="p-4 border rounded">
-            <h4 class="font-semibold">Email Signature Generator</h4>
-            <p class="text-sm text-slate-600">Create professional email signatures in seconds.</p>
-            <div class="mt-3"><button class="open-tool px-3 py-1 bg-cyan-600 text-white rounded" data-page="tools/email-signature.html">Open</button></div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- Upcoming / Premium Tools -->
-    <section class="bg-white p-4 rounded-xl shadow">
-      <div class="flex items-center justify-between">
-        <div>
-          <h3 class="text-lg font-semibold">🚀 Upcoming / Premium Tools (Coming Soon)</h3>
-          <p class="text-sm text-slate-600 mt-1">MarketNest Pro & advanced BI tools will be added later — sign up to be notified.</p>
-          <ul class="mt-2 text-sm text-slate-600 list-disc list-inside">
-            <li>MarketNest Pro Analyzer (AI-based Product Finder)</li>
-            <li>Business Intelligence Dashboard</li>
-            <li>AI Data Visualizer</li>
-            <li>Multi-user Team Workspace</li>
-          </ul>
-        </div>
-        <div>
-          <button id="notifyBtn" class="px-3 py-2 bg-amber-400 text-black rounded-md">Notify Me</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- Ad Placeholder -->
-    <section class="bg-white p-4 rounded-xl shadow text-center">
-      <div class="text-sm text-slate-600">Advertisement</div>
-      <div class="mt-3 h-24 bg-slate-100 rounded flex items-center justify-center text-slate-400">
-        Google AdSense / Ads Placeholder
-      </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="text-center text-sm text-slate-500 py-6">
-      © 2025 ToolNest • All tools free for now • Upgrade coming soon
-    </footer>
-  </main>
-
-  <!-- AUTH MODAL (EMAIL only) -->
-  <div id="authModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+  <!-- Auth Modal -->
+  <div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center">
     <div class="bg-white rounded-xl w-96 p-6 shadow-lg relative">
-      <button id="closeModal" class="absolute top-3 right-3 text-gray-500 text-xl">&times;</button>
+      <button id="closeModal" class="absolute top-2 right-2 text-gray-500 text-xl">&times;</button>
       <h2 id="modalTitle" class="text-2xl font-bold mb-4 text-center">Login</h2>
 
-      <input id="emailInput" type="email" placeholder="Email" class="w-full p-2 border rounded mb-3" />
-      <input id="passwordInput" type="password" placeholder="Password" class="w-full p-2 border rounded mb-4" />
+      <input type="email" id="email" placeholder="Email" class="w-full p-2 border rounded mb-3" />
+      <input type="password" id="password" placeholder="Password" class="w-full p-2 border rounded mb-4" />
 
-      <button id="submitAuth" class="w-full bg-cyan-600 text-white py-2 rounded-lg font-semibold">Continue</button>
+      <button id="submitAuth" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold">Continue</button>
 
       <p id="toggleAuth" class="text-center text-sm text-blue-500 mt-3 cursor-pointer">Create an account</p>
       <p id="forgotPass" class="text-center text-sm text-gray-500 mt-1 cursor-pointer">Forgot Password?</p>
     </div>
   </div>
 
-  <!-- SCRIPTS: Firebase + UI logic -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import {
-      getAuth,
-      createUserWithEmailAndPassword,
-      signInWithEmailAndPassword,
-      signOut,
-      sendPasswordResetEmail,
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+  <!-- Footer -->
+  <footer class="text-center p-4 bg-white mt-12 shadow-inner text-gray-500">
+    © 2025 MarketNest. All rights reserved.
+  </footer>
 
-    // ===== FIREBASE CONFIG (your project) =====
+  <!-- Firebase Auth + JS -->
+  <script>
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBuYXfr-_q-BJskWHN4chB8SZqMc-P9odw",
       authDomain: "toolnest-8e42d.firebaseapp.com",
@@ -587,145 +77,77 @@
       messagingSenderId: "988256036107",
       appId: "1:988256036107:web:90f7e40f07593dff8e2e0e"
     };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-
-    // UI elements
-    const openAuthBtn = document.getElementById('openAuthBtn');
-    const openAuthPrimary = document.getElementById('openAuthPrimary');
+    // UI Elements
     const authModal = document.getElementById('authModal');
+    const openSignup = document.getElementById('openSignup');
+    const loginBtn = document.getElementById('loginBtn');
     const closeModal = document.getElementById('closeModal');
+    const modalTitle = document.getElementById('modalTitle');
     const submitAuth = document.getElementById('submitAuth');
     const toggleAuth = document.getElementById('toggleAuth');
     const forgotPass = document.getElementById('forgotPass');
-    const emailInput = document.getElementById('emailInput');
-    const passwordInput = document.getElementById('passwordInput');
-    const userEmailEl = document.getElementById('userEmail');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const notifyBtn = document.getElementById('notifyBtn');
+    const emailInput = document.getElementById('email');
+    const passInput = document.getElementById('password');
 
     let isSignup = false;
 
-    // Open modal handlers
-    openAuthBtn?.addEventListener('click', () => openModal(false));
-    openAuthPrimary?.addEventListener('click', () => openModal(true));
-    closeModal?.addEventListener('click', () => authModal.classList.add('hidden'));
+    // Open modal
+    openSignup.onclick = () => openModal(true);
+    loginBtn.onclick = () => openModal(false);
+    closeModal.onclick = () => authModal.classList.add('hidden');
 
-    function openModal(defaultSignup) {
-      isSignup = defaultSignup;
-      document.getElementById('modalTitle').innerText = isSignup ? 'Create Account' : 'Login';
-      submitAuth.innerText = isSignup ? 'Sign Up' : 'Login';
-      toggleAuth.innerText = isSignup ? 'Already have an account?' : 'Create an account';
+    function openModal(signup) {
+      isSignup = signup;
+      modalTitle.innerText = signup ? 'Create Account' : 'Login';
+      submitAuth.innerText = signup ? 'Sign Up' : 'Login';
+      toggleAuth.innerText = signup ? 'Already have an account?' : 'Create an account';
       authModal.classList.remove('hidden');
     }
 
-    toggleAuth.addEventListener('click', () => {
-      openModal(!isSignup);
-    });
+    toggleAuth.onclick = () => openModal(!isSignup);
 
-    submitAuth.addEventListener('click', async () => {
+    // Login / Signup
+    submitAuth.onclick = () => {
       const email = emailInput.value.trim();
-      const pass = passwordInput.value.trim();
+      const pass = passInput.value.trim();
       if (!email || !pass) return alert('Please fill all fields');
 
-      try {
-        if (isSignup) {
-          await createUserWithEmailAndPassword(auth, email, pass);
-          alert('Account created successfully!');
-        } else {
-          await signInWithEmailAndPassword(auth, email, pass);
-          alert('Logged in!');
-        }
-        authModal.classList.add('hidden');
-        // redirect to dashboard (optional) - here we keep user on same page and show user state
-        // window.location.href = 'dashboard.html';
-      } catch (e) {
-        alert('Error: ' + e.message);
-      }
-    });
-
-    forgotPass.addEventListener('click', async () => {
-      const email = emailInput.value.trim();
-      if (!email) return alert('Enter your email first');
-      try {
-        await sendPasswordResetEmail(auth, email);
-        alert('Password reset email sent!');
-      } catch (e) {
-        alert('Error: ' + e.message);
-      }
-    });
-
-    logoutBtn.addEventListener('click', async () => {
-      await signOut(auth);
-    });
-
-    // notify button (stores interest in localStorage for now; later push to Firestore)
-    notifyBtn.addEventListener('click', () => {
-      alert('Thanks — we will notify you when Premium features are live.');
-      // Optionally capture in Firestore (future)
-    });
-
-    // Auth state handling
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        userEmailEl.innerText = user.email || 'User';
-        userEmailEl.classList.remove('hidden');
-        logoutBtn.classList.remove('hidden');
-        openAuthBtn.classList.add('hidden');
+      if (isSignup) {
+        auth.createUserWithEmailAndPassword(email, pass)
+          .then(() => {
+            alert('Account created!');
+            authModal.classList.add('hidden');
+            window.location.href = "pages/dashboard.html";
+          })
+          .catch(e => alert(e.message));
       } else {
-        userEmailEl.classList.add('hidden');
-        logoutBtn.classList.add('hidden');
-        openAuthBtn.classList.remove('hidden');
+        auth.signInWithEmailAndPassword(email, pass)
+          .then(() => {
+            alert('Logged in!');
+            authModal.classList.add('hidden');
+            window.location.href = "pages/dashboard.html";
+          })
+          .catch(e => alert(e.message));
       }
-    });
-
-    // Collapsible sections logic
-    document.querySelectorAll('[data-toggle]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const id = btn.getAttribute('data-toggle');
-        const panel = document.getElementById(id);
-        if (!panel) return;
-        panel.classList.toggle('hidden');
-        // rotate arrow
-        const arrow = btn.querySelector('.collapse-btn');
-        if (arrow) arrow.classList.toggle('collapsed');
-        // smooth scroll into view when opening
-        if (!panel.classList.contains('hidden')) {
-          setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
-        }
-      });
-    });
-
-    // Open tool handler (opens placeholder pages or external)
-    document.querySelectorAll('.open-tool').forEach(b => {
-      b.addEventListener('click', (e) => {
-        const page = e.currentTarget.getAttribute('data-page');
-        const openUrl = e.currentTarget.getAttribute('data-open') || page || '#';
-        if (!openUrl || openUrl === '#') {
-          alert('Tool page not yet added. This is a placeholder.');
-          return;
-        }
-        // open tool page in new tab
-        window.open(openUrl, '_blank');
-      });
-    });
-
-    // keyboard accessibility: close modal on Escape
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') authModal.classList.add('hidden');
-    });
-
-    // quick check: if user not logged in and tries to open some tools, allow but show modal for saving
-    window.openTool = (key) => {
-      alert('Opening tool: ' + key + ' (demo). Tools are free — some are placeholder pages.');
     };
 
-    // simple placeholder downloads availability check
-    window.addEventListener('load', () => {
-      // nothing else for now
-    });
+    // Forgot password
+    forgotPass.onclick = () => {
+      const email = emailInput.value.trim();
+      if (!email) return alert('Enter your email first');
+      auth.sendPasswordResetEmail(email).then(() => {
+        alert('Password reset email sent!');
+      });
+    };
 
+    // Auto-redirect logged-in users
+    auth.onAuthStateChanged(user => {
+      if (user) window.location.href = "pages/dashboard.html";
+    });
   </script>
+
 </body>
 </html>
