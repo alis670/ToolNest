@@ -3,70 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MarketNest - Smart Business Tools</title>
+  <title>MarketNest - Login</title>
   <script src="https://cdn.tailwindcss.com"></script>
 
   <!-- Firebase CDN -->
   <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js"></script>
 </head>
-<body class="bg-gray-100 text-gray-800">
+<body class="bg-gradient-to-r from-blue-500 to-purple-600 min-h-screen flex items-center justify-center">
 
-  <!-- Navbar -->
-  <nav class="bg-white shadow-md p-4 flex justify-between items-center">
-    <h1 class="text-2xl font-bold text-blue-600">MarketNest</h1>
-    <div id="userControls">
-      <button id="loginBtn" class="px-4 py-2 bg-blue-500 text-white rounded-lg">Login / Signup</button>
-    </div>
-  </nav>
+  <!-- Login/Signup Modal -->
+  <div class="bg-white rounded-3xl shadow-2xl p-10 w-96 max-w-full">
+    <h2 id="modalTitle" class="text-3xl font-bold text-center mb-6 text-gray-800">Login</h2>
 
-  <!-- Hero Section -->
-  <section class="text-center py-16 bg-gradient-to-r from-blue-600 to-purple-500 text-white">
-    <h2 class="text-4xl font-bold mb-4">All Your Business Tools in One Place</h2>
-    <p class="text-lg mb-6">Access calculators, sheets, AI bots, and analytics globally.</p>
-    <button id="openSignup" class="bg-white text-blue-600 font-semibold px-6 py-2 rounded-lg shadow-md hover:bg-gray-100">
-      Get Started Free
-    </button>
-  </section>
+    <input type="email" id="email" placeholder="Email" class="w-full p-3 mb-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+    <input type="password" id="password" placeholder="Password" class="w-full p-3 mb-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"/>
 
-  <!-- Tools Section -->
-  <section class="p-6 grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-    <div class="bg-white p-4 rounded-xl shadow hover:shadow-lg">
-      <h3 class="font-semibold text-lg">Finance Calculator</h3>
-      <p class="text-gray-600">Simple ROI & profit margin tools.</p>
-    </div>
-    <div class="bg-white p-4 rounded-xl shadow hover:shadow-lg">
-      <h3 class="font-semibold text-lg">Google & Excel Sheets</h3>
-      <p class="text-gray-600">Ready-made templates for business tracking.</p>
-    </div>
-    <div class="bg-white p-4 rounded-xl shadow hover:shadow-lg">
-      <h3 class="font-semibold text-lg">AI Chat Assistants</h3>
-      <p class="text-gray-600">ChatGPT, Gemini & more integrated bots.</p>
-    </div>
-  </section>
+    <button id="submitAuth" class="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors mb-3">Continue</button>
 
-  <!-- Auth Modal -->
-  <div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center">
-    <div class="bg-white rounded-xl w-96 p-6 shadow-lg relative">
-      <button id="closeModal" class="absolute top-2 right-2 text-gray-500 text-xl">&times;</button>
-      <h2 id="modalTitle" class="text-2xl font-bold mb-4 text-center">Login</h2>
-
-      <input type="email" id="email" placeholder="Email" class="w-full p-2 border rounded mb-3" />
-      <input type="password" id="password" placeholder="Password" class="w-full p-2 border rounded mb-4" />
-
-      <button id="submitAuth" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold">Continue</button>
-
-      <p id="toggleAuth" class="text-center text-sm text-blue-500 mt-3 cursor-pointer">Create an account</p>
-      <p id="forgotPass" class="text-center text-sm text-gray-500 mt-1 cursor-pointer">Forgot Password?</p>
-    </div>
+    <p id="toggleAuth" class="text-center text-sm text-blue-500 mt-3 cursor-pointer">Create an account</p>
+    <p id="forgotPass" class="text-center text-sm text-gray-500 mt-1 cursor-pointer">Forgot Password?</p>
   </div>
 
-  <!-- Footer -->
-  <footer class="text-center p-4 bg-white mt-12 shadow-inner text-gray-500">
-    © 2025 MarketNest. All rights reserved.
-  </footer>
-
-  <!-- Firebase Auth + JS -->
   <script>
     // Firebase config
     const firebaseConfig = {
@@ -80,11 +38,7 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-    // UI Elements
-    const authModal = document.getElementById('authModal');
-    const openSignup = document.getElementById('openSignup');
-    const loginBtn = document.getElementById('loginBtn');
-    const closeModal = document.getElementById('closeModal');
+    // Elements
     const modalTitle = document.getElementById('modalTitle');
     const submitAuth = document.getElementById('submitAuth');
     const toggleAuth = document.getElementById('toggleAuth');
@@ -94,23 +48,16 @@
 
     let isSignup = false;
 
-    // Open modal
-    openSignup.onclick = () => openModal(true);
-    loginBtn.onclick = () => openModal(false);
-    closeModal.onclick = () => authModal.classList.add('hidden');
-
-    function openModal(signup) {
-      isSignup = signup;
-      modalTitle.innerText = signup ? 'Create Account' : 'Login';
-      submitAuth.innerText = signup ? 'Sign Up' : 'Login';
-      toggleAuth.innerText = signup ? 'Already have an account?' : 'Create an account';
-      authModal.classList.remove('hidden');
+    function toggleMode() {
+      isSignup = !isSignup;
+      modalTitle.innerText = isSignup ? 'Create Account' : 'Login';
+      submitAuth.innerText = isSignup ? 'Sign Up' : 'Login';
+      toggleAuth.innerText = isSignup ? 'Already have an account?' : 'Create an account';
     }
 
-    toggleAuth.onclick = () => openModal(!isSignup);
+    toggleAuth.addEventListener('click', toggleMode);
 
-    // Login / Signup
-    submitAuth.onclick = () => {
+    submitAuth.addEventListener('click', () => {
       const email = emailInput.value.trim();
       const pass = passInput.value.trim();
       if (!email || !pass) return alert('Please fill all fields');
@@ -119,7 +66,6 @@
         auth.createUserWithEmailAndPassword(email, pass)
           .then(() => {
             alert('Account created!');
-            authModal.classList.add('hidden');
             window.location.href = "pages/dashboard.html";
           })
           .catch(e => alert(e.message));
@@ -127,23 +73,21 @@
         auth.signInWithEmailAndPassword(email, pass)
           .then(() => {
             alert('Logged in!');
-            authModal.classList.add('hidden');
             window.location.href = "pages/dashboard.html";
           })
           .catch(e => alert(e.message));
       }
-    };
+    });
 
-    // Forgot password
-    forgotPass.onclick = () => {
+    forgotPass.addEventListener('click', () => {
       const email = emailInput.value.trim();
       if (!email) return alert('Enter your email first');
       auth.sendPasswordResetEmail(email).then(() => {
         alert('Password reset email sent!');
       });
-    };
+    });
 
-    // Auto-redirect logged-in users
+    // Auto redirect if already logged in
     auth.onAuthStateChanged(user => {
       if (user) window.location.href = "pages/dashboard.html";
     });
