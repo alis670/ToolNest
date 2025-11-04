@@ -16,15 +16,13 @@
 <div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
   <div class="bg-white rounded-xl w-96 p-6 shadow-lg relative animate-fadeIn">
 
-    <!-- ToolNest Icon Section -->
     <div class="text-center mb-4 flex flex-col items-center">
-      <div class="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
-        <span class="text-white text-2xl font-bold">TN</span>
-      </div>
+      <img src="https://alis670.github.io/ToolNest/toolnest-logo.png" alt="ToolNest Logo" class="w-20 h-20 object-contain"/>
+      <h1 class="text-2xl font-bold mt-2 text-gray-700">ToolNest</h1>
     </div>
 
     <!-- Modal Title -->
-    <h2 id="modalTitle" class="text-xl font-semibold text-center mb-4">ToolNest</h2>
+    <h2 id="modalTitle" class="text-xl font-semibold text-center mb-4">Login</h2>
 
     <input type="email" id="email" placeholder="Email" class="w-full p-2 border rounded mb-3" />
     <input type="password" id="password" placeholder="Password" class="w-full p-2 border rounded mb-4" />
@@ -34,24 +32,12 @@
   </div>
 </div>
 
-<!-- Dashboard -->
-<main id="dashboardContainer" class="max-w-7xl mx-auto p-6 space-y-12 hidden">
-  <h2 class="text-xl text-gray-600">Welcome! Your tools will appear after login.</h2>
-</main>
-
 <!-- Toast Container -->
 <div id="toastContainer" class="fixed top-5 right-5 z-50"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { 
-  getAuth, 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut, 
-  sendPasswordResetEmail,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBuYXfr-_q-BJskWHN4chB8SZqMc-P9odw",
@@ -73,7 +59,6 @@ const toggleAuth = document.getElementById('toggleAuth');
 const forgotPass = document.getElementById('forgotPass');
 const emailInput = document.getElementById('email');
 const passInput = document.getElementById('password');
-const dashboardContainer = document.getElementById('dashboardContainer');
 const toastContainer = document.getElementById('toastContainer');
 
 let isSignup = false;
@@ -90,7 +75,7 @@ function showToast(message, type="success"){
 // Open modal
 function openModal(signup){
   isSignup = signup;
-  modalTitle.innerText = "ToolNest";
+  modalTitle.innerText = signup?"Create Account":"Login";
   submitAuth.innerText = signup?"Sign Up":"Login";
   toggleAuth.innerText = signup?"Already have an account?":"Create an account";
   authModal.classList.remove('hidden');
@@ -113,6 +98,7 @@ submitAuth.onclick = async ()=>{
       showToast("Login successful!");
     }
     authModal.classList.add('hidden');
+    window.location.href="dashboard.html"; // redirect after login/signup
   }catch(e){showToast(e.message,"error")}
 }
 
@@ -125,31 +111,6 @@ forgotPass.onclick = async ()=>{
     showToast("Password reset email sent successfully!");
   }catch(e){showToast(e.message,"error")}
 }
-
-// Logout button
-const logoutBtn = document.createElement('button');
-logoutBtn.className="fixed top-5 right-5 px-4 py-2 bg-red-500 text-white rounded-lg hidden";
-logoutBtn.innerText="Logout";
-document.body.appendChild(logoutBtn);
-
-logoutBtn.onclick = async ()=>{
-  await signOut(auth);
-  showToast("Logged out successfully!");
-}
-
-// Update UI on auth change
-onAuthStateChanged(auth,user=>{
-  if(user){
-    dashboardContainer.classList.remove('hidden');
-    authModal.classList.add('hidden');
-    logoutBtn.classList.remove('hidden');
-  }else{
-    dashboardContainer.classList.add('hidden');
-    logoutBtn.classList.add('hidden');
-    authModal.classList.remove('hidden');
-    openModal(false);
-  }
-});
 </script>
 </body>
 </html>
