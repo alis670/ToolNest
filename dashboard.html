@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ToolNest Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBuYXfr-_q-BJskWHN4chB8SZqMc-P9odw",
+      authDomain: "toolnest-8e42d.firebaseapp.com",
+      projectId: "toolnest-8e42d",
+      storageBucket: "toolnest-8e42d.firebasestorage.app",
+      messagingSenderId: "988256036107",
+      appId: "1:988256036107:web:90f7e40f07593dff8e2e0e"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const logoutBtn = () => {
+      signOut(auth).then(() => {
+        window.location.href = "index.html";
+      });
+    };
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        document.getElementById("userEmail").innerText = user.email;
+      } else {
+        window.location.href = "index.html";
+      }
+    });
+
+    window.logoutBtn = logoutBtn;
+  </script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-4">
+  <header class="w-full bg-white shadow p-4 flex justify-between items-center rounded-lg max-w-4xl mt-4">
+    <h1 class="text-2xl font-bold text-gray-700">ToolNest Dashboard</h1>
+    <div>
+      <span id="userEmail" class="mr-4 text-gray-600"></span>
+      <button onclick="logoutBtn()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">Logout</button>
+    </div>
+  </header>
+
+  <main class="w-full max-w-4xl mt-8">
+    <section class="bg-white p-6 rounded-xl shadow mb-6">
+      <h2 class="text-xl font-semibold mb-4 text-gray-700">🧰 Free Tools</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <a href="#" class="bg-gray-50 p-4 rounded-xl shadow hover:shadow-md hover:bg-blue-50 transition">Calculator</a>
+        <a href="#" class="bg-gray-50 p-4 rounded-xl shadow hover:shadow-md hover:bg-blue-50 transition">Currency Converter</a>
+        <a href="#" class="bg-gray-50 p-4 rounded-xl shadow hover:shadow-md hover:bg-blue-50 transition">Google Sheets Templates</a>
+      </div>
+    </section>
+
+    <section class="bg-white p-6 rounded-xl shadow">
+      <h2 class="text-xl font-semibold mb-4 text-gray-700">💎 Premium Tools</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="bg-gray-50 p-4 rounded-xl shadow relative">
+          <div class="absolute inset-0 bg-gray-200 bg-opacity-60 flex items-center justify-center rounded-xl text-gray-600 font-semibold">
+            🔒 Upgrade to Access
+          </div>
+          <span>Helium 10 Alternatives</span>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-xl shadow relative">
+          <div class="absolute inset-0 bg-gray-200 bg-opacity-60 flex items-center justify-center rounded-xl text-gray-600 font-semibold">
+            🔒 Upgrade to Access
+          </div>
+          <span>Advanced Business Analytics</span>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
