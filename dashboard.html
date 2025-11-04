@@ -8,21 +8,38 @@
 <style>
 @keyframes fadeIn {0%{opacity:0}100%{opacity:1}}
 .animate-fadeIn {animation:fadeIn 0.5s ease-in;}
+.tool-card:hover {transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.15);}
 </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
 
+<!-- Header -->
+<header class="bg-white shadow-md sticky top-0 z-50 flex justify-between items-center px-6 py-3">
+  <div class="flex items-center space-x-2">
+    <img src="https://alis670.github.io/ToolNest/toolnest-logo.png" alt="ToolNest Logo" class="w-10 h-10 object-contain"/>
+    <h1 class="text-2xl font-bold text-gray-700">ToolNest</h1>
+  </div>
+  <button id="logoutBtn" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">Logout</button>
+</header>
+
+<!-- Search & Filter -->
+<section class="px-6 py-4 bg-white shadow-md flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
+  <input id="searchInput" type="text" placeholder="Search tools..." class="w-full md:w-1/3 p-2 border rounded"/>
+  <div id="categoryTabs" class="flex flex-wrap gap-2">
+    <!-- Category buttons injected by JS -->
+  </div>
+</section>
+
 <!-- Dashboard Container -->
-<main id="dashboardContainer" class="max-w-7xl mx-auto p-6 space-y-12 flex-1">
-</main>
+<main id="dashboardContainer" class="max-w-7xl mx-auto p-6 grid gap-6 md:grid-cols-3"></main>
 
 <!-- Toast Container -->
 <div id="toastContainer" class="fixed top-5 right-5 z-50"></div>
 
-<!-- Logout Button (fixed bottom) -->
-<button id="logoutBtn" class="fixed bottom-4 right-4 px-6 py-3 bg-red-500 text-white rounded-lg shadow-lg hover:bg-red-600 transition">
-  Logout
-</button>
+<!-- Footer -->
+<footer class="text-center p-4 bg-white mt-auto shadow-inner text-gray-500">
+  © 2025 ToolNest. All rights reserved.
+</footer>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
@@ -50,61 +67,68 @@ function showToast(message,type="success"){
   setTimeout(()=>toast.remove(),3000);
 }
 
-// Tools JSON
-const toolsData = [
-  { category: "Finance & Accounting Tools", tools: ["ROI Calculator","Profit Margin Calculator","Break-even Point Analyzer","Loan EMI Calculator","Tax / GST / VAT Calculator","Currency Converter","Expense Tracker","Cash Flow Analyzer","Salary / Payroll Sheet"] },
-  { category: "Business Management Tools", tools: ["Revenue Forecast Tool","Budget Planner","Employee Attendance Tracker","Invoice Generator","Business Proposal Template","Time Tracking Tool","Meeting Notes Template"] },
-  { category: "E-commerce & Marketing Tools", tools: ["Product Pricing Calculator","Discount Finder","Inventory Tracker","Keyword Research Tool","Competitor Tracker","Profit & Fee Calculator","Product Launch Planner"] },
-  { category: "Data & Productivity Tools", tools: ["Google Sheets Templates","Excel Business Templates","CSV → Excel Converter","Sheet Merger Tool","Data Cleaner","Dashboard Template for Reporting"] },
-  { category: "AI & Automation Tools", tools: ["ChatGPT Assistant","Gemini UI","Auto Email Generator","Task Automation Templates","AI Name / Slogan Generator","Document Summarizer"] },
-  { category: "Design & Branding Tools", tools: ["Logo Maker","Business Card Template","Brand Color Palette Generator","Social Media Post Caption Generator"] },
-  { category: "Website & SEO Tools", tools: ["Meta Tag Generator","SEO Keyword Density Checker","Backlink Tracker","Sitemap XML Generator","Page Speed Tester"] },
-  { category: "Communication & Management", tools: ["Project Task Manager","Team Chat UI","Client Feedback Form","Email Signature Generator"] },
-  { category: "Upcoming / Premium Tools", tools: ["MarketNest Pro Analyzer","Business Intelligence Dashboard","AI Data Visualizer","Multi-user Team Workspace"] }
-];
-
-// Generate dashboard
-const dashboardContainer = document.getElementById('dashboardContainer');
-toolsData.forEach(cat=>{
-  const section = document.createElement('section');
-  section.className="space-y-4";
-
-  const heading = document.createElement('h2');
-  heading.className="text-2xl font-bold text-gray-700";
-  heading.innerText = cat.category;
-  section.appendChild(heading);
-
-  const grid = document.createElement('div');
-  grid.className="grid md:grid-cols-3 gap-6";
-
-  cat.tools.forEach(tool=>{
-    const card = document.createElement('div');
-    card.className="bg-white p-4 rounded-xl shadow hover:shadow-lg cursor-pointer transition duration-200";
-    card.innerHTML=`<h3 class="font-semibold text-lg">${tool}</h3>`;
-    grid.appendChild(card);
-  });
-
-  section.appendChild(grid);
-  dashboardContainer.appendChild(section);
-});
-
 // Logout
 const logoutBtn = document.getElementById('logoutBtn');
 logoutBtn.onclick = async ()=>{
   try{
     await signOut(auth);
     showToast("Logged out successfully!");
-    window.location.href="index.html"; // redirect to login page
-  }catch(e){
-    showToast(e.message,"error");
-  }
+    window.location.href="index.html"; 
+  }catch(e){showToast(e.message,"error")}
 }
+
+// Tools Data
+const toolsData = [
+  { category: "Finance & Accounting", tools: ["ROI Calculator","Profit Margin Calculator","Break-even Point Analyzer","Loan EMI Calculator","Tax / GST / VAT Calculator","Currency Converter","Expense Tracker","Cash Flow Analyzer","Salary / Payroll Sheet"] },
+  { category: "Business Management", tools: ["Revenue Forecast Tool","Budget Planner","Employee Attendance Tracker","Invoice Generator","Business Proposal Template","Time Tracking Tool","Meeting Notes Template"] },
+  { category: "E-commerce & Marketing", tools: ["Product Pricing Calculator","Discount Finder","Inventory Tracker","Keyword Research Tool","Competitor Tracker","Profit & Fee Calculator","Product Launch Planner"] },
+  { category: "Data & Productivity", tools: ["Google Sheets Templates","Excel Business Templates","CSV → Excel Converter","Sheet Merger Tool","Data Cleaner","Dashboard Template"] },
+  { category: "AI & Automation", tools: ["ChatGPT Assistant","Gemini UI","Auto Email Generator","Task Automation Templates","AI Name / Slogan Generator","Document Summarizer"] },
+  { category: "Design & Branding", tools: ["Logo Maker","Business Card Template","Brand Color Palette Generator","Social Media Post Caption Generator"] },
+  { category: "Website & SEO", tools: ["Meta Tag Generator","SEO Keyword Density Checker","Backlink Tracker","Sitemap XML Generator","Page Speed Tester"] },
+  { category: "Communication & Management", tools: ["Project Task Manager","Team Chat UI","Client Feedback Form","Email Signature Generator"] },
+  { category: "Upcoming / Premium", tools: ["MarketNest Pro Analyzer","Business Intelligence Dashboard","AI Data Visualizer","Multi-user Team Workspace"] }
+];
+
+// Generate category tabs
+const categoryTabs = document.getElementById('categoryTabs');
+toolsData.forEach(cat=>{
+  const btn = document.createElement('button');
+  btn.innerText = cat.category;
+  btn.className = "px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition";
+  btn.onclick = ()=>displayTools(cat.category);
+  categoryTabs.appendChild(btn);
+});
+
+// Display tools
+const dashboardContainer = document.getElementById('dashboardContainer');
+function displayTools(selectedCategory){
+  dashboardContainer.innerHTML = "";
+  const filtered = toolsData.find(c=>c.category===selectedCategory);
+  filtered.tools.forEach(tool=>{
+    const card = document.createElement('div');
+    card.className="tool-card bg-white p-4 rounded-xl shadow hover:shadow-lg cursor-pointer transition duration-200 flex items-center space-x-2";
+    card.innerHTML=`<div class="w-10 h-10 bg-blue-200 flex items-center justify-center rounded-lg">🛠️</div><h3 class="font-semibold text-lg">${tool}</h3>`;
+    card.onclick = ()=>showToast(`Opened ${tool}`);
+    dashboardContainer.appendChild(card);
+  });
+}
+
+// Search Filter
+const searchInput = document.getElementById('searchInput');
+searchInput.addEventListener('input', ()=>{
+  const term = searchInput.value.toLowerCase();
+  dashboardContainer.querySelectorAll('.tool-card').forEach(card=>{
+    card.style.display = card.innerText.toLowerCase().includes(term) ? "flex" : "none";
+  });
+});
+
+// Display first category by default
+displayTools(toolsData[0].category);
 
 // Auth state check
 onAuthStateChanged(auth,user=>{
-  if(!user){
-    window.location.href="index.html";
-  }
+  if(!user) window.location.href="index.html";
 });
 </script>
 </body>
