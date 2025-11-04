@@ -1,118 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MarketNest | All-in-One Business Tools</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - MarketNest</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-gray-100 text-gray-800">
 
-  <header>
-    <h1>📊 MarketNest</h1>
-    <p>Your Free Business & Growth Toolkit</p>
-  </header>
-
-  <nav>
-    <a href="#finance">Finance</a>
-    <a href="#business">Business</a>
-    <a href="#ecommerce">E-commerce</a>
-    <a href="#ai">AI Tools</a>
-    <a href="#design">Design</a>
-    <a href="#seo">SEO</a>
-    <a href="#communication">Communication</a>
-    <a href="#premium">Coming Soon</a>
+  <!-- Navbar -->
+  <nav class="bg-white shadow-md p-4 flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-blue-600">MarketNest Dashboard</h1>
+    <button id="logoutBtn" class="px-4 py-2 bg-red-500 text-white rounded-lg">Logout</button>
   </nav>
 
-  <main>
-    <section id="finance" class="category">
-      <h2>💰 Finance & Accounting</h2>
-      <ul>
-        <li><a href="pages/roi.html">ROI Calculator</a></li>
-        <li><a href="pages/profit.html">Profit Margin Calculator</a></li>
-        <li><a href="pages/breakeven.html">Break-Even Analyzer</a></li>
-        <li><a href="pages/loan.html">Loan EMI Calculator</a></li>
-        <li><a href="pages/tax.html">Tax / GST Calculator</a></li>
-        <li><a href="pages/currency.html">Currency Converter</a></li>
-        <li><a href="templates/expense.xlsx">Expense Tracker (Excel)</a></li>
-        <li><a href="templates/payroll.xlsx">Salary Sheet</a></li>
-      </ul>
-    </section>
+  <!-- Welcome Section -->
+  <section class="text-center py-12">
+    <h2 class="text-3xl font-bold text-gray-700">Welcome to your Dashboard 🎉</h2>
+    <p class="text-gray-600 mt-2">Manage your business tools, reports & templates here.</p>
+  </section>
 
-    <section id="business" class="category">
-      <h2>🏢 Business Management</h2>
-      <ul>
-        <li><a href="pages/forecast.html">Revenue Forecast Tool</a></li>
-        <li><a href="pages/budget.html">Budget Planner</a></li>
-        <li><a href="pages/invoice.html">Invoice Generator</a></li>
-        <li><a href="templates/attendance.xlsx">Employee Attendance</a></li>
-      </ul>
-    </section>
+  <!-- Dashboard Cards -->
+  <section class="grid md:grid-cols-3 gap-6 p-6 max-w-6xl mx-auto">
+    <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg">
+      <h3 class="font-semibold text-lg">My Tools</h3>
+      <p class="text-gray-600">Access your saved calculators & templates.</p>
+    </div>
 
-    <section id="ecommerce" class="category">
-      <h2>🛍️ E-commerce & Marketing</h2>
-      <ul>
-        <li><a href="pages/pricing.html">Product Pricing Calculator</a></li>
-        <li><a href="pages/discount.html">Discount Finder</a></li>
-        <li><a href="pages/inventory.html">Inventory Tracker</a></li>
-        <li><a href="pages/keyword.html">Keyword Research Tool</a></li>
-      </ul>
-    </section>
+    <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg">
+      <h3 class="font-semibold text-lg">Reports</h3>
+      <p class="text-gray-600">Generate summaries and performance data.</p>
+    </div>
 
-    <section id="ai" class="category">
-      <h2>🤖 AI & Automation</h2>
-      <ul>
-        <li><a href="pages/chatgpt.html">ChatGPT Assistant (Free)</a></li>
-        <li><a href="pages/email.html">Auto Email Generator</a></li>
-        <li><a href="pages/names.html">Name / Slogan Generator</a></li>
-      </ul>
-    </section>
+    <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg">
+      <h3 class="font-semibold text-lg">Upgrade to Premium</h3>
+      <p class="text-gray-600">Coming soon — unlock exclusive AI features.</p>
+    </div>
+  </section>
 
-    <section id="design" class="category">
-      <h2>🎨 Design & Branding</h2>
-      <ul>
-        <li><a href="pages/logo.html">Logo Maker</a></li>
-        <li><a href="pages/card.html">Business Card Template</a></li>
-        <li><a href="pages/colors.html">Color Palette Generator</a></li>
-        <li><a href="pages/caption.html">Social Caption Generator</a></li>
-      </ul>
-    </section>
-
-    <section id="seo" class="category">
-      <h2>🌐 Website & SEO</h2>
-      <ul>
-        <li><a href="pages/meta.html">Meta Tag Generator</a></li>
-        <li><a href="pages/keyworddensity.html">Keyword Density Checker</a></li>
-        <li><a href="pages/sitemap.html">Sitemap XML Generator</a></li>
-        <li><a href="pages/pagespeed.html">Page Speed Tester</a></li>
-      </ul>
-    </section>
-
-    <section id="communication" class="category">
-      <h2>📞 Communication & Management</h2>
-      <ul>
-        <li><a href="pages/project.html">Project Task Manager</a></li>
-        <li><a href="pages/client.html">Client Feedback Form</a></li>
-        <li><a href="pages/email-signature.html">Email Signature Generator</a></li>
-      </ul>
-    </section>
-
-    <section id="premium" class="category coming-soon">
-      <h2>🚀 Upcoming / Premium Tools</h2>
-      <ul>
-        <li>MarketNest Pro Analyzer (Coming Soon)</li>
-        <li>Business Intelligence Dashboard</li>
-        <li>AI Data Visualizer</li>
-        <li>Team Workspace</li>
-      </ul>
-    </section>
-  </main>
-
-  <footer>
-    <p>© 2025 MarketNest | All Tools Free • Premium Coming Soon</p>
+  <!-- Footer -->
+  <footer class="text-center p-4 bg-white mt-12 shadow-inner text-gray-500">
+    © 2025 MarketNest. All rights reserved.
   </footer>
 
-  <script type="module" src="firebase.js"></script>
-  <script src="script.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBuYXfr-_q-BJskWHN4chB8SZqMc-P9odw",
+      authDomain: "toolnest-8e42d.firebaseapp.com",
+      projectId: "toolnest-8e42d",
+      storageBucket: "toolnest-8e42d.firebasestorage.app",
+      messagingSenderId: "988256036107",
+      appId: "1:988256036107:web:90f7e40f07593dff8e2e0e"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // Logout Function
+    const logoutBtn = document.getElementById("logoutBtn");
+    logoutBtn.onclick = async () => {
+      await signOut(auth);
+      window.location.href = "../index.html";
+    };
+  </script>
+
 </body>
 </html>
