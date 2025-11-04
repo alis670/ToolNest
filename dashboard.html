@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard - MarketNest</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js"></script>
 </head>
 <body class="bg-gray-100 text-gray-800">
 
@@ -26,12 +28,10 @@
       <h3 class="font-semibold text-lg">My Tools</h3>
       <p class="text-gray-600">Access your saved calculators & templates.</p>
     </div>
-
     <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg">
       <h3 class="font-semibold text-lg">Reports</h3>
       <p class="text-gray-600">Generate summaries and performance data.</p>
     </div>
-
     <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg">
       <h3 class="font-semibold text-lg">Upgrade to Premium</h3>
       <p class="text-gray-600">Coming soon — unlock exclusive AI features.</p>
@@ -39,40 +39,4 @@
   </section>
 
   <!-- Footer -->
-  <footer class="text-center p-4 bg-white mt-12 shadow-inner text-gray-500">
-    © 2025 MarketNest. All rights reserved.
-  </footer>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBuYXfr-_q-BJskWHN4chB8SZqMc-P9odw",
-      authDomain: "toolnest-8e42d.firebaseapp.com",
-      projectId: "toolnest-8e42d",
-      storageBucket: "toolnest-8e42d.firebasestorage.app",
-      messagingSenderId: "988256036107",
-      appId: "1:988256036107:web:90f7e40f07593dff8e2e0e"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-
-    // Logout Function
-    const logoutBtn = document.getElementById("logoutBtn");
-    logoutBtn.onclick = async () => {
-      await signOut(auth);
-      window.location.href = "../index.html";
-    };
-
-    // Redirect if not logged in
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        window.location.href = "../index.html";
-      }
-    });
-  </script>
-
-</body>
-</html>
+  <
