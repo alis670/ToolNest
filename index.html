@@ -15,10 +15,16 @@
 <!-- Auth Modal -->
 <div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
   <div class="bg-white rounded-xl w-96 p-6 shadow-lg relative animate-fadeIn">
+
+    <!-- Logo + Website Name -->
     <div class="text-center mb-4 flex flex-col items-center space-y-2">
-      <img src="https://img.icons8.com/ios-filled/80/000000/market.png" alt="Logo"/>
-      <h2 id="modalTitle" class="text-2xl font-bold">Login</h2>
+      <img src="https://alis670.github.io/ToolNest/logo.png" alt="MarketNest Logo" class="w-20 h-20 object-contain"/>
+      <h1 class="text-3xl font-bold text-blue-600">MarketNest</h1>
     </div>
+
+    <!-- Modal Title -->
+    <h2 id="modalTitle" class="text-xl font-semibold text-center mb-4">Login</h2>
+
     <input type="email" id="email" placeholder="Email" class="w-full p-2 border rounded mb-3" />
     <input type="password" id="password" placeholder="Password" class="w-full p-2 border rounded mb-4" />
     <button id="submitAuth" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold">Continue</button>
@@ -60,7 +66,6 @@ const auth = getAuth(app);
 
 // UI Elements
 const authModal = document.getElementById('authModal');
-const closeModal = document.getElementById('closeModal');
 const modalTitle = document.getElementById('modalTitle');
 const submitAuth = document.getElementById('submitAuth');
 const toggleAuth = document.getElementById('toggleAuth');
@@ -81,7 +86,7 @@ function showToast(message, type="success"){
   setTimeout(()=>toast.remove(),3000);
 }
 
-// Open modal function
+// Open modal
 function openModal(signup){
   isSignup = signup;
   modalTitle.innerText = signup?"Create Account":"Login";
@@ -120,7 +125,7 @@ forgotPass.onclick = async ()=>{
   }catch(e){showToast(e.message,"error")}
 }
 
-// Logout button (optional for dashboard, will show after login)
+// Logout button
 const logoutBtn = document.createElement('button');
 logoutBtn.className="fixed top-5 right-5 px-4 py-2 bg-red-500 text-white rounded-lg hidden";
 logoutBtn.innerText="Logout";
