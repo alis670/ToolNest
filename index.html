@@ -6,15 +6,78 @@
   <title>MarketNest - Login</title>
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Firebase CDN -->
-  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js"></script>
+  <!-- Firebase ES6 Modules -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBuYXfr-_q-BJskWHN4chB8SZqMc-P9odw",
+      authDomain: "toolnest-8e42d.firebaseapp.com",
+      projectId: "toolnest-8e42d",
+      storageBucket: "toolnest-8e42d.firebasestorage.app",
+      messagingSenderId: "988256036107",
+      appId: "1:988256036107:web:90f7e40f07593dff8e2e0e"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const modalTitle = document.getElementById('modalTitle');
+      const submitAuth = document.getElementById('submitAuth');
+      const toggleAuth = document.getElementById('toggleAuth');
+      const forgotPass = document.getElementById('forgotPass');
+      const emailInput = document.getElementById('email');
+      const passInput = document.getElementById('password');
+
+      let isSignup = false;
+
+      toggleAuth.addEventListener('click', () => {
+        isSignup = !isSignup;
+        modalTitle.innerText = isSignup ? 'Create Account' : 'Login';
+        submitAuth.innerText = isSignup ? 'Sign Up' : 'Login';
+        toggleAuth.innerText = isSignup ? 'Already have an account?' : 'Create an account';
+      });
+
+      submitAuth.addEventListener('click', () => {
+        const email = emailInput.value.trim();
+        const pass = passInput.value.trim();
+        if (!email || !pass) return alert('Please fill all fields');
+
+        if (isSignup) {
+          createUserWithEmailAndPassword(auth, email, pass)
+            .then(() => window.location.href = "pages/dashboard.html")
+            .catch(e => alert(e.message));
+        } else {
+          signInWithEmailAndPassword(auth, email, pass)
+            .then(() => window.location.href = "pages/dashboard.html")
+            .catch(e => alert(e.message));
+        }
+      });
+
+      forgotPass.addEventListener('click', () => {
+        const email = emailInput.value.trim();
+        if (!email) return alert('Enter your email first');
+        sendPasswordResetEmail(auth, email)
+          .then(() => alert('Password reset email sent!'))
+          .catch(e => alert(e.message));
+      });
+
+      onAuthStateChanged(auth, user => {
+        if (user) window.location.href = "pages/dashboard.html";
+      });
+    });
+  </script>
 </head>
 <body class="bg-gradient-to-r from-blue-500 to-purple-600 min-h-screen flex items-center justify-center">
 
   <!-- Login Card -->
   <div class="bg-white rounded-3xl shadow-2xl p-10 w-96 max-w-full">
-    <h1 class="text-center text-4xl font-bold text-blue-600 mb-6">MarketNest</h1>
+    <div class="flex flex-col items-center mb-6">
+      <img src="https://img.icons8.com/ios-filled/80/000000/rocket.png" alt="MarketNest Logo" class="mb-4"/>
+      <h1 class="text-center text-4xl font-bold text-blue-600">MarketNest</h1>
+    </div>
     <h2 id="modalTitle" class="text-2xl font-semibold text-center mb-6 text-gray-800">Login</h2>
 
     <input type="email" id="email" placeholder="Email" class="w-full p-3 mb-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"/>
@@ -25,74 +88,6 @@
     <p id="toggleAuth" class="text-center text-sm text-blue-500 mt-3 cursor-pointer">Create an account</p>
     <p id="forgotPass" class="text-center text-sm text-gray-500 mt-1 cursor-pointer">Forgot Password?</p>
   </div>
-
-  <script>
-    // Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyBuYXfr-_q-BJskWHN4chB8SZqMc-P9odw",
-      authDomain: "toolnest-8e42d.firebaseapp.com",
-      projectId: "toolnest-8e42d",
-      storageBucket: "toolnest-8e42d.firebasestorage.app",
-      messagingSenderId: "988256036107",
-      appId: "1:988256036107:web:90f7e40f07593dff8e2e0e"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-
-    // Elements
-    const modalTitle = document.getElementById('modalTitle');
-    const submitAuth = document.getElementById('submitAuth');
-    const toggleAuth = document.getElementById('toggleAuth');
-    const forgotPass = document.getElementById('forgotPass');
-    const emailInput = document.getElementById('email');
-    const passInput = document.getElementById('password');
-
-    let isSignup = false;
-
-    function toggleMode() {
-      isSignup = !isSignup;
-      modalTitle.innerText = isSignup ? 'Create Account' : 'Login';
-      submitAuth.innerText = isSignup ? 'Sign Up' : 'Login';
-      toggleAuth.innerText = isSignup ? 'Already have an account?' : 'Create an account';
-    }
-
-    toggleAuth.addEventListener('click', toggleMode);
-
-    submitAuth.addEventListener('click', () => {
-      const email = emailInput.value.trim();
-      const pass = passInput.value.trim();
-      if (!email || !pass) return alert('Please fill all fields');
-
-      if (isSignup) {
-        auth.createUserWithEmailAndPassword(email, pass)
-          .then(() => {
-            alert('Account created!');
-            window.location.href = "pages/dashboard.html";
-          })
-          .catch(e => alert(e.message));
-      } else {
-        auth.signInWithEmailAndPassword(email, pass)
-          .then(() => {
-            alert('Logged in!');
-            window.location.href = "pages/dashboard.html";
-          })
-          .catch(e => alert(e.message));
-      }
-    });
-
-    forgotPass.addEventListener('click', () => {
-      const email = emailInput.value.trim();
-      if (!email) return alert('Enter your email first');
-      auth.sendPasswordResetEmail(email).then(() => {
-        alert('Password reset email sent!');
-      }).catch(e => alert(e.message));
-    });
-
-    // Auto redirect if already logged in
-    auth.onAuthStateChanged(user => {
-      if (user) window.location.href = "pages/dashboard.html";
-    });
-  </script>
 
 </body>
 </html>
