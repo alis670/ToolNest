@@ -1,93 +1,219 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MarketNest - Login</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MarketNest Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { 
+  getAuth, 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  signOut, 
+  sendPasswordResetEmail, 
+  onAuthStateChanged 
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-  <!-- Firebase ES6 Modules -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+// Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyBuYXfr-_q-BJskWHN4chB8SZqMc-P9odw",
+  authDomain: "toolnest-8e42d.firebaseapp.com",
+  projectId: "toolnest-8e42d",
+  storageBucket: "toolnest-8e42d.firebasestorage.app",
+  messagingSenderId: "988256036107",
+  appId: "1:988256036107:web:90f7e40f07593dff8e2e0e"
+};
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBuYXfr-_q-BJskWHN4chB8SZqMc-P9odw",
-      authDomain: "toolnest-8e42d.firebaseapp.com",
-      projectId: "toolnest-8e42d",
-      storageBucket: "toolnest-8e42d.firebasestorage.app",
-      messagingSenderId: "988256036107",
-      appId: "1:988256036107:web:90f7e40f07593dff8e2e0e"
-    };
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+// ----------------- TOOLS JSON -----------------
+const tools = [
+  { category: "Finance", name: "ROI Calculator", icon: "https://img.icons8.com/ios-filled/40/000000/coin.png", link: "#" },
+  { category: "Finance", name: "Profit Margin Calculator", icon: "https://img.icons8.com/ios-filled/40/000000/money.png", link: "#" },
+  { category: "Finance", name: "Break-even Analyzer", icon: "https://img.icons8.com/ios-filled/40/000000/break-even.png", link: "#" },
+  { category: "Finance", name: "Loan EMI Calculator", icon: "https://img.icons8.com/ios-filled/40/000000/calculator.png", link: "#" },
+  { category: "Business", name: "Budget Planner", icon: "https://img.icons8.com/ios-filled/40/000000/budget.png", link: "#" },
+  { category: "Business", name: "Revenue Forecast Tool", icon: "https://img.icons8.com/ios-filled/40/000000/line-chart.png", link: "#" },
+  { category: "Business", name: "Employee Attendance Tracker", icon: "https://img.icons8.com/ios-filled/40/000000/attendance.png", link: "#" },
+  { category: "E-commerce", name: "Product Pricing Calculator", icon: "https://img.icons8.com/ios-filled/40/000000/price-tag.png", link: "#" },
+  { category: "E-commerce", name: "Discount Finder", icon: "https://img.icons8.com/ios-filled/40/000000/discount.png", link: "#" },
+  { category: "E-commerce", name: "Inventory Tracker", icon: "https://img.icons8.com/ios-filled/40/000000/shopping-cart.png", link: "#" },
+  { category: "AI", name: "ChatGPT Assistant", icon: "https://img.icons8.com/ios-filled/40/000000/robot.png", link: "#" },
+  { category: "AI", name: "Gemini UI", icon: "https://img.icons8.com/ios-filled/40/000000/idea.png", link: "#" },
+  { category: "AI", name: "Auto Email Generator", icon: "https://img.icons8.com/ios-filled/40/000000/email.png", link: "#" },
+  { category: "Design", name: "Logo Maker", icon: "https://img.icons8.com/ios-filled/40/000000/design.png", link: "#" },
+  { category: "Design", name: "Business Card Template", icon: "https://img.icons8.com/ios-filled/40/000000/id-card.png", link: "#" },
+  { category: "Design", name: "Brand Color Palette Generator", icon: "https://img.icons8.com/ios-filled/40/000000/color-palette.png", link: "#" },
+  { category: "SEO", name: "Meta Tag Generator", icon: "https://img.icons8.com/ios-filled/40/000000/code-file.png", link: "#" },
+  { category: "SEO", name: "SEO Keyword Density Checker", icon: "https://img.icons8.com/ios-filled/40/000000/seo.png", link: "#" },
+  { category: "SEO", name: "Backlink Tracker", icon: "https://img.icons8.com/ios-filled/40/000000/link.png", link: "#" },
+  { category: "Communication", name: "Project Task Manager", icon: "https://img.icons8.com/ios-filled/40/000000/task.png", link: "#" },
+  { category: "Communication", name: "Team Chat UI", icon: "https://img.icons8.com/ios-filled/40/000000/chat.png", link: "#" },
+  { category: "Communication", name: "Client Feedback Form", icon: "https://img.icons8.com/ios-filled/40/000000/feedback.png", link: "#" }
+];
 
-    window.addEventListener('DOMContentLoaded', () => {
-      const modalTitle = document.getElementById('modalTitle');
-      const submitAuth = document.getElementById('submitAuth');
-      const toggleAuth = document.getElementById('toggleAuth');
-      const forgotPass = document.getElementById('forgotPass');
-      const emailInput = document.getElementById('email');
-      const passInput = document.getElementById('password');
-
-      let isSignup = false;
-
-      toggleAuth.addEventListener('click', () => {
-        isSignup = !isSignup;
-        modalTitle.innerText = isSignup ? 'Create Account' : 'Login';
-        submitAuth.innerText = isSignup ? 'Sign Up' : 'Login';
-        toggleAuth.innerText = isSignup ? 'Already have an account?' : 'Create an account';
-      });
-
-      submitAuth.addEventListener('click', () => {
-        const email = emailInput.value.trim();
-        const pass = passInput.value.trim();
-        if (!email || !pass) return alert('Please fill all fields');
-
-        if (isSignup) {
-          createUserWithEmailAndPassword(auth, email, pass)
-            .then(() => window.location.href = "dashboard.html")
-            .catch(e => alert(e.message));
-        } else {
-          signInWithEmailAndPassword(auth, email, pass)
-            .then(() => window.location.href = "dashboard.html")
-            .catch(e => alert(e.message));
-        }
-      });
-
-      forgotPass.addEventListener('click', () => {
-        const email = emailInput.value.trim();
-        if (!email) return alert('Enter your email first');
-        sendPasswordResetEmail(auth, email)
-          .then(() => alert('Password reset email sent!'))
-          .catch(e => alert(e.message));
-      });
-
-      onAuthStateChanged(auth, user => {
-        if (user) window.location.href = "dashboard.html";
-      });
-    });
-  </script>
-</head>
-<body class="bg-gradient-to-r from-blue-500 to-purple-600 min-h-screen flex items-center justify-center">
-
-  <!-- Login Card -->
-  <div class="bg-white rounded-3xl shadow-2xl p-10 w-96 max-w-full">
-    <div class="flex flex-col items-center mb-6">
-      <img src="https://img.icons8.com/ios-filled/80/000000/rocket.png" alt="MarketNest Logo" class="mb-4"/>
-      <h1 class="text-center text-4xl font-bold text-blue-600">MarketNest</h1>
+// ----------------- UI ELEMENTS -----------------
+const authModal = document.createElement('div');
+authModal.id = 'authModal';
+authModal.className = 'fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center';
+authModal.innerHTML = `
+  <div class="bg-white rounded-xl w-96 p-6 shadow-lg relative animate-fadeIn">
+    <button id="closeModal" class="absolute top-2 right-2 text-gray-500 text-xl">&times;</button>
+    <div class="text-center mb-4 flex items-center justify-center space-x-2">
+      <img src="https://img.icons8.com/ios-filled/40/000000/market.png"/>
+      <h2 id="modalTitle" class="text-2xl font-bold">Login</h2>
     </div>
-    <h2 id="modalTitle" class="text-2xl font-semibold text-center mb-6 text-gray-800">Login</h2>
-
-    <input type="email" id="email" placeholder="Email" class="w-full p-3 mb-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-    <input type="password" id="password" placeholder="Password" class="w-full p-3 mb-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-
-    <button id="submitAuth" class="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors mb-3">Continue</button>
-
+    <input type="email" id="email" placeholder="Email" class="w-full p-2 border rounded mb-3" />
+    <input type="password" id="password" placeholder="Password" class="w-full p-2 border rounded mb-4" />
+    <button id="submitAuth" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold">Continue</button>
     <p id="toggleAuth" class="text-center text-sm text-blue-500 mt-3 cursor-pointer">Create an account</p>
     <p id="forgotPass" class="text-center text-sm text-gray-500 mt-1 cursor-pointer">Forgot Password?</p>
   </div>
+`;
+document.body.appendChild(authModal);
 
-</body>
+// Navbar & buttons
+const navbar = document.createElement('nav');
+navbar.className = 'bg-white shadow-md p-4 fixed w-full z-50 top-0 flex justify-between items-center';
+navbar.innerHTML = `
+  <h1 class="text-2xl font-bold text-blue-600">MarketNest</h1>
+  <div>
+    <button id="loginBtn" class="px-4 py-2 bg-blue-500 text-white rounded-lg">Login</button>
+    <button id="logoutBtn" class="hidden px-4 py-2 bg-red-500 text-white rounded-lg">Logout</button>
+  </div>
+`;
+document.body.appendChild(navbar);
+
+// Spacer for fixed navbar
+const spacer = document.createElement('div');
+spacer.className = 'h-20';
+document.body.appendChild(spacer);
+
+// Dashboard container
+const mainContainer = document.createElement('main');
+mainContainer.id = 'dashboardContainer';
+mainContainer.className = 'max-w-7xl mx-auto p-6 space-y-12';
+document.body.appendChild(mainContainer);
+
+// ----------------- TOAST FUNCTION -----------------
+function showToast(message, type = "success") {
+  const toast = document.createElement('div');
+  toast.innerText = message;
+  toast.className = `fixed top-5 right-5 px-4 py-2 rounded shadow-lg text-white z-50 ${type==="success"?"bg-green-500":"bg-red-500"} animate-fadeIn`;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+// ----------------- MODAL LOGIC -----------------
+const openSignup = document.getElementById('loginBtn');
+const loginBtn = document.getElementById('loginBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const closeModal = document.getElementById('closeModal');
+const modalTitle = document.getElementById('modalTitle');
+const submitAuth = document.getElementById('submitAuth');
+const toggleAuth = document.getElementById('toggleAuth');
+const forgotPass = document.getElementById('forgotPass');
+const emailInput = document.getElementById('email');
+const passInput = document.getElementById('password');
+
+let isSignup = false;
+
+function openModal(signup){
+  isSignup = signup;
+  modalTitle.innerText = signup?"Create Account":"Login";
+  submitAuth.innerText = signup?"Sign Up":"Login";
+  toggleAuth.innerText = signup?"Already have an account?":"Create an account";
+  authModal.classList.remove('hidden');
+}
+
+openSignup.onclick = ()=>openModal(true);
+loginBtn.onclick = ()=>openModal(false);
+closeModal.onclick = ()=>authModal.classList.add('hidden');
+toggleAuth.onclick = ()=>openModal(!isSignup);
+
+// ----------------- AUTH ACTIONS -----------------
+submitAuth.onclick = async ()=>{
+  const email = emailInput.value;
+  const pass = passInput.value;
+  if(!email||!pass)return showToast("Please fill all fields","error");
+  try{
+    if(isSignup){
+      await createUserWithEmailAndPassword(auth,email,pass);
+      showToast("Account created successfully!");
+    }else{
+      await signInWithEmailAndPassword(auth,email,pass);
+      showToast("Login successful!");
+    }
+    authModal.classList.add('hidden');
+    updateUI();
+  }catch(e){showToast(e.message,"error")}
+}
+
+logoutBtn.onclick = async ()=>{
+  await signOut(auth);
+  showToast("Logged out successfully!");
+  updateUI();
+}
+
+forgotPass.onclick = async ()=>{
+  const email = emailInput.value;
+  if(!email)return showToast("Enter your email first","error");
+  try{
+    await sendPasswordResetEmail(auth,email);
+    showToast("Password reset email sent successfully!");
+  }catch(e){showToast(e.message,"error")}
+}
+
+// ----------------- UPDATE UI -----------------
+function updateUI(){
+  const user = auth.currentUser;
+  if(user){
+    loginBtn.classList.add('hidden');
+    logoutBtn.classList.remove('hidden');
+  }else{
+    loginBtn.classList.remove('hidden');
+    logoutBtn.classList.add('hidden');
+  }
+}
+
+onAuthStateChanged(auth,updateUI);
+
+// ----------------- RENDER DASHBOARD -----------------
+window.addEventListener('DOMContentLoaded',()=>{
+  // Group by category
+  const categories = {};
+  tools.forEach(tool=>{
+    if(!categories[tool.category])categories[tool.category]=[];
+    categories[tool.category].push(tool);
+  });
+  for(const [catName,catTools] of Object.entries(categories)){
+    const section=document.createElement('section');
+    section.className="mb-12";
+    const heading=document.createElement('h2');
+    heading.className="text-2xl font-semibold mb-4 text-blue-600";
+    heading.innerText=`📂 ${catName}`;
+    section.appendChild(heading);
+    const grid=document.createElement('div');
+    grid.className="grid md:grid-cols-3 gap-6";
+    catTools.forEach(tool=>{
+      const card=document.createElement('a');
+      card.href=tool.link;
+      card.className="tool-card bg-white p-4 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition-all flex flex-col items-center text-center";
+      card.innerHTML=`<img src="${tool.icon}" class="mb-2"/><h3 class="font-semibold text-lg">${tool.name}</h3>`;
+      grid.appendChild(card);
+    });
+    section.appendChild(grid);
+    mainContainer.appendChild(section);
+  }
+});
+</script>
+
+<style>
+@keyframes fadeIn {0%{opacity:0}100%{opacity:1}}
+.animate-fadeIn {animation:fadeIn 0.5s ease-in;}
+</style>
+
 </html>
