@@ -3,8 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MarketNest Dashboard</title>
+<title>ToolNest Dashboard</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<style>
+@keyframes fadeIn {0%{opacity:0}100%{opacity:1}}
+.animate-fadeIn {animation:fadeIn 0.5s ease-in;}
+</style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+
+<!-- Dashboard Container -->
+<main id="dashboardContainer" class="max-w-7xl mx-auto p-6 space-y-12 flex-1">
+</main>
+
+<!-- Toast Container -->
+<div id="toastContainer" class="fixed top-5 right-5 z-50"></div>
+
+<!-- Logout Button (fixed bottom) -->
+<button id="logoutBtn" class="fixed bottom-4 right-4 px-6 py-3 bg-red-500 text-white rounded-lg shadow-lg hover:bg-red-600 transition">
+  Logout
+</button>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
@@ -21,113 +40,72 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-window.addEventListener('DOMContentLoaded', () => {
-  onAuthStateChanged(auth, user => {
-    if (!user) window.location.href = "index.html";
+// Toast function
+const toastContainer = document.getElementById('toastContainer');
+function showToast(message,type="success"){
+  const toast = document.createElement('div');
+  toast.innerText = message;
+  toast.className = `px-4 py-2 mb-2 rounded shadow-lg text-white ${type==="success"?"bg-green-500":"bg-red-500"} animate-fadeIn`;
+  toastContainer.appendChild(toast);
+  setTimeout(()=>toast.remove(),3000);
+}
+
+// Tools JSON
+const toolsData = [
+  { category: "Finance & Accounting Tools", tools: ["ROI Calculator","Profit Margin Calculator","Break-even Point Analyzer","Loan EMI Calculator","Tax / GST / VAT Calculator","Currency Converter","Expense Tracker","Cash Flow Analyzer","Salary / Payroll Sheet"] },
+  { category: "Business Management Tools", tools: ["Revenue Forecast Tool","Budget Planner","Employee Attendance Tracker","Invoice Generator","Business Proposal Template","Time Tracking Tool","Meeting Notes Template"] },
+  { category: "E-commerce & Marketing Tools", tools: ["Product Pricing Calculator","Discount Finder","Inventory Tracker","Keyword Research Tool","Competitor Tracker","Profit & Fee Calculator","Product Launch Planner"] },
+  { category: "Data & Productivity Tools", tools: ["Google Sheets Templates","Excel Business Templates","CSV → Excel Converter","Sheet Merger Tool","Data Cleaner","Dashboard Template for Reporting"] },
+  { category: "AI & Automation Tools", tools: ["ChatGPT Assistant","Gemini UI","Auto Email Generator","Task Automation Templates","AI Name / Slogan Generator","Document Summarizer"] },
+  { category: "Design & Branding Tools", tools: ["Logo Maker","Business Card Template","Brand Color Palette Generator","Social Media Post Caption Generator"] },
+  { category: "Website & SEO Tools", tools: ["Meta Tag Generator","SEO Keyword Density Checker","Backlink Tracker","Sitemap XML Generator","Page Speed Tester"] },
+  { category: "Communication & Management", tools: ["Project Task Manager","Team Chat UI","Client Feedback Form","Email Signature Generator"] },
+  { category: "Upcoming / Premium Tools", tools: ["MarketNest Pro Analyzer","Business Intelligence Dashboard","AI Data Visualizer","Multi-user Team Workspace"] }
+];
+
+// Generate dashboard
+const dashboardContainer = document.getElementById('dashboardContainer');
+toolsData.forEach(cat=>{
+  const section = document.createElement('section');
+  section.className="space-y-4";
+
+  const heading = document.createElement('h2');
+  heading.className="text-2xl font-bold text-gray-700";
+  heading.innerText = cat.category;
+  section.appendChild(heading);
+
+  const grid = document.createElement('div');
+  grid.className="grid md:grid-cols-3 gap-6";
+
+  cat.tools.forEach(tool=>{
+    const card = document.createElement('div');
+    card.className="bg-white p-4 rounded-xl shadow hover:shadow-lg cursor-pointer transition duration-200";
+    card.innerHTML=`<h3 class="font-semibold text-lg">${tool}</h3>`;
+    grid.appendChild(card);
   });
 
-  document.getElementById('logoutBtn').addEventListener('click', () => {
-    signOut(auth).then(() => window.location.href = "index.html");
-  });
+  section.appendChild(grid);
+  dashboardContainer.appendChild(section);
+});
+
+// Logout
+const logoutBtn = document.getElementById('logoutBtn');
+logoutBtn.onclick = async ()=>{
+  try{
+    await signOut(auth);
+    showToast("Logged out successfully!");
+    window.location.href="index.html"; // redirect to login page
+  }catch(e){
+    showToast(e.message,"error");
+  }
+}
+
+// Auth state check
+onAuthStateChanged(auth,user=>{
+  if(!user){
+    window.location.href="index.html";
+  }
 });
 </script>
-</head>
-<body class="bg-gray-100 min-h-screen font-sans">
-
-<!-- Navbar -->
-<nav class="bg-white shadow-md p-4 flex justify-between items-center">
-  <h1 class="text-2xl font-bold text-blue-600">MarketNest Dashboard</h1>
-  <button id="logoutBtn" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">Logout</button>
-</nav>
-
-<!-- Dashboard Tools Container -->
-<main class="max-w-7xl mx-auto p-6 space-y-12">
-
-  <!-- 1. Finance & Accounting Tools -->
-  <section>
-    <h2 class="text-2xl font-semibold mb-4 text-purple-600">💰 Finance & Accounting</h2>
-    <div class="grid md:grid-cols-3 gap-6">
-      <div class="tool-card bg-white p-4 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition-all">
-        <img src="https://img.icons8.com/ios-filled/40/000000/coin.png" class="mb-2"/>
-        <h3 class="font-semibold text-lg">ROI Calculator</h3>
-      </div>
-      <div class="tool-card bg-white p-4 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition-all">
-        <img src="https://img.icons8.com/ios-filled/40/000000/money.png" class="mb-2"/>
-        <h3 class="font-semibold text-lg">Profit Margin Calculator</h3>
-      </div>
-      <div class="tool-card bg-white p-4 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition-all">
-        <img src="https://img.icons8.com/ios-filled/40/000000/break-even.png" class="mb-2"/>
-        <h3 class="font-semibold text-lg">Break-even Analyzer</h3>
-      </div>
-      <div class="tool-card bg-white p-4 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition-all">
-        <img src="https://img.icons8.com/ios-filled/40/000000/calculator.png" class="mb-2"/>
-        <h3 class="font-semibold text-lg">Loan EMI Calculator</h3>
-      </div>
-    </div>
-  </section>
-
-  <!-- 2. Business Management Tools -->
-  <section>
-    <h2 class="text-2xl font-semibold mb-4 text-green-600">📊 Business Management</h2>
-    <div class="grid md:grid-cols-3 gap-6">
-      <div class="tool-card bg-white p-4 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition-all">
-        <img src="https://img.icons8.com/ios-filled/40/000000/line-chart.png" class="mb-2"/>
-        <h3 class="font-semibold text-lg">Revenue Forecast Tool</h3>
-      </div>
-      <div class="tool-card bg-white p-4 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition-all">
-        <img src="https://img.icons8.com/ios-filled/40/000000/budget.png" class="mb-2"/>
-        <h3 class="font-semibold text-lg">Budget Planner</h3>
-      </div>
-      <div class="tool-card bg-white p-4 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition-all">
-        <img src="https://img.icons8.com/ios-filled/40/000000/attendance.png" class="mb-2"/>
-        <h3 class="font-semibold text-lg">Employee Attendance Tracker</h3>
-      </div>
-    </div>
-  </section>
-
-  <!-- 3. E-commerce & Marketing Tools -->
-  <section>
-    <h2 class="text-2xl font-semibold mb-4 text-blue-600">🛒 E-commerce & Marketing</h2>
-    <div class="grid md:grid-cols-3 gap-6">
-      <div class="tool-card bg-white p-4 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition-all">
-        <img src="https://img.icons8.com/ios-filled/40/000000/price-tag.png" class="mb-2"/>
-        <h3 class="font-semibold text-lg">Product Pricing Calculator</h3>
-      </div>
-      <div class="tool-card bg-white p-4 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition-all">
-        <img src="https://img.icons8.com/ios-filled/40/000000/discount.png" class="mb-2"/>
-        <h3 class="font-semibold text-lg">Discount Finder</h3>
-      </div>
-      <div class="tool-card bg-white p-4 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition-all">
-        <img src="https://img.icons8.com/ios-filled/40/000000/shopping-cart.png" class="mb-2"/>
-        <h3 class="font-semibold text-lg">Inventory Tracker</h3>
-      </div>
-    </div>
-  </section>
-
-  <!-- 4. AI & Productivity Tools -->
-  <section>
-    <h2 class="text-2xl font-semibold mb-4 text-red-600">🤖 AI & Productivity</h2>
-    <div class="grid md:grid-cols-3 gap-6">
-      <div class="tool-card bg-white p-4 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition-all">
-        <img src="https://img.icons8.com/ios-filled/40/000000/robot.png" class="mb-2"/>
-        <h3 class="font-semibold text-lg">ChatGPT Assistant</h3>
-      </div>
-      <div class="tool-card bg-white p-4 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition-all">
-        <img src="https://img.icons8.com/ios-filled/40/000000/idea.png" class="mb-2"/>
-        <h3 class="font-semibold text-lg">Gemini UI</h3>
-      </div>
-      <div class="tool-card bg-white p-4 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition-all">
-        <img src="https://img.icons8.com/ios-filled/40/000000/email.png" class="mb-2"/>
-        <h3 class="font-semibold text-lg">Auto Email Generator</h3>
-      </div>
-    </div>
-  </section>
-
-</main>
-
-<footer class="text-center p-4 bg-white mt-12 shadow-inner text-gray-500">
-© 2025 MarketNest. All rights reserved.
-</footer>
-
 </body>
 </html>
