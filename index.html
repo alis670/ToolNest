@@ -6,7 +6,6 @@
 <title>MarketNest</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-/* FadeIn animation for modals and toasts */
 @keyframes fadeIn {0%{opacity:0}100%{opacity:1}}
 .animate-fadeIn {animation:fadeIn 0.5s ease-in;}
 </style>
@@ -28,14 +27,13 @@
 <!-- Spacer -->
 <div class="h-20"></div>
 
-<!-- Dashboard container -->
+<!-- Dashboard container (hidden initially) -->
 <main id="dashboardContainer" class="max-w-7xl mx-auto p-6 space-y-12 hidden">
-  <!-- Dashboard content will appear here after login -->
-  <h2 class="text-xl text-gray-600">Welcome to MarketNest! Your business tools will appear here.</h2>
+  <h2 class="text-xl text-gray-600">Welcome! Your tools will appear after login.</h2>
 </main>
 
 <!-- Auth Modal -->
-<div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center">
+<div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
   <div class="bg-white rounded-xl w-96 p-6 shadow-lg relative animate-fadeIn">
     <button id="closeModal" class="absolute top-2 right-2 text-gray-500 text-xl">&times;</button>
     <div class="text-center mb-4 flex items-center justify-center space-x-2">
@@ -50,10 +48,9 @@
   </div>
 </div>
 
-<!-- Toast Container (for notifications) -->
+<!-- Toast Container -->
 <div id="toastContainer" class="fixed top-5 right-5 z-50"></div>
 
-<!-- Firebase + Auth Script -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { 
@@ -61,8 +58,7 @@ import {
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
   signOut, 
-  sendPasswordResetEmail, 
-  updatePassword,
+  sendPasswordResetEmail,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
@@ -80,7 +76,6 @@ const auth = getAuth(app);
 
 // UI Elements
 const authModal = document.getElementById('authModal');
-const openSignup = document.getElementById('loginBtn');
 const loginBtn = document.getElementById('loginBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 const closeModal = document.getElementById('closeModal');
@@ -113,7 +108,6 @@ function openModal(signup){
   authModal.classList.remove('hidden');
 }
 
-openSignup.onclick = ()=>openModal(true);
 loginBtn.onclick = ()=>openModal(false);
 closeModal.onclick = ()=>authModal.classList.add('hidden');
 toggleAuth.onclick = ()=>openModal(!isSignup);
