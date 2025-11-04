@@ -1,4 +1,5 @@
-// Firebase Auth Integration
+<script src="firebase-config.js"></script>
+  // Firebase Auth Integration
 const auth = firebase.auth();
 
 // Page Elements
