@@ -10,34 +10,13 @@
 .animate-fadeIn {animation:fadeIn 0.5s ease-in;}
 </style>
 </head>
-<body class="bg-gray-100">
-
-<!-- Navbar -->
-<nav class="bg-white shadow-md p-4 flex justify-between items-center fixed w-full z-50 top-0">
-  <div class="flex items-center space-x-2">
-    <img src="https://img.icons8.com/ios-filled/40/000000/market.png" alt="Logo" class="w-10 h-10">
-    <h1 class="text-2xl font-bold text-blue-600">MarketNest</h1>
-  </div>
-  <div>
-    <button id="loginBtn" class="px-4 py-2 bg-blue-500 text-white rounded-lg">Login</button>
-    <button id="logoutBtn" class="hidden px-4 py-2 bg-red-500 text-white rounded-lg">Logout</button>
-  </div>
-</nav>
-
-<!-- Spacer -->
-<div class="h-20"></div>
-
-<!-- Dashboard container (hidden initially) -->
-<main id="dashboardContainer" class="max-w-7xl mx-auto p-6 space-y-12 hidden">
-  <h2 class="text-xl text-gray-600">Welcome! Your tools will appear after login.</h2>
-</main>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
 
 <!-- Auth Modal -->
 <div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
   <div class="bg-white rounded-xl w-96 p-6 shadow-lg relative animate-fadeIn">
-    <button id="closeModal" class="absolute top-2 right-2 text-gray-500 text-xl">&times;</button>
-    <div class="text-center mb-4 flex items-center justify-center space-x-2">
-      <img src="https://img.icons8.com/ios-filled/40/000000/market.png"/>
+    <div class="text-center mb-4 flex flex-col items-center space-y-2">
+      <img src="https://img.icons8.com/ios-filled/80/000000/market.png" alt="Logo"/>
       <h2 id="modalTitle" class="text-2xl font-bold">Login</h2>
     </div>
     <input type="email" id="email" placeholder="Email" class="w-full p-2 border rounded mb-3" />
@@ -47,6 +26,11 @@
     <p id="forgotPass" class="text-center text-sm text-gray-500 mt-1 cursor-pointer">Forgot Password?</p>
   </div>
 </div>
+
+<!-- Dashboard -->
+<main id="dashboardContainer" class="max-w-7xl mx-auto p-6 space-y-12 hidden">
+  <h2 class="text-xl text-gray-600">Welcome! Your tools will appear after login.</h2>
+</main>
 
 <!-- Toast Container -->
 <div id="toastContainer" class="fixed top-5 right-5 z-50"></div>
@@ -76,8 +60,6 @@ const auth = getAuth(app);
 
 // UI Elements
 const authModal = document.getElementById('authModal');
-const loginBtn = document.getElementById('loginBtn');
-const logoutBtn = document.getElementById('logoutBtn');
 const closeModal = document.getElementById('closeModal');
 const modalTitle = document.getElementById('modalTitle');
 const submitAuth = document.getElementById('submitAuth');
@@ -90,7 +72,7 @@ const toastContainer = document.getElementById('toastContainer');
 
 let isSignup = false;
 
-// ---------------- Toast function ----------------
+// Toast function
 function showToast(message, type="success"){
   const toast = document.createElement('div');
   toast.innerText = message;
@@ -99,7 +81,7 @@ function showToast(message, type="success"){
   setTimeout(()=>toast.remove(),3000);
 }
 
-// ---------------- Modal Logic ----------------
+// Open modal function
 function openModal(signup){
   isSignup = signup;
   modalTitle.innerText = signup?"Create Account":"Login";
@@ -108,11 +90,10 @@ function openModal(signup){
   authModal.classList.remove('hidden');
 }
 
-loginBtn.onclick = ()=>openModal(false);
-closeModal.onclick = ()=>authModal.classList.add('hidden');
+// Toggle modal
 toggleAuth.onclick = ()=>openModal(!isSignup);
 
-// ---------------- Auth Actions ----------------
+// Auth actions
 submitAuth.onclick = async ()=>{
   const email = emailInput.value;
   const pass = passInput.value;
@@ -129,11 +110,6 @@ submitAuth.onclick = async ()=>{
   }catch(e){showToast(e.message,"error")}
 }
 
-logoutBtn.onclick = async ()=>{
-  await signOut(auth);
-  showToast("Logged out successfully!");
-}
-
 // Forgot password
 forgotPass.onclick = async ()=>{
   const email = emailInput.value;
@@ -144,16 +120,28 @@ forgotPass.onclick = async ()=>{
   }catch(e){showToast(e.message,"error")}
 }
 
-// ---------------- Update UI ----------------
+// Logout button (optional for dashboard, will show after login)
+const logoutBtn = document.createElement('button');
+logoutBtn.className="fixed top-5 right-5 px-4 py-2 bg-red-500 text-white rounded-lg hidden";
+logoutBtn.innerText="Logout";
+document.body.appendChild(logoutBtn);
+
+logoutBtn.onclick = async ()=>{
+  await signOut(auth);
+  showToast("Logged out successfully!");
+}
+
+// Update UI on auth change
 onAuthStateChanged(auth,user=>{
   if(user){
-    loginBtn.classList.add('hidden');
-    logoutBtn.classList.remove('hidden');
     dashboardContainer.classList.remove('hidden');
+    authModal.classList.add('hidden');
+    logoutBtn.classList.remove('hidden');
   }else{
-    loginBtn.classList.remove('hidden');
-    logoutBtn.classList.add('hidden');
     dashboardContainer.classList.add('hidden');
+    logoutBtn.classList.add('hidden');
+    authModal.classList.remove('hidden');
+    openModal(false);
   }
 });
 </script>
