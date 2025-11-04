@@ -3,63 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MarketNest Dashboard</title>
+<title>MarketNest</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { 
-  getAuth, 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut, 
-  sendPasswordResetEmail, 
-  onAuthStateChanged 
-} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+<style>
+/* FadeIn animation for modals and toasts */
+@keyframes fadeIn {0%{opacity:0}100%{opacity:1}}
+.animate-fadeIn {animation:fadeIn 0.5s ease-in;}
+</style>
+</head>
+<body class="bg-gray-100">
 
-// Firebase Config
-const firebaseConfig = {
-  apiKey: "AIzaSyBuYXfr-_q-BJskWHN4chB8SZqMc-P9odw",
-  authDomain: "toolnest-8e42d.firebaseapp.com",
-  projectId: "toolnest-8e42d",
-  storageBucket: "toolnest-8e42d.firebasestorage.app",
-  messagingSenderId: "988256036107",
-  appId: "1:988256036107:web:90f7e40f07593dff8e2e0e"
-};
+<!-- Navbar -->
+<nav class="bg-white shadow-md p-4 flex justify-between items-center fixed w-full z-50 top-0">
+  <div class="flex items-center space-x-2">
+    <img src="https://img.icons8.com/ios-filled/40/000000/market.png" alt="Logo" class="w-10 h-10">
+    <h1 class="text-2xl font-bold text-blue-600">MarketNest</h1>
+  </div>
+  <div>
+    <button id="loginBtn" class="px-4 py-2 bg-blue-500 text-white rounded-lg">Login</button>
+    <button id="logoutBtn" class="hidden px-4 py-2 bg-red-500 text-white rounded-lg">Logout</button>
+  </div>
+</nav>
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+<!-- Spacer -->
+<div class="h-20"></div>
 
-// ----------------- TOOLS JSON -----------------
-const tools = [
-  { category: "Finance", name: "ROI Calculator", icon: "https://img.icons8.com/ios-filled/40/000000/coin.png", link: "#" },
-  { category: "Finance", name: "Profit Margin Calculator", icon: "https://img.icons8.com/ios-filled/40/000000/money.png", link: "#" },
-  { category: "Finance", name: "Break-even Analyzer", icon: "https://img.icons8.com/ios-filled/40/000000/break-even.png", link: "#" },
-  { category: "Finance", name: "Loan EMI Calculator", icon: "https://img.icons8.com/ios-filled/40/000000/calculator.png", link: "#" },
-  { category: "Business", name: "Budget Planner", icon: "https://img.icons8.com/ios-filled/40/000000/budget.png", link: "#" },
-  { category: "Business", name: "Revenue Forecast Tool", icon: "https://img.icons8.com/ios-filled/40/000000/line-chart.png", link: "#" },
-  { category: "Business", name: "Employee Attendance Tracker", icon: "https://img.icons8.com/ios-filled/40/000000/attendance.png", link: "#" },
-  { category: "E-commerce", name: "Product Pricing Calculator", icon: "https://img.icons8.com/ios-filled/40/000000/price-tag.png", link: "#" },
-  { category: "E-commerce", name: "Discount Finder", icon: "https://img.icons8.com/ios-filled/40/000000/discount.png", link: "#" },
-  { category: "E-commerce", name: "Inventory Tracker", icon: "https://img.icons8.com/ios-filled/40/000000/shopping-cart.png", link: "#" },
-  { category: "AI", name: "ChatGPT Assistant", icon: "https://img.icons8.com/ios-filled/40/000000/robot.png", link: "#" },
-  { category: "AI", name: "Gemini UI", icon: "https://img.icons8.com/ios-filled/40/000000/idea.png", link: "#" },
-  { category: "AI", name: "Auto Email Generator", icon: "https://img.icons8.com/ios-filled/40/000000/email.png", link: "#" },
-  { category: "Design", name: "Logo Maker", icon: "https://img.icons8.com/ios-filled/40/000000/design.png", link: "#" },
-  { category: "Design", name: "Business Card Template", icon: "https://img.icons8.com/ios-filled/40/000000/id-card.png", link: "#" },
-  { category: "Design", name: "Brand Color Palette Generator", icon: "https://img.icons8.com/ios-filled/40/000000/color-palette.png", link: "#" },
-  { category: "SEO", name: "Meta Tag Generator", icon: "https://img.icons8.com/ios-filled/40/000000/code-file.png", link: "#" },
-  { category: "SEO", name: "SEO Keyword Density Checker", icon: "https://img.icons8.com/ios-filled/40/000000/seo.png", link: "#" },
-  { category: "SEO", name: "Backlink Tracker", icon: "https://img.icons8.com/ios-filled/40/000000/link.png", link: "#" },
-  { category: "Communication", name: "Project Task Manager", icon: "https://img.icons8.com/ios-filled/40/000000/task.png", link: "#" },
-  { category: "Communication", name: "Team Chat UI", icon: "https://img.icons8.com/ios-filled/40/000000/chat.png", link: "#" },
-  { category: "Communication", name: "Client Feedback Form", icon: "https://img.icons8.com/ios-filled/40/000000/feedback.png", link: "#" }
-];
+<!-- Dashboard container -->
+<main id="dashboardContainer" class="max-w-7xl mx-auto p-6 space-y-12 hidden">
+  <!-- Dashboard content will appear here after login -->
+  <h2 class="text-xl text-gray-600">Welcome to MarketNest! Your business tools will appear here.</h2>
+</main>
 
-// ----------------- UI ELEMENTS -----------------
-const authModal = document.createElement('div');
-authModal.id = 'authModal';
-authModal.className = 'fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center';
-authModal.innerHTML = `
+<!-- Auth Modal -->
+<div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center">
   <div class="bg-white rounded-xl w-96 p-6 shadow-lg relative animate-fadeIn">
     <button id="closeModal" class="absolute top-2 right-2 text-gray-500 text-xl">&times;</button>
     <div class="text-center mb-4 flex items-center justify-center space-x-2">
@@ -72,42 +48,38 @@ authModal.innerHTML = `
     <p id="toggleAuth" class="text-center text-sm text-blue-500 mt-3 cursor-pointer">Create an account</p>
     <p id="forgotPass" class="text-center text-sm text-gray-500 mt-1 cursor-pointer">Forgot Password?</p>
   </div>
-`;
-document.body.appendChild(authModal);
+</div>
 
-// Navbar & buttons
-const navbar = document.createElement('nav');
-navbar.className = 'bg-white shadow-md p-4 fixed w-full z-50 top-0 flex justify-between items-center';
-navbar.innerHTML = `
-  <h1 class="text-2xl font-bold text-blue-600">MarketNest</h1>
-  <div>
-    <button id="loginBtn" class="px-4 py-2 bg-blue-500 text-white rounded-lg">Login</button>
-    <button id="logoutBtn" class="hidden px-4 py-2 bg-red-500 text-white rounded-lg">Logout</button>
-  </div>
-`;
-document.body.appendChild(navbar);
+<!-- Toast Container (for notifications) -->
+<div id="toastContainer" class="fixed top-5 right-5 z-50"></div>
 
-// Spacer for fixed navbar
-const spacer = document.createElement('div');
-spacer.className = 'h-20';
-document.body.appendChild(spacer);
+<!-- Firebase + Auth Script -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { 
+  getAuth, 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  signOut, 
+  sendPasswordResetEmail, 
+  updatePassword,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-// Dashboard container
-const mainContainer = document.createElement('main');
-mainContainer.id = 'dashboardContainer';
-mainContainer.className = 'max-w-7xl mx-auto p-6 space-y-12';
-document.body.appendChild(mainContainer);
+const firebaseConfig = {
+  apiKey: "AIzaSyBuYXfr-_q-BJskWHN4chB8SZqMc-P9odw",
+  authDomain: "toolnest-8e42d.firebaseapp.com",
+  projectId: "toolnest-8e42d",
+  storageBucket: "toolnest-8e42d.firebasestorage.app",
+  messagingSenderId: "988256036107",
+  appId: "1:988256036107:web:90f7e40f07593dff8e2e0e"
+};
 
-// ----------------- TOAST FUNCTION -----------------
-function showToast(message, type = "success") {
-  const toast = document.createElement('div');
-  toast.innerText = message;
-  toast.className = `fixed top-5 right-5 px-4 py-2 rounded shadow-lg text-white z-50 ${type==="success"?"bg-green-500":"bg-red-500"} animate-fadeIn`;
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
-}
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
-// ----------------- MODAL LOGIC -----------------
+// UI Elements
+const authModal = document.getElementById('authModal');
 const openSignup = document.getElementById('loginBtn');
 const loginBtn = document.getElementById('loginBtn');
 const logoutBtn = document.getElementById('logoutBtn');
@@ -118,9 +90,21 @@ const toggleAuth = document.getElementById('toggleAuth');
 const forgotPass = document.getElementById('forgotPass');
 const emailInput = document.getElementById('email');
 const passInput = document.getElementById('password');
+const dashboardContainer = document.getElementById('dashboardContainer');
+const toastContainer = document.getElementById('toastContainer');
 
 let isSignup = false;
 
+// ---------------- Toast function ----------------
+function showToast(message, type="success"){
+  const toast = document.createElement('div');
+  toast.innerText = message;
+  toast.className = `px-4 py-2 mb-2 rounded shadow-lg text-white ${type==="success"?"bg-green-500":"bg-red-500"} animate-fadeIn`;
+  toastContainer.appendChild(toast);
+  setTimeout(()=>toast.remove(),3000);
+}
+
+// ---------------- Modal Logic ----------------
 function openModal(signup){
   isSignup = signup;
   modalTitle.innerText = signup?"Create Account":"Login";
@@ -134,11 +118,11 @@ loginBtn.onclick = ()=>openModal(false);
 closeModal.onclick = ()=>authModal.classList.add('hidden');
 toggleAuth.onclick = ()=>openModal(!isSignup);
 
-// ----------------- AUTH ACTIONS -----------------
+// ---------------- Auth Actions ----------------
 submitAuth.onclick = async ()=>{
   const email = emailInput.value;
   const pass = passInput.value;
-  if(!email||!pass)return showToast("Please fill all fields","error");
+  if(!email||!pass){showToast("Please fill all fields","error"); return;}
   try{
     if(isSignup){
       await createUserWithEmailAndPassword(auth,email,pass);
@@ -148,72 +132,36 @@ submitAuth.onclick = async ()=>{
       showToast("Login successful!");
     }
     authModal.classList.add('hidden');
-    updateUI();
   }catch(e){showToast(e.message,"error")}
 }
 
 logoutBtn.onclick = async ()=>{
   await signOut(auth);
   showToast("Logged out successfully!");
-  updateUI();
 }
 
+// Forgot password
 forgotPass.onclick = async ()=>{
   const email = emailInput.value;
-  if(!email)return showToast("Enter your email first","error");
+  if(!email){showToast("Enter your email first","error"); return;}
   try{
     await sendPasswordResetEmail(auth,email);
     showToast("Password reset email sent successfully!");
   }catch(e){showToast(e.message,"error")}
 }
 
-// ----------------- UPDATE UI -----------------
-function updateUI(){
-  const user = auth.currentUser;
+// ---------------- Update UI ----------------
+onAuthStateChanged(auth,user=>{
   if(user){
     loginBtn.classList.add('hidden');
     logoutBtn.classList.remove('hidden');
+    dashboardContainer.classList.remove('hidden');
   }else{
     loginBtn.classList.remove('hidden');
     logoutBtn.classList.add('hidden');
-  }
-}
-
-onAuthStateChanged(auth,updateUI);
-
-// ----------------- RENDER DASHBOARD -----------------
-window.addEventListener('DOMContentLoaded',()=>{
-  // Group by category
-  const categories = {};
-  tools.forEach(tool=>{
-    if(!categories[tool.category])categories[tool.category]=[];
-    categories[tool.category].push(tool);
-  });
-  for(const [catName,catTools] of Object.entries(categories)){
-    const section=document.createElement('section');
-    section.className="mb-12";
-    const heading=document.createElement('h2');
-    heading.className="text-2xl font-semibold mb-4 text-blue-600";
-    heading.innerText=`📂 ${catName}`;
-    section.appendChild(heading);
-    const grid=document.createElement('div');
-    grid.className="grid md:grid-cols-3 gap-6";
-    catTools.forEach(tool=>{
-      const card=document.createElement('a');
-      card.href=tool.link;
-      card.className="tool-card bg-white p-4 rounded-xl shadow hover:shadow-2xl hover:scale-105 transition-all flex flex-col items-center text-center";
-      card.innerHTML=`<img src="${tool.icon}" class="mb-2"/><h3 class="font-semibold text-lg">${tool.name}</h3>`;
-      grid.appendChild(card);
-    });
-    section.appendChild(grid);
-    mainContainer.appendChild(section);
+    dashboardContainer.classList.add('hidden');
   }
 });
 </script>
-
-<style>
-@keyframes fadeIn {0%{opacity:0}100%{opacity:1}}
-.animate-fadeIn {animation:fadeIn 0.5s ease-in;}
-</style>
-
+</body>
 </html>
