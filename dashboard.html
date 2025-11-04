@@ -8,35 +8,77 @@
   <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js"></script>
 </head>
-<body class="bg-gray-100 text-gray-800">
+<body class="bg-gray-100 text-gray-800 min-h-screen">
 
   <!-- Navbar -->
   <nav class="bg-white shadow-md p-4 flex justify-between items-center">
     <h1 class="text-2xl font-bold text-blue-600">MarketNest Dashboard</h1>
-    <button id="logoutBtn" class="px-4 py-2 bg-red-500 text-white rounded-lg">Logout</button>
+    <button id="logoutBtn" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">Logout</button>
   </nav>
 
-  <!-- Welcome Section -->
-  <section class="text-center py-12">
-    <h2 class="text-3xl font-bold text-gray-700">Welcome to your Dashboard 🎉</h2>
-    <p class="text-gray-600 mt-2">Manage your business tools, reports & templates here.</p>
+  <!-- Dashboard Tools -->
+  <section class="p-6 grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+    <!-- Finance & Accounting Tools -->
+    <div class="bg-white p-4 rounded-xl shadow hover:shadow-lg">
+      <h3 class="font-semibold text-lg">ROI Calculator</h3>
+    </div>
+    <div class="bg-white p-4 rounded-xl shadow hover:shadow-lg">
+      <h3 class="font-semibold text-lg">Profit Margin Calculator</h3>
+    </div>
+    <div class="bg-white p-4 rounded-xl shadow hover:shadow-lg">
+      <h3 class="font-semibold text-lg">Break-even Analyzer</h3>
+    </div>
+
+    <!-- Google & Excel Sheets -->
+    <div class="bg-white p-4 rounded-xl shadow hover:shadow-lg">
+      <h3 class="font-semibold text-lg">Google Sheets Templates</h3>
+    </div>
+    <div class="bg-white p-4 rounded-xl shadow hover:shadow-lg">
+      <h3 class="font-semibold text-lg">Excel Business Templates</h3>
+    </div>
+
+    <!-- AI & Automation -->
+    <div class="bg-white p-4 rounded-xl shadow hover:shadow-lg">
+      <h3 class="font-semibold text-lg">ChatGPT Assistant</h3>
+    </div>
+    <div class="bg-white p-4 rounded-xl shadow hover:shadow-lg">
+      <h3 class="font-semibold text-lg">Gemini UI</h3>
+      <p class="text-gray-500 text-sm">Coming Soon</p>
+    </div>
+
+    <!-- Add all other categories similarly (Marketing, SEO, Design, Communication etc.) -->
+    <!-- Use same card structure for each tool -->
   </section>
 
-  <!-- Dashboard Cards -->
-  <section class="grid md:grid-cols-3 gap-6 p-6 max-w-6xl mx-auto">
-    <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg">
-      <h3 class="font-semibold text-lg">My Tools</h3>
-      <p class="text-gray-600">Access your saved calculators & templates.</p>
-    </div>
-    <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg">
-      <h3 class="font-semibold text-lg">Reports</h3>
-      <p class="text-gray-600">Generate summaries and performance data.</p>
-    </div>
-    <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg">
-      <h3 class="font-semibold text-lg">Upgrade to Premium</h3>
-      <p class="text-gray-600">Coming soon — unlock exclusive AI features.</p>
-    </div>
-  </section>
+  <footer class="text-center p-4 bg-white mt-12 shadow-inner text-gray-500">
+    © 2025 MarketNest. All rights reserved.
+  </footer>
 
-  <!-- Footer -->
-  <
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBuYXfr-_q-BJskWHN4chB8SZqMc-P9odw",
+      authDomain: "toolnest-8e42d.firebaseapp.com",
+      projectId: "toolnest-8e42d",
+      storageBucket: "toolnest-8e42d.firebasestorage.app",
+      messagingSenderId: "988256036107",
+      appId: "1:988256036107:web:90f7e40f07593dff8e2e0e"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // Logout button
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      auth.signOut().then(() => {
+        window.location.href = "../index.html";
+      });
+    });
+
+    // Redirect to login if not logged in
+    auth.onAuthStateChanged(user => {
+      if (!user) window.location.href = "../index.html";
+    });
+  </script>
+
+</body>
+</html>
