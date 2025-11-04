@@ -16,9 +16,11 @@
 <div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
   <div class="bg-white rounded-xl w-96 p-6 shadow-lg relative animate-fadeIn">
 
-    <!-- ToolNest Logo Section -->
+    <!-- ToolNest Icon Section -->
     <div class="text-center mb-4 flex flex-col items-center">
-      <img src="https://alis670.github.io/ToolNest/toolnest-logo.png" alt="ToolNest Logo" class="w-20 h-20 object-contain"/>
+      <div class="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
+        <span class="text-white text-2xl font-bold">TN</span>
+      </div>
     </div>
 
     <!-- Modal Title -->
@@ -88,7 +90,7 @@ function showToast(message, type="success"){
 // Open modal
 function openModal(signup){
   isSignup = signup;
-  modalTitle.innerText = signup?"ToolNest":"ToolNest";
+  modalTitle.innerText = "ToolNest";
   submitAuth.innerText = signup?"Sign Up":"Login";
   toggleAuth.innerText = signup?"Already have an account?":"Create an account";
   authModal.classList.remove('hidden');
