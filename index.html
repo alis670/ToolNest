@@ -3,161 +3,116 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ToolNest - Smart Business Tools</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>MarketNest | All-in-One Business Tools</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-<body class="bg-gray-100 text-gray-800">
+<body>
 
-  <!-- Navbar -->
-  <nav class="bg-white shadow-md p-4 flex justify-between items-center">
-    <h1 class="text-2xl font-bold text-blue-600">ToolNest</h1>
-    <div id="userControls">
-      <button id="loginBtn" class="px-4 py-2 bg-blue-500 text-white rounded-lg">Login</button>
-      <button id="logoutBtn" class="hidden px-4 py-2 bg-red-500 text-white rounded-lg">Logout</button>
-    </div>
+  <header>
+    <h1>📊 MarketNest</h1>
+    <p>Your Free Business & Growth Toolkit</p>
+  </header>
+
+  <nav>
+    <a href="#finance">Finance</a>
+    <a href="#business">Business</a>
+    <a href="#ecommerce">E-commerce</a>
+    <a href="#ai">AI Tools</a>
+    <a href="#design">Design</a>
+    <a href="#seo">SEO</a>
+    <a href="#communication">Communication</a>
+    <a href="#premium">Coming Soon</a>
   </nav>
 
-  <!-- Hero Section -->
-  <section class="text-center py-16 bg-gradient-to-r from-blue-600 to-purple-500 text-white">
-    <h2 class="text-4xl font-bold mb-4">All Your Business Tools in One Place</h2>
-    <p class="text-lg mb-6">Access calculators, sheets, AI bots, and analytics globally.</p>
-    <button id="openSignup" class="bg-white text-blue-600 font-semibold px-6 py-2 rounded-lg shadow-md hover:bg-gray-100">
-      Get Started Free
-    </button>
-  </section>
+  <main>
+    <section id="finance" class="category">
+      <h2>💰 Finance & Accounting</h2>
+      <ul>
+        <li><a href="pages/roi.html">ROI Calculator</a></li>
+        <li><a href="pages/profit.html">Profit Margin Calculator</a></li>
+        <li><a href="pages/breakeven.html">Break-Even Analyzer</a></li>
+        <li><a href="pages/loan.html">Loan EMI Calculator</a></li>
+        <li><a href="pages/tax.html">Tax / GST Calculator</a></li>
+        <li><a href="pages/currency.html">Currency Converter</a></li>
+        <li><a href="templates/expense.xlsx">Expense Tracker (Excel)</a></li>
+        <li><a href="templates/payroll.xlsx">Salary Sheet</a></li>
+      </ul>
+    </section>
 
-  <!-- Tools Section -->
-  <section class="p-6 grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-    <div class="bg-white p-4 rounded-xl shadow hover:shadow-lg">
-      <h3 class="font-semibold text-lg">Finance Calculator</h3>
-      <p class="text-gray-600">Simple ROI & profit margin tools.</p>
-    </div>
-    <div class="bg-white p-4 rounded-xl shadow hover:shadow-lg">
-      <h3 class="font-semibold text-lg">Google Sheets Templates</h3>
-      <p class="text-gray-600">Ready-made sheets for business tracking.</p>
-    </div>
-    <div class="bg-white p-4 rounded-xl shadow hover:shadow-lg">
-      <h3 class="font-semibold text-lg">AI Chat Assistants</h3>
-      <p class="text-gray-600">ChatGPT, Gemini & more integrated bots.</p>
-    </div>
-  </section>
+    <section id="business" class="category">
+      <h2>🏢 Business Management</h2>
+      <ul>
+        <li><a href="pages/forecast.html">Revenue Forecast Tool</a></li>
+        <li><a href="pages/budget.html">Budget Planner</a></li>
+        <li><a href="pages/invoice.html">Invoice Generator</a></li>
+        <li><a href="templates/attendance.xlsx">Employee Attendance</a></li>
+      </ul>
+    </section>
 
-  <!-- Auth Modal -->
-  <div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center">
-    <div class="bg-white rounded-xl w-96 p-6 shadow-lg relative">
-      <button id="closeModal" class="absolute top-2 right-2 text-gray-500 text-xl">&times;</button>
-      <h2 id="modalTitle" class="text-2xl font-bold mb-4 text-center">Login</h2>
+    <section id="ecommerce" class="category">
+      <h2>🛍️ E-commerce & Marketing</h2>
+      <ul>
+        <li><a href="pages/pricing.html">Product Pricing Calculator</a></li>
+        <li><a href="pages/discount.html">Discount Finder</a></li>
+        <li><a href="pages/inventory.html">Inventory Tracker</a></li>
+        <li><a href="pages/keyword.html">Keyword Research Tool</a></li>
+      </ul>
+    </section>
 
-      <input type="email" id="email" placeholder="Email" class="w-full p-2 border rounded mb-3" />
-      <input type="password" id="password" placeholder="Password" class="w-full p-2 border rounded mb-4" />
+    <section id="ai" class="category">
+      <h2>🤖 AI & Automation</h2>
+      <ul>
+        <li><a href="pages/chatgpt.html">ChatGPT Assistant (Free)</a></li>
+        <li><a href="pages/email.html">Auto Email Generator</a></li>
+        <li><a href="pages/names.html">Name / Slogan Generator</a></li>
+      </ul>
+    </section>
 
-      <button id="submitAuth" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold">Continue</button>
+    <section id="design" class="category">
+      <h2>🎨 Design & Branding</h2>
+      <ul>
+        <li><a href="pages/logo.html">Logo Maker</a></li>
+        <li><a href="pages/card.html">Business Card Template</a></li>
+        <li><a href="pages/colors.html">Color Palette Generator</a></li>
+        <li><a href="pages/caption.html">Social Caption Generator</a></li>
+      </ul>
+    </section>
 
-      <p id="toggleAuth" class="text-center text-sm text-blue-500 mt-3 cursor-pointer">Create an account</p>
-      <p id="forgotPass" class="text-center text-sm text-gray-500 mt-1 cursor-pointer">Forgot Password?</p>
-    </div>
-  </div>
+    <section id="seo" class="category">
+      <h2>🌐 Website & SEO</h2>
+      <ul>
+        <li><a href="pages/meta.html">Meta Tag Generator</a></li>
+        <li><a href="pages/keyworddensity.html">Keyword Density Checker</a></li>
+        <li><a href="pages/sitemap.html">Sitemap XML Generator</a></li>
+        <li><a href="pages/pagespeed.html">Page Speed Tester</a></li>
+      </ul>
+    </section>
 
-  <!-- Footer -->
-  <footer class="text-center p-4 bg-white mt-12 shadow-inner text-gray-500">
-    © 2025 ToolNest. All rights reserved.
+    <section id="communication" class="category">
+      <h2>📞 Communication & Management</h2>
+      <ul>
+        <li><a href="pages/project.html">Project Task Manager</a></li>
+        <li><a href="pages/client.html">Client Feedback Form</a></li>
+        <li><a href="pages/email-signature.html">Email Signature Generator</a></li>
+      </ul>
+    </section>
+
+    <section id="premium" class="category coming-soon">
+      <h2>🚀 Upcoming / Premium Tools</h2>
+      <ul>
+        <li>MarketNest Pro Analyzer (Coming Soon)</li>
+        <li>Business Intelligence Dashboard</li>
+        <li>AI Data Visualizer</li>
+        <li>Team Workspace</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2025 MarketNest | All Tools Free • Premium Coming Soon</p>
   </footer>
 
-  <!-- Firebase + Auth Logic -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBuYXfr-_q-BJskWHN4chB8SZqMc-P9odw",
-      authDomain: "toolnest-8e42d.firebaseapp.com",
-      projectId: "toolnest-8e42d",
-      storageBucket: "toolnest-8e42d.firebasestorage.app",
-      messagingSenderId: "988256036107",
-      appId: "1:988256036107:web:90f7e40f07593dff8e2e0e"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-
-    // UI Elements
-    const authModal = document.getElementById('authModal');
-    const openSignup = document.getElementById('openSignup');
-    const loginBtn = document.getElementById('loginBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const closeModal = document.getElementById('closeModal');
-    const modalTitle = document.getElementById('modalTitle');
-    const submitAuth = document.getElementById('submitAuth');
-    const toggleAuth = document.getElementById('toggleAuth');
-    const forgotPass = document.getElementById('forgotPass');
-    const emailInput = document.getElementById('email');
-    const passInput = document.getElementById('password');
-
-    let isSignup = false;
-
-    openSignup.onclick = () => { openModal(true); };
-    loginBtn.onclick = () => { openModal(false); };
-    closeModal.onclick = () => { authModal.classList.add('hidden'); };
-
-    function openModal(signup) {
-      isSignup = signup;
-      modalTitle.innerText = signup ? 'Create Account' : 'Login';
-      submitAuth.innerText = signup ? 'Sign Up' : 'Login';
-      toggleAuth.innerText = signup ? 'Already have an account?' : 'Create an account';
-      authModal.classList.remove('hidden');
-    }
-
-    toggleAuth.onclick = () => openModal(!isSignup);
-
-    submitAuth.onclick = async () => {
-      const email = emailInput.value;
-      const pass = passInput.value;
-      if (!email || !pass) return alert('Please fill all fields');
-
-      try {
-        if (isSignup) {
-          await createUserWithEmailAndPassword(auth, email, pass);
-          alert('Account created successfully!');
-        } else {
-          await signInWithEmailAndPassword(auth, email, pass);
-          alert('Logged in!');
-        }
-
-        authModal.classList.add('hidden');
-        updateUI();
-
-        // ✅ Redirect user to dashboard after login/signup
-        window.location.href = "dashboard.html";
-
-      } catch (e) {
-        alert('Error: ' + e.message);
-      }
-    };
-
-    logoutBtn.onclick = async () => {
-      await signOut(auth);
-      updateUI();
-    };
-
-    forgotPass.onclick = async () => {
-      const email = emailInput.value;
-      if (!email) return alert('Enter your email first');
-      await sendPasswordResetEmail(auth, email);
-      alert('Password reset email sent!');
-    };
-
-    function updateUI() {
-      const user = auth.currentUser;
-      if (user) {
-        loginBtn.classList.add('hidden');
-        logoutBtn.classList.remove('hidden');
-      } else {
-        loginBtn.classList.remove('hidden');
-        logoutBtn.classList.add('hidden');
-      }
-    }
-
-    onAuthStateChanged(auth, updateUI);
-  </script>
+  <script type="module" src="firebase.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
