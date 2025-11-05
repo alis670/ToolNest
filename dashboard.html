@@ -6,99 +6,185 @@
 <title>ToolNest Dashboard</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-  @keyframes fadeIn {0%{opacity:0}100%{opacity:1}}
-  .animate-fadeIn {animation:fadeIn 0.5s ease-in;}
+@keyframes fadeIn {0%{opacity:0}100%{opacity:1}}
+.animate-fadeIn {animation:fadeIn 0.5s ease-in;}
+.category-btn {cursor:pointer;}
+.tool-card:hover {transform: translateY(-5px); transition: all 0.3s;}
 </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
 
-<header class="bg-white shadow-md p-4 flex justify-between items-center">
-  <div class="flex items-center space-x-2">
-    <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">TN</div>
-    <h1 class="text-2xl font-bold text-gray-800">ToolNest</h1>
-  </div>
-</header>
-
-<main class="max-w-7xl mx-auto p-6">
-  <!-- Category Filter -->
-  <div class="flex flex-wrap gap-2 mb-6" id="categoryContainer"></div>
-
-  <!-- Tools Grid -->
-  <div id="toolsGrid" class="grid md:grid-cols-3 sm:grid-cols-2 gap-6"></div>
-</main>
+<!-- Logout Button -->
+<button id="logoutBtn" class="fixed bottom-5 right-5 px-4 py-2 bg-red-500 text-white rounded-lg hidden z-50">Logout</button>
 
 <!-- Toast Container -->
 <div id="toastContainer" class="fixed top-5 right-5 z-50"></div>
 
-<!-- Logout Button -->
-<button id="logoutBtn" class="fixed bottom-5 right-5 px-4 py-2 bg-red-500 text-white rounded-lg">Logout</button>
+<!-- Dashboard Container -->
+<main class="max-w-7xl mx-auto p-6">
+  <h1 class="text-3xl font-bold text-gray-700 mb-6">ToolNest Dashboard</h1>
+
+  <!-- Category Buttons -->
+  <div id="categoryContainer" class="flex flex-wrap gap-4 mb-6">
+    <!-- Buttons added dynamically via JS -->
+  </div>
+
+  <!-- Tools Container -->
+  <div id="toolsContainer" class="grid md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-6">
+    <!-- Tool cards added dynamically via JS -->
+  </div>
+</main>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { tools } from './tools.js'; // JSON/object of tools
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBuYXfr-_q-BJskWHN4chB8SZqMc-P9odw",
-  authDomain: "toolnest-8e42d.firebaseapp.com",
-  projectId: "toolnest-8e42d",
-  storageBucket: "toolnest-8e42d.firebasestorage.app",
-  messagingSenderId: "988256036107",
-  appId: "1:988256036107:web:90f7e40f07593dff8e2e0e"
-};
+// Firebase auth is assumed already initialized in your auth.js
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const toastContainer = document.getElementById('toastContainer');
-const logoutBtn = document.getElementById('logoutBtn');
-const toolsGrid = document.getElementById('toolsGrid');
-const categoryContainer = document.getElementById('categoryContainer');
+const auth = getAuth();
 
 // Toast function
-function showToast(msg, type="success"){
+function showToast(message, type="success"){
+  const toastContainer = document.getElementById('toastContainer');
   const toast = document.createElement('div');
-  toast.innerText = msg;
+  toast.innerText = message;
   toast.className = `px-4 py-2 mb-2 rounded shadow-lg text-white ${type==="success"?"bg-green-500":"bg-red-500"} animate-fadeIn`;
   toastContainer.appendChild(toast);
   setTimeout(()=>toast.remove(),3000);
 }
 
 // Logout
+const logoutBtn = document.getElementById('logoutBtn');
 logoutBtn.onclick = async () => {
   await signOut(auth);
-  window.location.href = "index.html";
+  showToast("Logged out successfully!");
 }
 
-// Auth state
-onAuthStateChanged(auth, user => {
-  if(!user) window.location.href="index.html";
-});
+// Categories & Tools Data
+const categories = [
+  {
+    name: "Finance & Accounting",
+    icon: "💰",
+    tools: [
+      { name:"ROI Calculator", icon:"📈" },
+      { name:"Profit Margin Calculator", icon:"💹" },
+      { name:"Break-even Analyzer", icon:"⚖️" },
+      { name:"Loan EMI Calculator", icon:"🏦" },
+      { name:"Tax/GST Calculator", icon:"🧾" },
+      { name:"Currency Converter", icon:"💱" },
+      { name:"Expense Tracker", icon:"📝" },
+      { name:"Cash Flow Analyzer", icon:"💵" },
+      { name:"Salary/Payroll Sheet", icon:"👷‍♂️" }
+    ]
+  },
+  {
+    name: "Business Management",
+    icon: "📊",
+    tools: [
+      { name:"Revenue Forecast Tool", icon:"📈" },
+      { name:"Budget Planner", icon:"💰" },
+      { name:"Employee Attendance Tracker", icon:"🗓️" },
+      { name:"Invoice Generator", icon:"🧾" },
+      { name:"Business Proposal Template", icon:"📄" },
+      { name:"Time Tracking Tool", icon:"⏱️" },
+      { name:"Meeting Notes Template", icon:"📝" }
+    ]
+  },
+  {
+    name: "E-commerce & Marketing",
+    icon: "🛒",
+    tools: [
+      { name:"Product Pricing Calculator", icon:"💲" },
+      { name:"Discount Finder", icon:"🏷️" },
+      { name:"Inventory Tracker", icon:"📦" },
+      { name:"Keyword Research Tool", icon:"🔑" },
+      { name:"Competitor Tracker", icon:"🕵️‍♂️" },
+      { name:"Profit & Fee Calculator", icon:"💹" },
+      { name:"Product Launch Planner", icon:"🚀" }
+    ]
+  },
+  {
+    name: "Data & Productivity",
+    icon: "📑",
+    tools: [
+      { name:"Google Sheets Templates", icon:"📊" },
+      { name:"Excel Templates", icon:"📈" },
+      { name:"CSV → Excel Converter", icon:"🔄" },
+      { name:"Sheet Merger Tool", icon:"🧩" },
+      { name:"Data Cleaner", icon:"🧹" },
+      { name:"Dashboard Template", icon:"📉" }
+    ]
+  },
+  {
+    name: "AI & Automation",
+    icon: "🤖",
+    tools: [
+      { name:"ChatGPT Assistant", icon:"💬" },
+      { name:"Gemini UI", icon:"🪐" },
+      { name:"Auto Email Generator", icon:"✉️" },
+      { name:"Task Automation Templates", icon:"⚡" },
+      { name:"AI Name/Slogan Generator", icon:"🖊️" },
+      { name:"Document Summarizer", icon:"📄" }
+    ]
+  }
+];
 
-// Generate categories dynamically
-const categories = [...new Set(tools.map(t=>t.category))];
-categories.unshift("All"); // Add All
-categories.forEach(cat=>{
-  const btn = document.createElement('button');
-  btn.innerText = cat;
-  btn.className = "px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700";
-  btn.onclick = () => displayTools(cat);
-  categoryContainer.appendChild(btn);
-});
+// Render category buttons
+const categoryContainer = document.getElementById('categoryContainer');
+const toolsContainer = document.getElementById('toolsContainer');
 
-// Display tools based on category
-function displayTools(category="All"){
-  toolsGrid.innerHTML = "";
-  let filtered = category==="All"?tools:tools.filter(t=>t.category===category);
-  filtered.forEach(t=>{
-    const div = document.createElement('div');
-    div.className="bg-white p-4 rounded-xl shadow hover:shadow-lg animate-fadeIn";
-    div.innerHTML=`<h3 class="font-semibold text-lg">${t.name}</h3><p class="text-gray-600">${t.description||""}</p><a href="${t.link}" target="_blank" class="text-blue-500 mt-2 inline-block">Open</a>`;
-    toolsGrid.appendChild(div);
+function renderCategoryButtons(){
+  // Add "All" button
+  const allBtn = document.createElement('div');
+  allBtn.innerText = "All";
+  allBtn.className = "category-btn px-4 py-2 bg-blue-600 text-white rounded-lg shadow cursor-pointer hover:bg-blue-700";
+  allBtn.onclick = ()=>renderTools("All");
+  categoryContainer.appendChild(allBtn);
+
+  categories.forEach(cat=>{
+    const btn = document.createElement('div');
+    btn.innerText = `${cat.icon} ${cat.name}`;
+    btn.className = "category-btn px-4 py-2 bg-gray-200 rounded-lg shadow hover:bg-gray-300";
+    btn.onclick = ()=>renderTools(cat.name);
+    categoryContainer.appendChild(btn);
   });
 }
 
-// Initial display
-displayTools();
+// Render tools cards
+function renderTools(categoryName){
+  toolsContainer.innerHTML = "";
+  let filteredTools = [];
+
+  if(categoryName==="All"){
+    categories.forEach(cat=>filteredTools.push(...cat.tools.map(tool=>({...tool, category: cat.name}))));
+  }else{
+    const cat = categories.find(c=>c.name===categoryName);
+    if(cat) filteredTools = cat.tools.map(tool=>({...tool, category: cat.name}));
+  }
+
+  filteredTools.forEach(tool=>{
+    const card = document.createElement('div');
+    card.className = "tool-card bg-white p-4 rounded-xl shadow hover:shadow-lg flex items-center gap-3";
+    card.innerHTML = `<span class="text-2xl">${tool.icon}</span><div><h3 class="font-semibold">${tool.name}</h3><p class="text-gray-500 text-sm">${tool.category}</p></div>`;
+    toolsContainer.appendChild(card);
+  });
+}
+
+// Initialize
+renderCategoryButtons();
+renderTools("All");
+
+// Firebase auth listener
+onAuthStateChanged(auth, user=>{
+  if(user){
+    document.querySelector('main').classList.remove('hidden');
+    logoutBtn.classList.remove('hidden');
+  }else{
+    document.querySelector('main').classList.add('hidden');
+    logoutBtn.classList.add('hidden');
+    window.location.href = "/index.html"; // redirect to login
+  }
+});
 </script>
+
 </body>
 </html>
