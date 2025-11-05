@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ToolNest</title>
+<title>ToolNest - Login</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
 @keyframes fadeIn {0%{opacity:0}100%{opacity:1}}
@@ -16,14 +16,13 @@
 <div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
   <div class="bg-white rounded-xl w-96 p-6 shadow-lg relative animate-fadeIn">
 
-    <!-- ToolNest Icon Section -->
+    <!-- ToolNest Icon -->
     <div class="text-center mb-4 flex flex-col items-center">
       <div class="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
         <span class="text-white text-2xl font-bold">TN</span>
       </div>
     </div>
 
-    <!-- Modal Title -->
     <h2 id="modalTitle" class="text-xl font-semibold text-center mb-4">ToolNest</h2>
 
     <input type="email" id="email" placeholder="Email" class="w-full p-2 border rounded mb-3" />
@@ -34,11 +33,6 @@
   </div>
 </div>
 
-<!-- Dashboard -->
-<main id="dashboardContainer" class="max-w-7xl mx-auto p-6 space-y-12 hidden">
-  <h2 class="text-xl text-gray-600">Welcome! Your tools will appear after login.</h2>
-</main>
-
 <!-- Toast Container -->
 <div id="toastContainer" class="fixed top-5 right-5 z-50"></div>
 
@@ -48,9 +42,7 @@ import {
   getAuth, 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
-  signOut, 
-  sendPasswordResetEmail,
-  onAuthStateChanged
+  sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
 const firebaseConfig = {
@@ -73,12 +65,11 @@ const toggleAuth = document.getElementById('toggleAuth');
 const forgotPass = document.getElementById('forgotPass');
 const emailInput = document.getElementById('email');
 const passInput = document.getElementById('password');
-const dashboardContainer = document.getElementById('dashboardContainer');
 const toastContainer = document.getElementById('toastContainer');
 
 let isSignup = false;
 
-// Toast function
+// Toast
 function showToast(message, type="success"){
   const toast = document.createElement('div');
   toast.innerText = message;
@@ -112,7 +103,8 @@ submitAuth.onclick = async ()=>{
       await signInWithEmailAndPassword(auth,email,pass);
       showToast("Login successful!");
     }
-    authModal.classList.add('hidden');
+    // Redirect to dashboard
+    window.location.href = "dashboard.html";
   }catch(e){showToast(e.message,"error")}
 }
 
@@ -125,31 +117,6 @@ forgotPass.onclick = async ()=>{
     showToast("Password reset email sent successfully!");
   }catch(e){showToast(e.message,"error")}
 }
-
-// Logout button
-const logoutBtn = document.createElement('button');
-logoutBtn.className="fixed top-5 right-5 px-4 py-2 bg-red-500 text-white rounded-lg hidden";
-logoutBtn.innerText="Logout";
-document.body.appendChild(logoutBtn);
-
-logoutBtn.onclick = async ()=>{
-  await signOut(auth);
-  showToast("Logged out successfully!");
-}
-
-// Update UI on auth change
-onAuthStateChanged(auth,user=>{
-  if(user){
-    dashboardContainer.classList.remove('hidden');
-    authModal.classList.add('hidden');
-    logoutBtn.classList.remove('hidden');
-  }else{
-    dashboardContainer.classList.add('hidden');
-    logoutBtn.classList.add('hidden');
-    authModal.classList.remove('hidden');
-    openModal(false);
-  }
-});
 </script>
 </body>
 </html>
