@@ -241,11 +241,14 @@ document.addEventListener("click", (e) => {
   if (e.target.tagName === "LI") {
     const toolName = e.target.innerText.trim();
     if (toolName === "ROI Calculator") {
-      window.open("roi-calculator.html", "_blank"); // open in new tab
-    } else {
-      alert(`${toolName} coming soon!`);
-    }
-  }
+  window.open("roi-calculator.html", "_blank");
+} 
+else if (toolName === "Profit Margin Calculator") {
+  window.open("profit-margin-calculator.html", "_blank");
+} 
+else {
+  alert(`${toolName} coming soon!`);
+}
 });
 </script>
 </body>
