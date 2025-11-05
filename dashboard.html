@@ -8,43 +8,84 @@
 <style>
 @keyframes fadeIn {0%{opacity:0}100%{opacity:1}}
 .animate-fadeIn {animation:fadeIn 0.5s ease-in;}
-.category-btn {cursor:pointer;}
-.tool-card:hover {transform: translateY(-5px); transition: all 0.3s;}
 </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
 
-<!-- Logout Button -->
-<button id="logoutBtn" class="fixed bottom-5 right-5 px-4 py-2 bg-red-500 text-white rounded-lg hidden z-50">Logout</button>
+<!-- Auth Modal -->
+<div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+  <div class="bg-white rounded-xl w-96 p-6 shadow-lg relative animate-fadeIn">
+
+    <!-- ToolNest Icon Section -->
+    <div class="text-center mb-4 flex flex-col items-center">
+      <div class="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
+        <span class="text-white text-2xl font-bold">TN</span>
+      </div>
+    </div>
+
+    <!-- Modal Title -->
+    <h2 id="modalTitle" class="text-xl font-semibold text-center mb-4">ToolNest</h2>
+
+    <input type="email" id="email" placeholder="Email" class="w-full p-2 border rounded mb-3" />
+    <input type="password" id="password" placeholder="Password" class="w-full p-2 border rounded mb-4" />
+    <button id="submitAuth" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold">Continue</button>
+    <p id="toggleAuth" class="text-center text-sm text-blue-500 mt-3 cursor-pointer">Create an account</p>
+    <p id="forgotPass" class="text-center text-sm text-gray-500 mt-1 cursor-pointer">Forgot Password?</p>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<main id="dashboardContainer" class="max-w-7xl mx-auto p-6 space-y-12 hidden">
+
+  <h1 class="text-3xl font-bold text-gray-700 mb-6">ToolNest Dashboard</h1>
+
+  <div id="categoriesContainer" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+</main>
 
 <!-- Toast Container -->
 <div id="toastContainer" class="fixed top-5 right-5 z-50"></div>
 
-<!-- Dashboard Container -->
-<main class="max-w-7xl mx-auto p-6">
-  <h1 class="text-3xl font-bold text-gray-700 mb-6">ToolNest Dashboard</h1>
-
-  <!-- Category Buttons -->
-  <div id="categoryContainer" class="flex flex-wrap gap-4 mb-6">
-    <!-- Buttons added dynamically via JS -->
-  </div>
-
-  <!-- Tools Container -->
-  <div id="toolsContainer" class="grid md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-6">
-    <!-- Tool cards added dynamically via JS -->
-  </div>
-</main>
-
 <script type="module">
-import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { 
+  getAuth, 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  signOut, 
+  sendPasswordResetEmail,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-// Firebase auth is assumed already initialized in your auth.js
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyBuYXfr-_q-BJskWHN4chB8SZqMc-P9odw",
+  authDomain: "toolnest-8e42d.firebaseapp.com",
+  projectId: "toolnest-8e42d",
+  storageBucket: "toolnest-8e42d.firebasestorage.app",
+  messagingSenderId: "988256036107",
+  appId: "1:988256036107:web:90f7e40f07593dff8e2e0e"
+};
 
-const auth = getAuth();
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+// UI Elements
+const authModal = document.getElementById('authModal');
+const modalTitle = document.getElementById('modalTitle');
+const submitAuth = document.getElementById('submitAuth');
+const toggleAuth = document.getElementById('toggleAuth');
+const forgotPass = document.getElementById('forgotPass');
+const emailInput = document.getElementById('email');
+const passInput = document.getElementById('password');
+const dashboardContainer = document.getElementById('dashboardContainer');
+const toastContainer = document.getElementById('toastContainer');
+const categoriesContainer = document.getElementById('categoriesContainer');
+
+let isSignup = false;
 
 // Toast function
 function showToast(message, type="success"){
-  const toastContainer = document.getElementById('toastContainer');
   const toast = document.createElement('div');
   toast.innerText = message;
   toast.className = `px-4 py-2 mb-2 rounded shadow-lg text-white ${type==="success"?"bg-green-500":"bg-red-500"} animate-fadeIn`;
@@ -52,139 +93,149 @@ function showToast(message, type="success"){
   setTimeout(()=>toast.remove(),3000);
 }
 
-// Logout
-const logoutBtn = document.getElementById('logoutBtn');
-logoutBtn.onclick = async () => {
+// Open modal
+function openModal(signup){
+  isSignup = signup;
+  modalTitle.innerText = "ToolNest";
+  submitAuth.innerText = signup?"Sign Up":"Login";
+  toggleAuth.innerText = signup?"Already have an account?":"Create an account";
+  authModal.classList.remove('hidden');
+}
+
+// Toggle modal
+toggleAuth.onclick = ()=>openModal(!isSignup);
+
+// Auth actions
+submitAuth.onclick = async ()=>{
+  const email = emailInput.value;
+  const pass = passInput.value;
+  if(!email||!pass){showToast("Please fill all fields","error"); return;}
+  try{
+    if(isSignup){
+      await createUserWithEmailAndPassword(auth,email,pass);
+      showToast("Account created successfully!");
+    }else{
+      await signInWithEmailAndPassword(auth,email,pass);
+      showToast("Login successful!");
+    }
+    authModal.classList.add('hidden');
+  }catch(e){showToast(e.message,"error")}
+}
+
+// Forgot password
+forgotPass.onclick = async ()=>{
+  const email = emailInput.value;
+  if(!email){showToast("Enter your email first","error"); return;}
+  try{
+    await sendPasswordResetEmail(auth,email);
+    showToast("Password reset email sent successfully!");
+  }catch(e){showToast(e.message,"error")}
+}
+
+// Logout button
+const logoutBtn = document.createElement('button');
+logoutBtn.className="fixed bottom-5 right-5 px-4 py-2 bg-red-500 text-white rounded-lg hidden";
+logoutBtn.innerText="Logout";
+document.body.appendChild(logoutBtn);
+
+logoutBtn.onclick = async ()=>{
   await signOut(auth);
   showToast("Logged out successfully!");
 }
 
-// Categories & Tools Data
+// Tool & Category Data
 const categories = [
   {
     name: "Finance & Accounting",
     icon: "💰",
-    tools: [
-      { name:"ROI Calculator", icon:"📈" },
-      { name:"Profit Margin Calculator", icon:"💹" },
-      { name:"Break-even Analyzer", icon:"⚖️" },
-      { name:"Loan EMI Calculator", icon:"🏦" },
-      { name:"Tax/GST Calculator", icon:"🧾" },
-      { name:"Currency Converter", icon:"💱" },
-      { name:"Expense Tracker", icon:"📝" },
-      { name:"Cash Flow Analyzer", icon:"💵" },
-      { name:"Salary/Payroll Sheet", icon:"👷‍♂️" }
-    ]
+    tools: ["ROI Calculator","Profit Margin Calculator","Break-even Analyzer","Loan EMI Calculator","Tax / GST / VAT Calculator","Currency Converter","Expense Tracker","Cash Flow Analyzer","Salary / Payroll Sheet"]
   },
   {
     name: "Business Management",
     icon: "📊",
-    tools: [
-      { name:"Revenue Forecast Tool", icon:"📈" },
-      { name:"Budget Planner", icon:"💰" },
-      { name:"Employee Attendance Tracker", icon:"🗓️" },
-      { name:"Invoice Generator", icon:"🧾" },
-      { name:"Business Proposal Template", icon:"📄" },
-      { name:"Time Tracking Tool", icon:"⏱️" },
-      { name:"Meeting Notes Template", icon:"📝" }
-    ]
+    tools: ["Revenue Forecast Tool","Budget Planner","Employee Attendance Tracker","Invoice Generator","Business Proposal Template","Time Tracking Tool","Meeting Notes Template"]
   },
   {
     name: "E-commerce & Marketing",
     icon: "🛒",
-    tools: [
-      { name:"Product Pricing Calculator", icon:"💲" },
-      { name:"Discount Finder", icon:"🏷️" },
-      { name:"Inventory Tracker", icon:"📦" },
-      { name:"Keyword Research Tool", icon:"🔑" },
-      { name:"Competitor Tracker", icon:"🕵️‍♂️" },
-      { name:"Profit & Fee Calculator", icon:"💹" },
-      { name:"Product Launch Planner", icon:"🚀" }
-    ]
+    tools: ["Product Pricing Calculator","Discount Finder","Inventory Tracker","Keyword Research Tool","Competitor Tracker","Profit & Fee Calculator","Product Launch Planner"]
   },
   {
     name: "Data & Productivity",
-    icon: "📑",
-    tools: [
-      { name:"Google Sheets Templates", icon:"📊" },
-      { name:"Excel Templates", icon:"📈" },
-      { name:"CSV → Excel Converter", icon:"🔄" },
-      { name:"Sheet Merger Tool", icon:"🧩" },
-      { name:"Data Cleaner", icon:"🧹" },
-      { name:"Dashboard Template", icon:"📉" }
-    ]
+    icon: "📈",
+    tools: ["Google Sheets Templates","Excel Business Templates","CSV → Excel Converter","Sheet Merger Tool","Data Cleaner","Dashboard Template"]
   },
   {
     name: "AI & Automation",
     icon: "🤖",
-    tools: [
-      { name:"ChatGPT Assistant", icon:"💬" },
-      { name:"Gemini UI", icon:"🪐" },
-      { name:"Auto Email Generator", icon:"✉️" },
-      { name:"Task Automation Templates", icon:"⚡" },
-      { name:"AI Name/Slogan Generator", icon:"🖊️" },
-      { name:"Document Summarizer", icon:"📄" }
-    ]
+    tools: ["ChatGPT Assistant","Gemini UI","Auto Email Generator","Task Automation Templates","AI Name/Slogan Generator","Document Summarizer"]
+  },
+  {
+    name: "Design & Branding",
+    icon: "🎨",
+    tools: ["Logo Maker","Business Card Template","Brand Color Palette Generator","Social Media Post Caption Generator"]
+  },
+  {
+    name: "Website & SEO",
+    icon: "🌐",
+    tools: ["Meta Tag Generator","SEO Keyword Density Checker","Backlink Tracker","Sitemap XML Generator","Page Speed Tester"]
+  },
+  {
+    name: "Communication & Management",
+    icon: "💬",
+    tools: ["Project Task Manager","Team Chat UI","Client Feedback Form","Email Signature Generator"]
+  },
+  {
+    name: "Premium / Coming Soon",
+    icon: "🚀",
+    tools: ["MarketNest Pro Analyzer","Business Intelligence Dashboard","AI Data Visualizer","Multi-user Team Workspace"]
   }
 ];
 
-// Render category buttons
-const categoryContainer = document.getElementById('categoryContainer');
-const toolsContainer = document.getElementById('toolsContainer');
-
-function renderCategoryButtons(){
-  // Add "All" button
-  const allBtn = document.createElement('div');
-  allBtn.innerText = "All";
-  allBtn.className = "category-btn px-4 py-2 bg-blue-600 text-white rounded-lg shadow cursor-pointer hover:bg-blue-700";
-  allBtn.onclick = ()=>renderTools("All");
-  categoryContainer.appendChild(allBtn);
-
+// Render categories & tools dynamically
+function renderDashboard(){
+  categoriesContainer.innerHTML = "";
   categories.forEach(cat=>{
-    const btn = document.createElement('div');
-    btn.innerText = `${cat.icon} ${cat.name}`;
-    btn.className = "category-btn px-4 py-2 bg-gray-200 rounded-lg shadow hover:bg-gray-300";
-    btn.onclick = ()=>renderTools(cat.name);
-    categoryContainer.appendChild(btn);
+    const catDiv = document.createElement('div');
+    catDiv.className="bg-white rounded-xl shadow p-4 hover:shadow-lg";
+    
+    const catHeader = document.createElement('div');
+    catHeader.className="flex items-center mb-3";
+    const iconSpan = document.createElement('span');
+    iconSpan.className="text-3xl mr-3";
+    iconSpan.innerText = cat.icon;
+    const nameSpan = document.createElement('span');
+    nameSpan.className="font-semibold text-lg";
+    nameSpan.innerText = cat.name;
+    catHeader.append(iconSpan,nameSpan);
+    catDiv.appendChild(catHeader);
+
+    const toolsList = document.createElement('ul');
+    toolsList.className="list-disc list-inside text-gray-600 space-y-1";
+    cat.tools.forEach(tool=>{
+      const li = document.createElement('li');
+      li.innerText = tool;
+      toolsList.appendChild(li);
+    });
+    catDiv.appendChild(toolsList);
+    categoriesContainer.appendChild(catDiv);
   });
 }
 
-// Render tools cards
-function renderTools(categoryName){
-  toolsContainer.innerHTML = "";
-  let filteredTools = [];
-
-  if(categoryName==="All"){
-    categories.forEach(cat=>filteredTools.push(...cat.tools.map(tool=>({...tool, category: cat.name}))));
-  }else{
-    const cat = categories.find(c=>c.name===categoryName);
-    if(cat) filteredTools = cat.tools.map(tool=>({...tool, category: cat.name}));
-  }
-
-  filteredTools.forEach(tool=>{
-    const card = document.createElement('div');
-    card.className = "tool-card bg-white p-4 rounded-xl shadow hover:shadow-lg flex items-center gap-3";
-    card.innerHTML = `<span class="text-2xl">${tool.icon}</span><div><h3 class="font-semibold">${tool.name}</h3><p class="text-gray-500 text-sm">${tool.category}</p></div>`;
-    toolsContainer.appendChild(card);
-  });
-}
-
-// Initialize
-renderCategoryButtons();
-renderTools("All");
-
-// Firebase auth listener
-onAuthStateChanged(auth, user=>{
+// Update UI on auth change
+onAuthStateChanged(auth,user=>{
   if(user){
-    document.querySelector('main').classList.remove('hidden');
+    dashboardContainer.classList.remove('hidden');
+    authModal.classList.add('hidden');
     logoutBtn.classList.remove('hidden');
+    renderDashboard();
   }else{
-    document.querySelector('main').classList.add('hidden');
+    dashboardContainer.classList.add('hidden');
     logoutBtn.classList.add('hidden');
-    window.location.href = "/index.html"; // redirect to login
+    authModal.classList.remove('hidden');
+    openModal(false);
   }
 });
 </script>
-
 </body>
 </html>
