@@ -12,29 +12,26 @@
 </head>
 <body class="bg-gray-100 min-h-screen">
 
-<!-- Header -->
-<header class="bg-white shadow-md p-4 flex justify-between items-center">
-  <div class="flex items-center space-x-2">
-    <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">TN</div>
-    <h1 class="text-2xl font-bold text-gray-800">ToolNest</h1>
-  </div>
-</header>
+<!-- Dashboard Container -->
+<main id="dashboardContainer" class="max-w-7xl mx-auto p-6 hidden grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+  <!-- Tools will render here dynamically -->
+</main>
 
-<!-- Search Bar -->
-<div class="max-w-6xl mx-auto p-6">
-  <input type="text" id="searchInput" placeholder="Search tools..." class="w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-</div>
-
-<!-- Tools Section -->
-<main id="toolsContainer" class="max-w-6xl mx-auto p-6 grid gap-6 md:grid-cols-3 lg:grid-cols-4"></main>
+<!-- Toast Container -->
+<div id="toastContainer" class="fixed top-5 right-5 z-50"></div>
 
 <!-- Logout Button -->
-<button id="logoutBtn" class="fixed bottom-5 right-5 px-4 py-2 bg-red-500 text-white rounded-lg shadow-lg">Logout</button>
+<button id="logoutBtn" class="fixed bottom-5 right-5 px-4 py-2 bg-red-500 text-white rounded-lg hidden">Logout</button>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { 
+  getAuth, 
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyBuYXfr-_q-BJskWHN4chB8SZqMc-P9odw",
   authDomain: "toolnest-8e42d.firebaseapp.com",
@@ -44,117 +41,107 @@ const firebaseConfig = {
   appId: "1:988256036107:web:90f7e40f07593dff8e2e0e"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-// Tools List - 50+ tools
-const tools = [
-  // Finance & Accounting
-  {name:"ROI Calculator", category:"Finance", desc:"Calculate your ROI easily."},
-  {name:"Profit Margin Calculator", category:"Finance", desc:"Track your profit margins."},
-  {name:"Break-even Analyzer", category:"Finance", desc:"Know your break-even point."},
-  {name:"Loan EMI Calculator", category:"Finance", desc:"EMI calculation for loans."},
-  {name:"Tax / GST / VAT Calculator", category:"Finance", desc:"Quick tax calculations."},
-  {name:"Currency Converter", category:"Finance", desc:"Live exchange rates."},
-  {name:"Expense Tracker", category:"Finance", desc:"Manage daily expenses."},
-  {name:"Cash Flow Analyzer", category:"Finance", desc:"Track business cash flow."},
-  {name:"Salary / Payroll Sheet", category:"Finance", desc:"Employee salary tracker."},
-  
-  // Business Management
-  {name:"Revenue Forecast Tool", category:"Business", desc:"Predict your revenue growth."},
-  {name:"Budget Planner", category:"Business", desc:"Plan monthly budgets."},
-  {name:"Employee Attendance Tracker", category:"Business", desc:"Monitor attendance."},
-  {name:"Invoice Generator", category:"Business", desc:"Create professional invoices."},
-  {name:"Business Proposal Template", category:"Business", desc:"Ready-made proposal format."},
-  {name:"Time Tracking Tool", category:"Business", desc:"Track project hours."},
-  {name:"Meeting Notes Template", category:"Business", desc:"Organize your meetings."},
-  
-  // E-commerce & Marketing
-  {name:"Product Pricing Calculator", category:"E-commerce", desc:"Price your products smartly."},
-  {name:"Discount Finder", category:"E-commerce", desc:"Find best discounts."},
-  {name:"Inventory Tracker", category:"E-commerce", desc:"Track stock levels."},
-  {name:"Keyword Research Tool", category:"E-commerce", desc:"SEO keyword suggestions."},
-  {name:"Competitor Tracker", category:"E-commerce", desc:"Track competitor products."},
-  {name:"Profit & Fee Calculator", category:"E-commerce", desc:"Amazon/eBay profit calculation."},
-  {name:"Product Launch Planner", category:"E-commerce", desc:"Plan your launches."},
-  
-  // Data & Productivity
-  {name:"Google Sheets Templates", category:"Productivity", desc:"Ready-to-use sheets."},
-  {name:"Excel Business Templates", category:"Productivity", desc:"Excel templates for business."},
-  {name:"CSV → Excel Converter", category:"Productivity", desc:"Convert CSV to Excel."},
-  {name:"Sheet Merger Tool", category:"Productivity", desc:"Merge multiple sheets."},
-  {name:"Data Cleaner", category:"Productivity", desc:"Remove duplicates quickly."},
-  {name:"Dashboard Template", category:"Productivity", desc:"Business reporting template."},
-  
-  // AI & Automation
-  {name:"ChatGPT Assistant", category:"AI", desc:"AI chatbot for business."},
-  {name:"Gemini UI", category:"AI", desc:"Future AI bot interface."},
-  {name:"Auto Email Generator", category:"AI", desc:"Generate business emails."},
-  {name:"Task Automation Templates", category:"AI", desc:"Zapier style task templates."},
-  {name:"AI Name / Slogan Generator", category:"AI", desc:"Generate catchy names."},
-  {name:"Document Summarizer", category:"AI", desc:"Summarize documents quickly."},
-  
-  // Design & Branding
-  {name:"Logo Maker", category:"Design", desc:"Create a basic logo."},
-  {name:"Business Card Template", category:"Design", desc:"Editable card template."},
-  {name:"Brand Color Palette Generator", category:"Design", desc:"Generate brand colors."},
-  {name:"Social Media Caption Generator", category:"Design", desc:"Generate captions for posts."},
-  
-  // Website & SEO
-  {name:"Meta Tag Generator", category:"SEO", desc:"Generate website meta tags."},
-  {name:"SEO Keyword Density Checker", category:"SEO", desc:"Check keyword density."},
-  {name:"Backlink Tracker", category:"SEO", desc:"Track backlinks manually."},
-  {name:"Sitemap XML Generator", category:"SEO", desc:"Generate sitemap for website."},
-  {name:"Page Speed Tester", category:"SEO", desc:"Test website speed."},
-  
-  // Communication & Management
-  {name:"Project Task Manager", category:"Communication", desc:"Kanban style project manager."},
-  {name:"Team Chat UI", category:"Communication", desc:"Team chat interface."},
-  {name:"Client Feedback Form", category:"Communication", desc:"Collect client feedback."},
-  {name:"Email Signature Generator", category:"Communication", desc:"Generate email signatures."},
-  
-  // Upcoming / Premium
-  {name:"MarketNest Pro Analyzer", category:"Premium", desc:"AI product finder (Coming Soon)."},
-  {name:"Business Intelligence Dashboard", category:"Premium", desc:"Analytics dashboard (Coming Soon)."},
-  {name:"AI Data Visualizer", category:"Premium", desc:"Visualize data (Coming Soon)."},
-  {name:"Multi-user Team Workspace", category:"Premium", desc:"Team collaboration (Coming Soon)."}
-];
-
 // UI Elements
-const toolsContainer = document.getElementById('toolsContainer');
-const searchInput = document.getElementById('searchInput');
+const dashboardContainer = document.getElementById('dashboardContainer');
+const toastContainer = document.getElementById('toastContainer');
 const logoutBtn = document.getElementById('logoutBtn');
 
-// Render tools
-function renderTools(filter=""){
-  toolsContainer.innerHTML = "";
-  tools
-    .filter(t => t.name.toLowerCase().includes(filter.toLowerCase()) || t.category.toLowerCase().includes(filter.toLowerCase()))
-    .forEach(tool=>{
-      const card = document.createElement('div');
-      card.className = "bg-white p-4 rounded-xl shadow hover:shadow-lg transition transform hover:-translate-y-1";
-      card.innerHTML = `<h3 class="font-semibold text-lg">${tool.name}</h3><p class="text-gray-600">${tool.desc}</p><span class="text-sm text-blue-500 mt-2 block">${tool.category}</span>`;
-      toolsContainer.appendChild(card);
-    });
+// Tools Array (50+ tools)
+const tools = [
+  { name: "ROI Calculator", category: "Finance", description: "Simple ROI tool" },
+  { name: "Profit Margin Calculator", category: "Finance", description: "Calculate margins" },
+  { name: "Break-even Analyzer", category: "Finance", description: "Analyze break-even point" },
+  { name: "Loan EMI Calculator", category: "Finance", description: "EMI for loans" },
+  { name: "Tax / GST / VAT Calculator", category: "Finance", description: "Calculate taxes" },
+  { name: "Currency Converter", category: "Finance", description: "Live exchange rates" },
+  { name: "Expense Tracker (Excel & Sheets)", category: "Finance", description: "Track business expenses" },
+  { name: "Cash Flow Analyzer", category: "Finance", description: "Analyze cash flow" },
+  { name: "Salary / Payroll Sheet", category: "Finance", description: "Employee salary sheets" },
+  { name: "Revenue Forecast Tool", category: "Business Management", description: "Forecast business revenue" },
+  { name: "Budget Planner", category: "Business Management", description: "Plan your budget" },
+  { name: "Employee Attendance Tracker", category: "Business Management", description: "Track employee attendance" },
+  { name: "Invoice Generator", category: "Business Management", description: "Generate invoices quickly" },
+  { name: "Business Proposal Template", category: "Business Management", description: "Word/PDF template" },
+  { name: "Time Tracking Tool", category: "Business Management", description: "Track project time" },
+  { name: "Meeting Notes Template", category: "Business Management", description: "Organize meeting notes" },
+  { name: "Product Pricing Calculator", category: "E-commerce", description: "Calculate product prices" },
+  { name: "Discount Finder", category: "E-commerce", description: "Find best discounts" },
+  { name: "Inventory Tracker", category: "E-commerce", description: "Track stock" },
+  { name: "Keyword Research Tool", category: "E-commerce", description: "SEO keyword research" },
+  { name: "Competitor Tracker", category: "E-commerce", description: "Manual competitor analysis" },
+  { name: "Profit & Fee Calculator", category: "E-commerce", description: "Amazon/eBay profit calculation" },
+  { name: "Product Launch Planner", category: "E-commerce", description: "Plan your product launch" },
+  { name: "Google Sheets Templates", category: "Data & Productivity", description: "Ready-to-use sheets" },
+  { name: "Excel Business Templates", category: "Data & Productivity", description: "Excel templates for business" },
+  { name: "CSV → Excel Converter", category: "Data & Productivity", description: "Convert CSV to Excel" },
+  { name: "Sheet Merger Tool", category: "Data & Productivity", description: "Merge multiple sheets" },
+  { name: "Data Cleaner", category: "Data & Productivity", description: "Remove duplicates & clean data" },
+  { name: "Dashboard Template", category: "Data & Productivity", description: "Business reporting dashboards" },
+  { name: "ChatGPT Assistant", category: "AI & Automation", description: "AI chat assistant" },
+  { name: "Gemini UI", category: "AI & Automation", description: "Future API integration" },
+  { name: "Auto Email Generator", category: "AI & Automation", description: "Generate business emails" },
+  { name: "Task Automation Templates", category: "AI & Automation", description: "Zapier style automation" },
+  { name: "AI Name / Slogan Generator", category: "AI & Automation", description: "Create brand names & slogans" },
+  { name: "Document Summarizer", category: "AI & Automation", description: "Summarize text documents" },
+  { name: "Logo Maker", category: "Design & Branding", description: "Basic logo maker" },
+  { name: "Business Card Template", category: "Design & Branding", description: "Canva-style template" },
+  { name: "Brand Color Palette Generator", category: "Design & Branding", description: "Generate brand colors" },
+  { name: "Social Media Caption Generator", category: "Design & Branding", description: "Create post captions" },
+  { name: "Meta Tag Generator", category: "Website & SEO", description: "Generate meta tags" },
+  { name: "SEO Keyword Density Checker", category: "Website & SEO", description: "Check keyword density" },
+  { name: "Backlink Tracker", category: "Website & SEO", description: "Manual backlink tracking" },
+  { name: "Sitemap XML Generator", category: "Website & SEO", description: "Generate sitemap" },
+  { name: "Page Speed Tester", category: "Website & SEO", description: "Check website speed" },
+  { name: "Project Task Manager", category: "Communication & Management", description: "Kanban-style task manager" },
+  { name: "Team Chat UI", category: "Communication & Management", description: "Team chat interface" },
+  { name: "Client Feedback Form", category: "Communication & Management", description: "Collect client feedback" },
+  { name: "Email Signature Generator", category: "Communication & Management", description: "Generate email signatures" }
+];
+
+// Toast function
+function showToast(message, type="success"){
+  const toast = document.createElement('div');
+  toast.innerText = message;
+  toast.className = `px-4 py-2 mb-2 rounded shadow-lg text-white ${type==="success"?"bg-green-500":"bg-red-500"} animate-fadeIn`;
+  toastContainer.appendChild(toast);
+  setTimeout(()=>toast.remove(),3000);
 }
 
-// Search filter
-searchInput.addEventListener('input', (e)=>renderTools(e.target.value));
+// Render Tools
+function renderDashboard(){
+  dashboardContainer.innerHTML = "";
+  tools.forEach(tool=>{
+    const card = document.createElement('div');
+    card.className = "bg-white p-4 rounded-xl shadow hover:shadow-lg";
+    card.innerHTML = `<h3 class="font-semibold text-lg">${tool.name}</h3>
+                      <p class="text-gray-600">${tool.description}</p>`;
+    dashboardContainer.appendChild(card);
+  });
+}
+
+// Auth state change
+onAuthStateChanged(auth, user=>{
+  if(user){
+    dashboardContainer.classList.remove('hidden');
+    logoutBtn.classList.remove('hidden');
+    renderDashboard();
+    showToast("Login successful!");
+  } else {
+    dashboardContainer.classList.add('hidden');
+    logoutBtn.classList.add('hidden');
+    showToast("Logged out successfully!");
+  }
+});
 
 // Logout
 logoutBtn.onclick = async ()=>{
   await signOut(auth);
-  window.location.href = "index.html";
-}
-
-// Auth check
-onAuthStateChanged(auth,user=>{
-  if(!user){
-    window.location.href = "index.html";
-  }else{
-    renderTools();
-  }
-});
+  showToast("Logged out successfully!");
+};
 </script>
 </body>
 </html>
