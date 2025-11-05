@@ -151,6 +151,17 @@ const categories = [
     tools: ["ROI Calculator","Profit Margin Calculator","Break-even Analyzer","Loan EMI Calculator","Tax / GST / VAT Calculator","Currency Converter","Expense Tracker","Cash Flow Analyzer","Salary / Payroll Sheet"]
   },
   {
+    // ✅ Tool click navigation
+document.addEventListener("click", (e) => {
+  if (e.target.tagName === "LI") {
+    const toolName = e.target.innerText.trim();
+    if (toolName === "ROI Calculator") {
+      window.open("roi-calculator.html", "_blank"); // open in new tab
+    } else {
+      alert(`${toolName} coming soon!`);
+    }
+  }
+});
     name: "Business Management",
     icon: "📊",
     tools: ["Revenue Forecast Tool","Budget Planner","Employee Attendance Tracker","Invoice Generator","Business Proposal Template","Time Tracking Tool","Meeting Notes Template"]
