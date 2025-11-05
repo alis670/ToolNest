@@ -11,60 +11,61 @@
 </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
+
 <!-- Auth Modal -->
 <div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-  <div class="bg-white rounded-xl w-96 p-6 shadow-lg relative animate-fadeIn">
-    <div class="text-center mb-4 flex flex-col items-center">
-      <div class="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
-        <span class="text-white text-2xl font-bold">TN</span>
-      </div>
-    </div>
-    <h2 id="modalTitle" class="text-xl font-semibold text-center mb-4">ToolNest</h2>
-    <input type="email" id="email" placeholder="Email" class="w-full p-2 border rounded mb-3" />
-    <input type="password" id="password" placeholder="Password" class="w-full p-2 border rounded mb-4" />
-    <button id="submitAuth" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold">Continue</button>
-    <p id="toggleAuth" class="text-center text-sm text-blue-500 mt-3 cursor-pointer">Create an account</p>
-    <p id="forgotPass" class="text-center text-sm text-gray-500 mt-1 cursor-pointer">Forgot Password?</p>
-  </div>
+  <div class="bg-white rounded-xl w-96 p-6 shadow-lg relative animate-fadeIn">
+    <div class="text-center mb-4 flex flex-col items-center">
+      <div class="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
+        <span class="text-white text-2xl font-bold">TN</span>
+      </div>
+    </div>
+    <h2 id="modalTitle" class="text-xl font-semibold text-center mb-4">ToolNest</h2>
+    <input type="email" id="email" placeholder="Email" class="w-full p-2 border rounded mb-3" />
+    <input type="password" id="password" placeholder="Password" class="w-full p-2 border rounded mb-4" />
+    <button id="submitAuth" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold">Continue</button>
+    <p id="toggleAuth" class="text-center text-sm text-blue-500 mt-3 cursor-pointer">Create an account</p>
+    <p id="forgotPass" class="text-center text-sm text-gray-500 mt-1 cursor-pointer">Forgot Password?</p>
+  </div>
 </div>
 
 <!-- Dashboard -->
 <main id="dashboardContainer" class="max-w-7xl mx-auto p-6 space-y-12 hidden">
-  <h1 class="text-3xl font-bold text-gray-700 mb-6">ToolNest Dashboard</h1>
-  <div id="categoriesContainer" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+  <h1 class="text-3xl font-bold text-gray-700 mb-6">ToolNest Dashboard</h1>
+  <div id="categoriesContainer" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
 </main>
 
 <!-- Toast Container -->
 <div id="toastContainer" class="fixed top-5 right-5 z-50"></div>
 
 <!-- Calculator Modal -->
-<div id="calcModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-  <div class="bg-white rounded-xl p-6 w-96 relative">
-    <h2 id="calcModalTitle" class="text-xl font-semibold mb-4"></h2>
-    <div id="calcModalContent"></div>
-    <button onclick="closeCalcModal()" class="absolute top-2 right-2 text-red-500 text-xl font-bold">×</button>
-  </div>
+<div id="calcModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+  <div class="bg-white rounded-xl p-6 w-96 relative">
+    <h2 id="calcModalTitle" class="text-xl font-semibold mb-4"></h2>
+    <div id="calcModalContent"></div>
+    <button onclick="closeCalcModal()" class="absolute top-2 right-2 text-red-500 text-xl font-bold">×</button>
+  </div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { 
-  getAuth, 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut, 
-  sendPasswordResetEmail,
-  onAuthStateChanged
+import { 
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  sendPasswordResetEmail,
+  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
 // Firebase config
 const firebaseConfig = {
-  apiKey: "AIzaSyBuYXfr-_q-BJskWHN4chB8SZqMc-P9odw",
-  authDomain: "toolnest-8e42d.firebaseapp.com",
-  projectId: "toolnest-8e42d",
-  storageBucket: "toolnest-8e42d.firebasestorage.app",
-  messagingSenderId: "988256036107",
-  appId: "1:988256036107:web:90f7e40f07593dff8e2e0e"
+  apiKey: "AIzaSyBuYXfr-_q-BJskWHN4chB8SZqMc-P9odw",
+  authDomain: "toolnest-8e42d.firebaseapp.com",
+  projectId: "toolnest-8e42d",
+  storageBucket: "toolnest-8e42d.firebasestorage.app",
+  messagingSenderId: "988256036107",
+  appId: "1:988256036107:web:90f7e40f07593dff8e2e0e"
 };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -84,20 +85,20 @@ let isSignup = false;
 
 // Toast function
 function showToast(message, type="success"){
-  const toast = document.createElement('div');
-  toast.innerText = message;
-  toast.className = `px-4 py-2 mb-2 rounded shadow-lg text-white ${type==="success"?"bg-green-500":"bg-red-500"} animate-fadeIn`;
-  toastContainer.appendChild(toast);
-  setTimeout(()=>toast.remove(),3000);
+  const toast = document.createElement('div');
+  toast.innerText = message;
+  toast.className = `px-4 py-2 mb-2 rounded shadow-lg text-white ${type==="success"?"bg-green-500":"bg-red-500"} animate-fadeIn`;
+  toastContainer.appendChild(toast);
+  setTimeout(()=>toast.remove(),3000);
 }
 
 // Open modal
 function openModal(signup){
-  isSignup = signup;
-  modalTitle.innerText = "ToolNest";
-  submitAuth.innerText = signup?"Sign Up":"Login";
-  toggleAuth.innerText = signup?"Already have an account?":"Create an account";
-  authModal.classList.remove('hidden');
+  isSignup = signup;
+  modalTitle.innerText = "ToolNest";
+  submitAuth.innerText = signup?"Sign Up":"Login";
+  toggleAuth.innerText = signup?"Already have an account?":"Create an account";
+  authModal.classList.remove('hidden');
 }
 
 // Toggle modal
@@ -105,29 +106,29 @@ toggleAuth.onclick = ()=>openModal(!isSignup);
 
 // Auth actions
 submitAuth.onclick = async ()=>{
-  const email = emailInput.value;
-  const pass = passInput.value;
-  if(!email||!pass){showToast("Please fill all fields","error"); return;}
-  try{
-    if(isSignup){
-      await createUserWithEmailAndPassword(auth,email,pass);
-      showToast("Account created successfully!");
-    }else{
-      await signInWithEmailAndPassword(auth,email,pass);
-      showToast("Login successful!");
-    }
-    authModal.classList.add('hidden');
-  }catch(e){showToast(e.message,"error")}
+  const email = emailInput.value;
+  const pass = passInput.value;
+  if(!email||!pass){showToast("Please fill all fields","error"); return;}
+  try{
+    if(isSignup){
+      await createUserWithEmailAndPassword(auth,email,pass);
+      showToast("Account created successfully!");
+    }else{
+      await signInWithEmailAndPassword(auth,email,pass);
+      showToast("Login successful!");
+    }
+    authModal.classList.add('hidden');
+  }catch(e){showToast(e.message,"error")}
 }
 
 // Forgot password
 forgotPass.onclick = async ()=>{
-  const email = emailInput.value;
-  if(!email){showToast("Enter your email first","error"); return;}
-  try{
-    await sendPasswordResetEmail(auth,email);
-    showToast("Password reset email sent successfully!");
-  }catch(e){showToast(e.message,"error")}
+  const email = emailInput.value;
+  if(!email){showToast("Enter your email first","error"); return;}
+  try{
+    await sendPasswordResetEmail(auth,email);
+    showToast("Password reset email sent successfully!");
+  }catch(e){showToast(e.message,"error")}
 }
 
 // Logout button
@@ -136,153 +137,195 @@ logoutBtn.className="fixed bottom-5 right-5 px-4 py-2 bg-red-500 text-white roun
 logoutBtn.innerText="Logout";
 document.body.appendChild(logoutBtn);
 logoutBtn.onclick = async ()=>{
-  await signOut(auth);
-  showToast("Logged out successfully!");
-}
-
-// Calculator Modal Functions
-function openCalcModal(title, contentHtml){
-  const modal = document.getElementById("calcModal");
-  document.getElementById("calcModalTitle").innerText = title;
-  document.getElementById("calcModalContent").innerHTML = contentHtml;
-  modal.classList.remove("hidden");
-}
-function closeCalcModal(){
-  document.getElementById("calcModal").classList.add("hidden");
+  await signOut(auth);
+  showToast("Logged out successfully!");
 }
 
 // --- Finance & Accounting Calculators ---
-// ROI Calculator
+let expenseData = [];
+let cashFlowData = [];
+
+// Generic Modal opener for calculators
+function openCalcModal(title, contentHtml){
+  const modal = document.getElementById("calcModal");
+  document.getElementById("calcModalTitle").innerText = title;
+  document.getElementById("calcModalContent").innerHTML = contentHtml;
+  modal.classList.remove("hidden");
+}
+
+function closeCalcModal(){
+  document.getElementById("calcModal").classList.add("hidden");
+}
+
+// 1. ROI Calculator
 function openROICalc(){
-  openCalcModal("ROI Calculator", `
-    <input type="number" id="roiGain" placeholder="Gain from Investment" class="w-full p-2 border rounded mb-2"/>
-    <input type="number" id="roiCost" placeholder="Cost of Investment" class="w-full p-2 border rounded mb-2"/>
-    <button onclick="calculateROI()" class="bg-blue-600 text-white py-2 px-4 rounded-lg">Calculate ROI</button>
-    <p id="roiResult" class="mt-2 font-semibold"></p>
-  `);
+  const html = `
+    <input type="number" id="roiGain" placeholder="Gain from Investment" class="w-full p-2 border rounded mb-2"/>
+    <input type="number" id="roiCost" placeholder="Cost of Investment" class="w-full p-2 border rounded mb-2"/>
+    <button onclick="calculateROI()" class="bg-blue-600 text-white py-2 px-4 rounded-lg">Calculate ROI</button>
+    <p id="roiResult" class="mt-2 font-semibold"></p>
+  `;
+  openCalcModal("ROI Calculator", html);
 }
 function calculateROI(){
-  const gain = parseFloat(document.getElementById("roiGain").value);
-  const cost = parseFloat(document.getElementById("roiCost").value);
-  if(isNaN(gain)||isNaN(cost)){ alert("Fill all fields correctly"); return;}
-  document.getElementById("roiResult").innerText = `ROI: ${((gain-cost)/cost*100).toFixed(2)}%`;
+  const gain = parseFloat(document.getElementById("roiGain").value);
+  const cost = parseFloat(document.getElementById("roiCost").value);
+  if(isNaN(gain)||isNaN(cost)){ alert("Fill all fields correctly"); return;}
+  const roi = ((gain-cost)/cost)*100;
+  document.getElementById("roiResult").innerText = `ROI: ${roi.toFixed(2)}%`;
 }
 
-// Profit Margin Calculator
+// 2. Profit Margin Calculator
 function openProfitMarginCalc(){
-  openCalcModal("Profit Margin Calculator", `
-    <input type="number" id="profitRevenue" placeholder="Revenue" class="w-full p-2 border rounded mb-2"/>
-    <input type="number" id="profitCost" placeholder="Cost" class="w-full p-2 border rounded mb-2"/>
-    <button onclick="calculateProfitMargin()" class="bg-blue-600 text-white py-2 px-4 rounded-lg">Calculate</button>
-    <p id="profitResult" class="mt-2 font-semibold"></p>
-  `);
+  const html = `
+    <input type="number" id="profitRevenue" placeholder="Revenue" class="w-full p-2 border rounded mb-2"/>
+    <input type="number" id="profitCost" placeholder="Cost" class="w-full p-2 border rounded mb-2"/>
+    <button onclick="calculateProfitMargin()" class="bg-blue-600 text-white py-2 px-4 rounded-lg">Calculate</button>
+    <p id="profitResult" class="mt-2 font-semibold"></p>
+  `;
+  openCalcModal("Profit Margin Calculator", html);
 }
 function calculateProfitMargin(){
-  const revenue = parseFloat(document.getElementById("profitRevenue").value);
-  const cost = parseFloat(document.getElementById("profitCost").value);
-  if(isNaN(revenue)||isNaN(cost)){ alert("Fill all fields correctly"); return;}
-  document.getElementById("profitResult").innerText = `Profit Margin: ${((revenue-cost)/revenue*100).toFixed(2)}%`;
+  const revenue = parseFloat(document.getElementById("profitRevenue").value);
+  const cost = parseFloat(document.getElementById("profitCost").value);
+  if(isNaN(revenue)||isNaN(cost)){ alert("Fill all fields correctly"); return;}
+  const profit = ((revenue-cost)/revenue)*100;
+  document.getElementById("profitResult").innerText = `Profit Margin: ${profit.toFixed(2)}%`;
 }
 
-// Break-even Analyzer
+// 3. Break-even Analyzer
 function openBreakEvenCalc(){
-  openCalcModal("Break-even Analyzer", `
-    <input type="number" id="fixedCost" placeholder="Fixed Cost" class="w-full p-2 border rounded mb-2"/>
-    <input type="number" id="pricePerUnit" placeholder="Price per Unit" class="w-full p-2 border rounded mb-2"/>
-    <input type="number" id="variableCost" placeholder="Variable Cost per Unit" class="w-full p-2 border rounded mb-2"/>
-    <button onclick="calculateBreakEven()" class="bg-blue-600 text-white py-2 px-4 rounded-lg">Calculate</button>
-    <p id="breakEvenResult" class="mt-2 font-semibold"></p>
-  `);
+  const html = `
+    <input type="number" id="fixedCost" placeholder="Fixed Cost" class="w-full p-2 border rounded mb-2"/>
+    <input type="number" id="pricePerUnit" placeholder="Price per Unit" class="w-full p-2 border rounded mb-2"/>
+    <input type="number" id="variableCost" placeholder="Variable Cost per Unit" class="w-full p-2 border rounded mb-2"/>
+    <button onclick="calculateBreakEven()" class="bg-blue-600 text-white py-2 px-4 rounded-lg">Calculate</button>
+    <p id="breakEvenResult" class="mt-2 font-semibold"></p>
+  `;
+  openCalcModal("Break-even Analyzer", html);
 }
 function calculateBreakEven(){
-  const fixed = parseFloat(document.getElementById("fixedCost").value);
-  const price = parseFloat(document.getElementById("pricePerUnit").value);
-  const variable = parseFloat(document.getElementById("variableCost").value);
-  if(isNaN(fixed)||isNaN(price)||isNaN(variable)){ alert("Fill all fields correctly"); return;}
-  document.getElementById("breakEvenResult").innerText = `Break-even Units: ${(fixed/(price-variable)).toFixed(2)}`;
+  const fixed = parseFloat(document.getElementById("fixedCost").value);
+  const price = parseFloat(document.getElementById("pricePerUnit").value);
+  const variable = parseFloat(document.getElementById("variableCost").value);
+  if(isNaN(fixed)||isNaN(price)||isNaN(variable)){ alert("Fill all fields correctly"); return;}
+  const units = fixed / (price-variable);
+  document.getElementById("breakEvenResult").innerText = `Break-even Units: ${units.toFixed(2)}`;
 }
 
-// Loan EMI Calculator
+// 4. Loan EMI Calculator
 function openEMICalc(){
-  openCalcModal("Loan EMI Calculator", `
-    <input type="number" id="loanAmount" placeholder="Loan Amount" class="w-full p-2 border rounded mb-2"/>
-    <input type="number" id="loanRate" placeholder="Annual Interest Rate (%)" class="w-full p-2 border rounded mb-2"/>
-    <input type="number" id="loanTenure" placeholder="Tenure (Years)" class="w-full p-2 border rounded mb-2"/>
-    <button onclick="calculateEMI()" class="bg-blue-600 text-white py-2 px-4 rounded-lg">Calculate</button>
-    <p id="emiResult" class="mt-2 font-semibold"></p>
-  `);
+  const html = `
+    <input type="number" id="loanAmount" placeholder="Loan Amount" class="w-full p-2 border rounded mb-2"/>
+    <input type="number" id="loanRate" placeholder="Annual Interest Rate (%)" class="w-full p-2 border rounded mb-2"/>
+    <input type="number" id="loanTenure" placeholder="Tenure (Years)" class="w-full p-2 border rounded mb-2"/>
+    <button onclick="calculateEMI()" class="bg-blue-600 text-white py-2 px-4 rounded-lg">Calculate</button>
+    <p id="emiResult" class="mt-2 font-semibold"></p>
+  `;
+  openCalcModal("Loan EMI Calculator", html);
 }
 function calculateEMI(){
-  const P = parseFloat(document.getElementById("loanAmount").value);
-  const R = parseFloat(document.getElementById("loanRate").value)/12/100;
-  const N = parseFloat(document.getElementById("loanTenure").value)*12;
-  if(isNaN(P)||isNaN(R)||isNaN(N)){ alert("Fill all fields correctly"); return;}
-  document.getElementById("emiResult").innerText = `Monthly EMI: ${(P*R*Math.pow(1+R,N)/(Math.pow(1+R,N)-1)).toFixed(2)}`;
+  const P = parseFloat(document.getElementById("loanAmount").value);
+  const R = parseFloat(document.getElementById("loanRate").value)/12/100;
+  const N = parseFloat(document.getElementById("loanTenure").value)*12;
+  if(isNaN(P)||isNaN(R)||isNaN(N)){ alert("Fill all fields correctly"); return;}
+  const EMI = (P*R*Math.pow(1+R,N))/(Math.pow(1+R,N)-1);
+  document.getElementById("emiResult").innerText = `Monthly EMI: ${EMI.toFixed(2)}`;
 }
 
-// Tax / GST / VAT Calculator
+// 5. Tax / GST / VAT Calculator
 function openTaxCalc(){
-  openCalcModal("Tax / GST / VAT Calculator", `
-    <input type="number" id="taxAmount" placeholder="Amount" class="w-full p-2 border rounded mb-2"/>
-    <input type="number" id="taxRate" placeholder="Tax Rate (%)" class="w-full p-2 border rounded mb-2"/>
-    <button onclick="calculateTax()" class="bg-blue-600 text-white py-2 px-4 rounded-lg">Calculate Tax</button>
-    <p id="taxResult" class="mt-2 font-semibold"></p>
-  `);
+  const html = `
+    <input type="number" id="taxAmount" placeholder="Amount" class="w-full p-2 border rounded mb-2"/>
+    <input type="number" id="taxRate" placeholder="Tax Rate (%)" class="w-full p-2 border rounded mb-2"/>
+    <button onclick="calculateTax()" class="bg-blue-600 text-white py-2 px-4 rounded-lg">Calculate Tax</button>
+    <p id="taxResult" class="mt-2 font-semibold"></p>
+  `;
+  openCalcModal("Tax / GST / VAT Calculator", html);
 }
 function calculateTax(){
-  const amount = parseFloat(document.getElementById("taxAmount").value);
-  const rate = parseFloat(document.getElementById("taxRate").value);
-  if(isNaN(amount)||isNaN(rate)){ alert("Fill all fields correctly"); return;}
-  document.getElementById("taxResult").innerText = `Tax: ${(amount*rate/100).toFixed(2)}`;
+  const amount = parseFloat(document.getElementById("taxAmount").value);
+  const rate = parseFloat(document.getElementById("taxRate").value);
+  if(isNaN(amount)||isNaN(rate)){ alert("Fill all fields correctly"); return;}
+  const tax = (amount*rate)/100;
+  document.getElementById("taxResult").innerText = `Tax: ${tax.toFixed(2)}`;
 }
 
-// Currency Converter
+// 6. Currency Converter
 function openCurrencyConverter(){
-  openCalcModal("Currency Converter", `
-    <input type="number" id="currencyAmount" placeholder="Amount" class="w-full p-2 border rounded mb-2"/>
-    <input type="number" id="currencyRate" placeholder="Conversion Rate" class="w-full p-2 border rounded mb-2"/>
-    <button onclick="convertCurrency()" class="bg-blue-600 text-white py-2 px-4 rounded-lg">Convert</button>
-    <p id="currencyResult" class="mt-2 font-semibold"></p>
-  `);
+  const html = `
+    <input type="number" id="currencyAmount" placeholder="Amount" class="w-full p-2 border rounded mb-2"/>
+    <input type="number" id="currencyRate" placeholder="Conversion Rate" class="w-full p-2 border rounded mb-2"/>
+    <button onclick="convertCurrency()" class="bg-blue-600 text-white py-2 px-4 rounded-lg">Convert</button>
+    <p id="currencyResult" class="mt-2 font-semibold"></p>
+  `;
+  openCalcModal("Currency Converter", html);
 }
 function convertCurrency(){
-  const amount = parseFloat(document.getElementById("currencyAmount").value);
-  const rate = parseFloat(document.getElementById("currencyRate").value);
-  if(isNaN(amount)||isNaN(rate)){ alert("Fill all fields correctly"); return;}
-  document.getElementById("currencyResult").innerText = `Converted Amount: ${(amount*rate).toFixed(2)}`;
+  const amount = parseFloat(document.getElementById("currencyAmount").value);
+  const rate = parseFloat(document.getElementById("currencyRate").value);
+  if(isNaN(amount)||isNaN(rate)){ alert("Fill all fields correctly"); return;}
+  const converted = amount * rate;
+  document.getElementById("currencyResult").innerText = `Converted Amount: ${converted.toFixed(2)}`;
 }
 
-// Expense Tracker
-let expenseData=[];
+// 7. Expense Tracker
 function openExpenseTracker(){
-  openCalcModal("Expense Tracker", `
-    <div id="expenseList" class="mb-2"></div>
-    <input type="text" id="expenseName" placeholder="Expense Name" class="w-full p-2 border rounded mb-2"/>
-    <input type="number" id="expenseAmount" placeholder="Amount" class="w-full p-2 border rounded mb-2"/>
-    <button onclick="addExpense()" class="bg-blue-600 text-white py-2 px-4 rounded-lg">Add Expense</button>
-    <p id="expenseTotal" class="mt-2 font-semibold">Total: 0</p>
-  `);
+  const html = `
+    <div id="expenseList" class="mb-2"></div>
+    <input type="text" id="expenseName" placeholder="Expense Name" class="w-full p-2 border rounded mb-2"/>
+    <input type="number" id="expenseAmount" placeholder="Amount" class="w-full p-2 border rounded mb-2"/>
+    <button onclick="addExpense()" class="bg-blue-600 text-white py-2 px-4 rounded-lg">Add Expense</button>
+    <p id="expenseTotal" class="mt-2 font-semibold">Total: 0</p>
+  `;
+  openCalcModal("Expense Tracker", html);
 }
 function addExpense(){
-  const name = document.getElementById("expenseName").value;
-  const amount = parseFloat(document.getElementById("expenseAmount").value);
-  if(!name || isNaN(amount)){ alert("Fill all fields correctly"); return;}
-  expenseData.push({name, amount});
-  renderExpense();
+  const name = document.getElementById("expenseName").value;
+  const amount = parseFloat(document.getElementById("expenseAmount").value);
+  if(!name || isNaN(amount)){ alert("function openCashFlowAnalyzer(){
+  const html = `
+    <div id="cashFlowList" class="mb-2"></div>
+    <input type="text" id="cashFlowName" placeholder="Cash Item Name" class="w-full p-2 border rounded mb-2"/>
+    <input type="number" id="cashFlowAmount" placeholder="Amount" class="w-full p-2 border rounded mb-2"/>
+    <button onclick="addCashFlow()" class="bg-blue-600 text-white py-2 px-4 rounded-lg">Add Cash Flow</button>
+    <p id="cashFlowTotal" class="mt-2 font-semibold">Net Cash Flow: 0</p>
+  `;
+  openCalcModal("Cash Flow Analyzer", html);
 }
-function renderExpense(){
-  const listDiv = document.getElementById("expenseList");
-  listDiv.innerHTML="";
-  let total=0;
-  expenseData.forEach(exp=>{listDiv.innerHTML+=`${exp.name}: ${exp.amount}<br>`; total+=exp.amount;});
-  document.getElementById("expenseTotal").innerText = `Total: ${total}`;
+function addCashFlow(){
+  const name = document.getElementById("cashFlowName").value;
+  const amount = parseFloat(document.getElementById("cashFlowAmount").value);
+  if(!name || isNaN(amount)){ alert("Fill all fields correctly"); return; }
+  cashFlowData.push({name, amount});
+  renderCashFlow();
 }
-
-// Cash Flow Analyzer
-let cashFlowData=[];
-function openCashFlowAnalyzer(){
-  openCalcModal("Cash Flow Analyzer", `
-    <div id="cashFlowList" class="mb-2"></div>
-    <input type="text" id="cashFlowName" placeholder="Cash Item Name" class="w-full p-2 border rounded mb-2"/>
-    <input type="number" id="cashFlowAmount" placeholder="Amount" class="w-full p-2 border rounded mb-2"/>
-    <button onclick="addCashFlow()" class="bg-blue-600 text-white
+function renderCashFlow(){
+  const listDiv = document.getElementById("cashFlowList");
+  listDiv.innerHTML = "";
+  let total = 0;
+  cashFlowData.forEach(item => {
+    const p = document.createElement("p");
+    p.innerText = `${item.name}: ${item.amount}`;
+    listDiv.appendChild(p);
+    total += item.amount;
+  });
+  document.getElementById("cashFlowTotal").innerText = `Net Cash Flow: ${total}`;
+}function openSalarySheet(){
+  const html = `
+    <input type="number" id="basicSalary" placeholder="Basic Salary" class="w-full p-2 border rounded mb-2"/>
+    <input type="number" id="allowances" placeholder="Allowances" class="w-full p-2 border rounded mb-2"/>
+    <input type="number" id="deductions" placeholder="Deductions" class="w-full p-2 border rounded mb-2"/>
+    <button onclick="calculateNetSalary()" class="bg-blue-600 text-white py-2 px-4 rounded-lg">Calculate</button>
+    <p id="salaryResult" class="mt-2 font-semibold"></p>
+  `;
+  openCalcModal("Salary / Payroll Sheet", html);
+}
+function calculateNetSalary(){
+  const basic = parseFloat(document.getElementById("basicSalary").value);
+  const allowances = parseFloat(document.getElementById("allowances").value);
+  const deductions = parseFloat(document.getElementById("deductions").value);
+  if(isNaN(basic)||isNaN(allowances)||isNaN(deductions)){ alert("Fill all fields correctly"); return;}
+  const net = basic + allowances - deductions;
+  document.getElementById("salaryResult").innerText = `Net Salary: ${net.toFixed(2)}`;
+}
