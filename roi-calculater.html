@@ -1,46 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ROI Calculator | ToolNest</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ROI Calculator - ToolNest</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 flex justify-center items-center min-h-screen">
-  <div class="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
-    <h1 class="text-2xl font-bold text-center text-blue-600 mb-6">ROI Calculator</h1>
-    <p class="text-gray-600 text-center mb-6">Calculate your Return on Investment easily.</p>
-    
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+  <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
+    <h1 class="text-2xl font-bold mb-6 text-center text-blue-600">ROI Calculator</h1>
+
     <div class="space-y-4">
       <div>
         <label class="block text-gray-700 font-medium mb-1">Initial Investment ($)</label>
-        <input type="number" id="initialInvestment" class="w-full border rounded-lg p-2" placeholder="e.g. 10000">
+        <input id="investment" type="number" class="w-full p-2 border rounded" placeholder="Enter initial investment" />
       </div>
+
       <div>
-        <label class="block text-gray-700 font-medium mb-1">Final Value ($)</label>
-        <input type="number" id="finalValue" class="w-full border rounded-lg p-2" placeholder="e.g. 12500">
+        <label class="block text-gray-700 font-medium mb-1">Final Return ($)</label>
+        <input id="return" type="number" class="w-full p-2 border rounded" placeholder="Enter final return" />
       </div>
-      <button id="calculateROI" class="w-full bg-blue-600 text-white py-2 rounded-lg mt-3">Calculate ROI</button>
-      <div id="roiResult" class="text-lg font-semibold text-gray-800 mt-4 text-center"></div>
+
+      <button onclick="calculateROI()" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700">
+        Calculate ROI
+      </button>
+
+      <div id="result" class="text-center mt-4 text-lg font-semibold text-green-600"></div>
     </div>
-    
-    <button onclick="window.close()" class="mt-6 w-full bg-gray-500 text-white py-2 rounded-lg">Close</button>
   </div>
 
   <script>
-    document.getElementById("calculateROI").addEventListener("click", () => {
-      const initial = parseFloat(document.getElementById("initialInvestment").value);
-      const final = parseFloat(document.getElementById("finalValue").value);
-      const resultDiv = document.getElementById("roiResult");
+    function calculateROI() {
+      const investment = parseFloat(document.getElementById("investment").value);
+      const finalReturn = parseFloat(document.getElementById("return").value);
+      const resultDiv = document.getElementById("result");
 
-      if (isNaN(initial) || isNaN(final) || initial <= 0) {
-        resultDiv.innerHTML = '<span class="text-red-500">Please enter valid values.</span>';
+      if (isNaN(investment) || isNaN(finalReturn) || investment <= 0) {
+        resultDiv.innerHTML = "Please enter valid numbers!";
+        resultDiv.classList.add("text-red-500");
         return;
       }
 
-      const roi = ((final - initial) / initial) * 100;
-      resultDiv.innerHTML = `<span class="text-green-600">Your ROI is ${roi.toFixed(2)}%</span>`;
-    });
+      const roi = ((finalReturn - investment) / investment) * 100;
+      resultDiv.innerHTML = `ROI: ${roi.toFixed(2)}%`;
+      resultDiv.classList.remove("text-red-500");
+      resultDiv.classList.add("text-green-600");
+    }
   </script>
 </body>
 </html>
