@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profit Margin Calculator</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #007bff, #6610f2);
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .calculator-container {
+      background: white;
+      padding: 25px;
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      width: 340px;
+      text-align: center;
+    }
+    h2 {
+      color: #007bff;
+      margin-bottom: 20px;
+    }
+    input {
+      width: 90%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: 0.2s;
+    }
+    input:focus {
+      border-color: #007bff;
+      outline: none;
+      box-shadow: 0 0 5px rgba(0,123,255,0.4);
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      padding: 10px 25px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #28a745;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator-container">
+    <h2>Profit Margin Calculator</h2>
+    <input type="number" id="revenue" placeholder="Enter Total Revenue" />
+    <input type="number" id="cost" placeholder="Enter Total Cost" />
+    <button onclick="calculateMargin()">Calculate</button>
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    function calculateMargin() {
+      const revenue = parseFloat(document.getElementById("revenue").value);
+      const cost = parseFloat(document.getElementById("cost").value);
+      const resultDiv = document.getElementById("result");
+
+      if (isNaN(revenue) || isNaN(cost) || revenue <= 0) {
+        resultDiv.innerHTML = "⚠️ Please enter valid numbers.";
+        resultDiv.style.color = "red";
+        return;
+      }
+
+      const profit = revenue - cost;
+      const margin = (profit / revenue) * 100;
+
+      resultDiv.style.color = "#28a745";
+      resultDiv.innerHTML = `
+        Profit: $${profit.toFixed(2)} <br>
+        Profit Margin: ${margin.toFixed(2)}%
+      `;
+    }
+  </script>
+</body>
+</html>
