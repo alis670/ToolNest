@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Break-Even Point Analyzer</title>
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: #f3f4f6;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 500px;
+    }
+    h1 {
+      text-align: center;
+      color: #2563eb;
+      margin-bottom: 20px;
+    }
+    label {
+      font-weight: 500;
+      display: block;
+      margin-top: 12px;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      margin-top: 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #1d4ed8;
+    }
+    .result {
+      margin-top: 20px;
+      background: #e0f2fe;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    canvas {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Break-Even Point Analyzer</h1>
+    <label>Fixed Costs ($)</label>
+    <input type="number" id="fixedCosts" placeholder="Enter fixed costs" />
+
+    <label>Variable Cost per Unit ($)</label>
+    <input type="number" id="variableCost" placeholder="Enter variable cost per unit" />
+
+    <label>Selling Price per Unit ($)</label>
+    <input type="number" id="pricePerUnit" placeholder="Enter selling price per unit" />
+
+    <label>Units Sold (optional)</label>
+    <input type="number" id="unitsSold" placeholder="Enter units sold (optional)" />
+
+    <button onclick="calculateBreakEven()">Calculate</button>
+
+    <div class="result" id="result"></div>
+
+    <canvas id="chart" width="400" height="250"></canvas>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    function calculateBreakEven() {
+      const fixedCosts = parseFloat(document.getElementById("fixedCosts").value);
+      const variableCost = parseFloat(document.getElementById("variableCost").value);
+      const pricePerUnit = parseFloat(document.getElementById("pricePerUnit").value);
+      const unitsSold = parseFloat(document.getElementById("unitsSold").value) || 0;
+
+      if (isNaN(fixedCosts) || isNaN(variableCost) || isNaN(pricePerUnit)) {
+        alert("Please fill all required fields!");
+        return;
+      }
+
+      const contributionMargin = pricePerUnit - variableCost;
+      const breakEvenUnits = fixedCosts / contributionMargin;
+      const breakEvenRevenue = breakEvenUnits * pricePerUnit;
+
+      document.getElementById("result").innerHTML = `
+        <strong>Break-Even Units:</strong> ${breakEvenUnits.toFixed(2)} units<br>
+        <strong>Break-Even Revenue:</strong> $${breakEvenRevenue.toFixed(2)}
+      `;
+
+      drawChart(fixedCosts, variableCost, pricePerUnit, breakEvenUnits, unitsSold);
+    }
+
+    function drawChart(fixedCosts, variableCost, pricePerUnit, breakEvenUnits, unitsSold) {
+      const ctx = document.getElementById("chart").getContext("2d");
+      const maxUnits = Math.max(breakEvenUnits * 1.5, unitsSold * 1.2, 50);
+      const labels = Array.from({ length: Math.ceil(maxUnits) }, (_, i) => i + 1);
+
+      const totalCost = labels.map(x => fixedCosts + variableCost * x);
+      const totalRevenue = labels.map(x => pricePerUnit * x);
+
+      if (window.chart) window.chart.destroy();
+
+      window.chart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            { label: "Total Cost", data: totalCost, borderColor: "#ef4444", fill: false },
+            { label: "Total Revenue", data: totalRevenue, borderColor: "#22c55e", fill: false }
+          ]
+        },
+        options: {
+          plugins: { legend: { position: "bottom" } },
+          scales: { y: { beginAtZero: true } },
+          elements: { point: { radius: 0 } }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
