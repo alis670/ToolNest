@@ -141,21 +141,22 @@ logoutBtn.onclick = async ()=>{
   showToast("Logged out successfully!");
 }
 
-// --- Finance & Accounting Calculators ---
+// --- Calculator Data ---
 let expenseData = [];
 let cashFlowData = [];
 
-// Generic Modal opener for calculators
+// Generic Modal opener
 function openCalcModal(title, contentHtml){
   const modal = document.getElementById("calcModal");
   document.getElementById("calcModalTitle").innerText = title;
   document.getElementById("calcModalContent").innerHTML = contentHtml;
   modal.classList.remove("hidden");
 }
+function closeCalcModal(){ document.getElementById("calcModal").classList.add("hidden"); }
 
-function closeCalcModal(){
-  document.getElementById("calcModal").classList.add("hidden");
-}
+// ----------------------
+// Calculator Functions
+// ----------------------
 
 // 1. ROI Calculator
 function openROICalc(){
@@ -171,8 +172,7 @@ function calculateROI(){
   const gain = parseFloat(document.getElementById("roiGain").value);
   const cost = parseFloat(document.getElementById("roiCost").value);
   if(isNaN(gain)||isNaN(cost)){ alert("Fill all fields correctly"); return;}
-  const roi = ((gain-cost)/cost)*100;
-  document.getElementById("roiResult").innerText = `ROI: ${roi.toFixed(2)}%`;
+  document.getElementById("roiResult").innerText = `ROI: ${((gain-cost)/cost*100).toFixed(2)}%`;
 }
 
 // 2. Profit Margin Calculator
@@ -189,8 +189,7 @@ function calculateProfitMargin(){
   const revenue = parseFloat(document.getElementById("profitRevenue").value);
   const cost = parseFloat(document.getElementById("profitCost").value);
   if(isNaN(revenue)||isNaN(cost)){ alert("Fill all fields correctly"); return;}
-  const profit = ((revenue-cost)/revenue)*100;
-  document.getElementById("profitResult").innerText = `Profit Margin: ${profit.toFixed(2)}%`;
+  document.getElementById("profitResult").innerText = `Profit Margin: ${((revenue-cost)/revenue*100).toFixed(2)}%`;
 }
 
 // 3. Break-even Analyzer
@@ -209,8 +208,7 @@ function calculateBreakEven(){
   const price = parseFloat(document.getElementById("pricePerUnit").value);
   const variable = parseFloat(document.getElementById("variableCost").value);
   if(isNaN(fixed)||isNaN(price)||isNaN(variable)){ alert("Fill all fields correctly"); return;}
-  const units = fixed / (price-variable);
-  document.getElementById("breakEvenResult").innerText = `Break-even Units: ${units.toFixed(2)}`;
+  document.getElementById("breakEvenResult").innerText = `Break-even Units: ${(fixed/(price-variable)).toFixed(2)}`;
 }
 
 // 4. Loan EMI Calculator
@@ -229,8 +227,7 @@ function calculateEMI(){
   const R = parseFloat(document.getElementById("loanRate").value)/12/100;
   const N = parseFloat(document.getElementById("loanTenure").value)*12;
   if(isNaN(P)||isNaN(R)||isNaN(N)){ alert("Fill all fields correctly"); return;}
-  const EMI = (P*R*Math.pow(1+R,N))/(Math.pow(1+R,N)-1);
-  document.getElementById("emiResult").innerText = `Monthly EMI: ${EMI.toFixed(2)}`;
+  document.getElementById("emiResult").innerText = `Monthly EMI: ${(P*R*Math.pow(1+R,N)/(Math.pow(1+R,N)-1)).toFixed(2)}`;
 }
 
 // 5. Tax / GST / VAT Calculator
@@ -247,8 +244,7 @@ function calculateTax(){
   const amount = parseFloat(document.getElementById("taxAmount").value);
   const rate = parseFloat(document.getElementById("taxRate").value);
   if(isNaN(amount)||isNaN(rate)){ alert("Fill all fields correctly"); return;}
-  const tax = (amount*rate)/100;
-  document.getElementById("taxResult").innerText = `Tax: ${tax.toFixed(2)}`;
+  document.getElementById("taxResult").innerText = `Tax: ${(amount*rate/100).toFixed(2)}`;
 }
 
 // 6. Currency Converter
@@ -265,8 +261,7 @@ function convertCurrency(){
   const amount = parseFloat(document.getElementById("currencyAmount").value);
   const rate = parseFloat(document.getElementById("currencyRate").value);
   if(isNaN(amount)||isNaN(rate)){ alert("Fill all fields correctly"); return;}
-  const converted = amount * rate;
-  document.getElementById("currencyResult").innerText = `Converted Amount: ${converted.toFixed(2)}`;
+  document.getElementById("currencyResult").innerText = `Converted Amount: ${(amount*rate).toFixed(2)}`;
 }
 
 // 7. Expense Tracker
@@ -278,12 +273,31 @@ function openExpenseTracker(){
     <button onclick="addExpense()" class="bg-blue-600 text-white py-2 px-4 rounded-lg">Add Expense</button>
     <p id="expenseTotal" class="mt-2 font-semibold">Total: 0</p>
   `;
+  expenseData = [];
   openCalcModal("Expense Tracker", html);
 }
 function addExpense(){
   const name = document.getElementById("expenseName").value;
   const amount = parseFloat(document.getElementById("expenseAmount").value);
-  if(!name || isNaN(amount)){ alert("function openCashFlowAnalyzer(){
+  if(!name || isNaN(amount)){ alert("Fill all fields correctly"); return; }
+  expenseData.push({name, amount});
+  renderExpense();
+}
+function renderExpense(){
+  const listDiv = document.getElementById("expenseList");
+  listDiv.innerHTML = "";
+  let total = 0;
+  expenseData.forEach(item => {
+    const p = document.createElement("p");
+    p.innerText = `${item.name}: ${item.amount}`;
+    listDiv.appendChild(p);
+    total += item.amount;
+  });
+  document.getElementById("expenseTotal").innerText = `Total: ${total}`;
+}
+
+// 8. Cash Flow Analyzer
+function openCashFlowAnalyzer(){
   const html = `
     <div id="cashFlowList" class="mb-2"></div>
     <input type="text" id="cashFlowName" placeholder="Cash Item Name" class="w-full p-2 border rounded mb-2"/>
@@ -291,6 +305,7 @@ function addExpense(){
     <button onclick="addCashFlow()" class="bg-blue-600 text-white py-2 px-4 rounded-lg">Add Cash Flow</button>
     <p id="cashFlowTotal" class="mt-2 font-semibold">Net Cash Flow: 0</p>
   `;
+  cashFlowData = [];
   openCalcModal("Cash Flow Analyzer", html);
 }
 function addCashFlow(){
@@ -311,7 +326,10 @@ function renderCashFlow(){
     total += item.amount;
   });
   document.getElementById("cashFlowTotal").innerText = `Net Cash Flow: ${total}`;
-}function openSalarySheet(){
+}
+
+// 9. Salary / Payroll Sheet
+function openSalarySheet(){
   const html = `
     <input type="number" id="basicSalary" placeholder="Basic Salary" class="w-full p-2 border rounded mb-2"/>
     <input type="number" id="allowances" placeholder="Allowances" class="w-full p-2 border rounded mb-2"/>
@@ -319,13 +337,4 @@ function renderCashFlow(){
     <button onclick="calculateNetSalary()" class="bg-blue-600 text-white py-2 px-4 rounded-lg">Calculate</button>
     <p id="salaryResult" class="mt-2 font-semibold"></p>
   `;
-  openCalcModal("Salary / Payroll Sheet", html);
-}
-function calculateNetSalary(){
-  const basic = parseFloat(document.getElementById("basicSalary").value);
-  const allowances = parseFloat(document.getElementById("allowances").value);
-  const deductions = parseFloat(document.getElementById("deductions").value);
-  if(isNaN(basic)||isNaN(allowances)||isNaN(deductions)){ alert("Fill all fields correctly"); return;}
-  const net = basic + allowances - deductions;
-  document.getElementById("salaryResult").innerText = `Net Salary: ${net.toFixed(2)}`;
-}
+  openCalc
