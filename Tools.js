@@ -2,7 +2,7 @@ export const tools = [
   // Finance & Accounting
   {name:"ROI Calculator", category:"Finance", description:"Calculate your ROI easily.", link:"#"},
   {name:"Profit Margin Calculator", category:"Finance", description:"Check profit margins.", link:"#"},
-  {name:"Break-even Point Analyzer", category:"Finance", description:"Find your break-even point.", link:"#"},
+  {name:"Break Even Point Analyzer", category:"Finance", description:"Find your break-even point.", link:"#"},
   {name:"Loan EMI Calculator", category:"Finance", description:"Calculate EMI quickly.", link:"#"},
   {name:"Tax / GST / VAT Calculator", category:"Finance", description:"Compute taxes effortlessly.", link:"#"},
   {name:"Currency Converter", category:"Finance", description:"Live exchange rates.", link:"#"},
