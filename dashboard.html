@@ -15,12 +15,17 @@
 <!-- Auth Modal -->
 <div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
   <div class="bg-white rounded-xl w-96 p-6 shadow-lg relative animate-fadeIn">
+
+    <!-- ToolNest Icon Section -->
     <div class="text-center mb-4 flex flex-col items-center">
       <div class="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
         <span class="text-white text-2xl font-bold">TN</span>
       </div>
     </div>
+
+    <!-- Modal Title -->
     <h2 id="modalTitle" class="text-xl font-semibold text-center mb-4">ToolNest</h2>
+
     <input type="email" id="email" placeholder="Email" class="w-full p-2 border rounded mb-3" />
     <input type="password" id="password" placeholder="Password" class="w-full p-2 border rounded mb-4" />
     <button id="submitAuth" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold">Continue</button>
@@ -31,29 +36,23 @@
 
 <!-- Dashboard -->
 <main id="dashboardContainer" class="max-w-7xl mx-auto p-6 space-y-12 hidden">
+
   <h1 class="text-3xl font-bold text-gray-700 mb-6">ToolNest Dashboard</h1>
+
   <div id="categoriesContainer" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
 </main>
 
 <!-- Toast Container -->
 <div id="toastContainer" class="fixed top-5 right-5 z-50"></div>
 
-<!-- Calculator Modal -->
-<div id="calcModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-  <div class="bg-white rounded-xl p-6 w-96 relative">
-    <h2 id="calcModalTitle" class="text-xl font-semibold mb-4"></h2>
-    <div id="calcModalContent"></div>
-    <button onclick="closeCalcModal()" class="absolute top-2 right-2 text-red-500 text-xl font-bold">×</button>
-  </div>
-</div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { 
-  getAuth,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
+  getAuth, 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  signOut, 
   sendPasswordResetEmail,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
@@ -67,6 +66,7 @@ const firebaseConfig = {
   messagingSenderId: "988256036107",
   appId: "1:988256036107:web:90f7e40f07593dff8e2e0e"
 };
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
@@ -81,6 +81,7 @@ const passInput = document.getElementById('password');
 const dashboardContainer = document.getElementById('dashboardContainer');
 const toastContainer = document.getElementById('toastContainer');
 const categoriesContainer = document.getElementById('categoriesContainer');
+
 let isSignup = false;
 
 // Toast function
@@ -136,6 +137,7 @@ const logoutBtn = document.createElement('button');
 logoutBtn.className="fixed bottom-5 right-5 px-4 py-2 bg-red-500 text-white rounded-lg hidden";
 logoutBtn.innerText="Logout";
 document.body.appendChild(logoutBtn);
+
 logoutBtn.onclick = async ()=>{
   await signOut(auth);
   showToast("Logged out successfully!");
@@ -146,7 +148,7 @@ const categories = [
   {
     name: "Finance & Accounting",
     icon: "💰",
-    tools: ["1. ROI Calculator","2. Profit Margin Calculator","3. Break-even Analyzer","4. Loan EMI Calculator","5. Tax / GST / VAT Calculator","6. Currency Converter","7. Expense Tracker","8. Cash Flow Analyzer","9. Salary / Payroll Sheet"]
+    tools: ["ROI Calculator","Profit Margin Calculator","Break-even Analyzer","Loan EMI Calculator","Tax / GST / VAT Calculator","Currency Converter","Expense Tracker","Cash Flow Analyzer","Salary / Payroll Sheet"]
   },
   {
     name: "Business Management",
@@ -207,6 +209,7 @@ function renderDashboard(){
     nameSpan.innerText = cat.name;
     catHeader.append(iconSpan,nameSpan);
     catDiv.appendChild(catHeader);
+
     const toolsList = document.createElement('ul');
     toolsList.className="list-disc list-inside text-gray-600 space-y-1";
     cat.tools.forEach(tool=>{
@@ -219,13 +222,20 @@ function renderDashboard(){
   });
 }
 
-// Calculator Modal functions
-
-function openCalcModal(title, contentHtml){
-  const modal = document.getElementById("calcModal");
-  document.getElementById("calcModalTitle").innerText = title;
-  document.getElementById("calcModalContent").innerHTML = contentHtml;
-  modal.classList.remove("hidden");
-}
-function closeCalcModal(){
-  document.getElementBy
+// Update UI on auth change
+onAuthStateChanged(auth,user=>{
+  if(user){
+    dashboardContainer.classList.remove('hidden');
+    authModal.classList.add('hidden');
+    logoutBtn.classList.remove('hidden');
+    renderDashboard();
+  }else{
+    dashboardContainer.classList.add('hidden');
+    logoutBtn.classList.add('hidden');
+    authModal.classList.remove('hidden');
+    openModal(false);
+  }
+});
+</script>
+</body>
+</html>
