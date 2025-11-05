@@ -6,45 +6,37 @@
 <title>ToolNest Dashboard</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-.card-hover:hover {transform: scale(1.03); transition:0.2s;}
-.tab-active {background-color: #2563EB; color:white;}
+  @keyframes fadeIn {0%{opacity:0}100%{opacity:1}}
+  .animate-fadeIn {animation:fadeIn 0.5s ease-in;}
 </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
 
-<!-- Header -->
-<header class="bg-white shadow p-4 flex justify-between items-center">
+<header class="bg-white shadow-md p-4 flex justify-between items-center">
   <div class="flex items-center space-x-2">
     <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">TN</div>
-    <h1 class="text-xl font-bold">ToolNest</h1>
+    <h1 class="text-2xl font-bold text-gray-800">ToolNest</h1>
   </div>
-  <button id="logoutBtn" class="px-4 py-2 bg-red-500 text-white rounded-lg">Logout</button>
 </header>
 
-<!-- Category Tabs -->
-<div class="max-w-7xl mx-auto p-4 flex flex-wrap gap-2">
-  <button class="tab-btn px-4 py-2 rounded bg-blue-600 text-white" data-category="All">All</button>
-  <button class="tab-btn px-4 py-2 rounded bg-gray-200" data-category="Finance">Finance</button>
-  <button class="tab-btn px-4 py-2 rounded bg-gray-200" data-category="Business">Business</button>
-  <button class="tab-btn px-4 py-2 rounded bg-gray-200" data-category="E-commerce">E-commerce</button>
-  <button class="tab-btn px-4 py-2 rounded bg-gray-200" data-category="AI">AI</button>
-  <button class="tab-btn px-4 py-2 rounded bg-gray-200" data-category="Design">Design</button>
-  <button class="tab-btn px-4 py-2 rounded bg-gray-200" data-category="SEO">SEO</button>
-  <button class="tab-btn px-4 py-2 rounded bg-gray-200" data-category="Management">Management</button>
-  <button class="tab-btn px-4 py-2 rounded bg-gray-200" data-category="Data">Data</button>
-</div>
+<main class="max-w-7xl mx-auto p-6">
+  <!-- Category Filter -->
+  <div class="flex flex-wrap gap-2 mb-6" id="categoryContainer"></div>
 
-<!-- Tools Container -->
-<main class="max-w-7xl mx-auto p-6 grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-  <!-- Tools will be generated dynamically -->
+  <!-- Tools Grid -->
+  <div id="toolsGrid" class="grid md:grid-cols-3 sm:grid-cols-2 gap-6"></div>
 </main>
 
 <!-- Toast Container -->
 <div id="toastContainer" class="fixed top-5 right-5 z-50"></div>
 
+<!-- Logout Button -->
+<button id="logoutBtn" class="fixed bottom-5 right-5 px-4 py-2 bg-red-500 text-white rounded-lg">Logout</button>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { tools } from './tools.js'; // JSON/object of tools
 
 const firebaseConfig = {
   apiKey: "AIzaSyBuYXfr-_q-BJskWHN4chB8SZqMc-P9odw",
@@ -54,95 +46,59 @@ const firebaseConfig = {
   messagingSenderId: "988256036107",
   appId: "1:988256036107:web:90f7e40f07593dff8e2e0e"
 };
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const toastContainer = document.getElementById('toastContainer');
+const logoutBtn = document.getElementById('logoutBtn');
+const toolsGrid = document.getElementById('toolsGrid');
+const categoryContainer = document.getElementById('categoryContainer');
 
-const mainContainer = document.querySelector("main");
-const logoutBtn = document.getElementById("logoutBtn");
-const toastContainer = document.getElementById("toastContainer");
-const tabBtns = document.querySelectorAll(".tab-btn");
-
-// Toast
-function showToast(message, type="success"){
+// Toast function
+function showToast(msg, type="success"){
   const toast = document.createElement('div');
-  toast.innerText = message;
-  toast.className = `px-4 py-2 mb-2 rounded shadow-lg text-white ${type==="success"?"bg-green-500":"bg-red-500"}`;
+  toast.innerText = msg;
+  toast.className = `px-4 py-2 mb-2 rounded shadow-lg text-white ${type==="success"?"bg-green-500":"bg-red-500"} animate-fadeIn`;
   toastContainer.appendChild(toast);
   setTimeout(()=>toast.remove(),3000);
 }
 
 // Logout
-logoutBtn.onclick = async ()=>{
+logoutBtn.onclick = async () => {
   await signOut(auth);
-  showToast("Logged out successfully!");
   window.location.href = "index.html";
 }
 
-// Redirect if not logged in
-onAuthStateChanged(auth, user=>{
-  if(!user){
-    window.location.href = "index.html";
-  } else {
-    generateTools("All");
-  }
+// Auth state
+onAuthStateChanged(auth, user => {
+  if(!user) window.location.href="index.html";
 });
 
-// Tools List with descriptions and icons
-const tools = [
-  {name:"ROI Calculator",category:"Finance",desc:"Calculate your return on investment.",icon:"📊"},
-  {name:"Profit Margin Calculator",category:"Finance",desc:"Determine profit margins easily.",icon:"💰"},
-  {name:"Break-even Analyzer",category:"Finance",desc:"Know when you break even.",icon:"⚖️"},
-  {name:"Loan EMI Calculator",category:"Finance",desc:"Compute your EMI payments.",icon:"🏦"},
-  {name:"Tax Calculator",category:"Finance",desc:"GST, VAT and income tax.",icon:"🧾"},
-  {name:"Currency Converter",category:"Finance",desc:"Live exchange rates.",icon:"💱"},
-  {name:"Expense Tracker",category:"Finance",desc:"Track your expenses.",icon:"📋"},
-  {name:"Revenue Forecast Tool",category:"Business",desc:"Forecast business revenue.",icon:"📈"},
-  {name:"Budget Planner",category:"Business",desc:"Plan your budget.",icon:"📉"},
-  {name:"Employee Attendance Tracker",category:"Business",desc:"Monitor attendance.",icon:"🗓️"},
-  {name:"Invoice Generator",category:"Business",desc:"Generate invoices easily.",icon:"🧾"},
-  {name:"Product Pricing Calculator",category:"E-commerce",desc:"Set perfect product price.",icon:"🛒"},
-  {name:"Discount Finder",category:"E-commerce",desc:"Find best discount rate.",icon:"🏷️"},
-  {name:"Inventory Tracker",category:"E-commerce",desc:"Track stock easily.",icon:"📦"},
-  {name:"Google Sheets Templates",category:"Data",desc:"Ready-made sheets.",icon:"📄"},
-  {name:"Excel Templates",category:"Data",desc:"Excel templates for business.",icon:"📊"},
-  {name:"ChatGPT Assistant",category:"AI",desc:"Ask questions & get answers.",icon:"🤖"},
-  {name:"Gemini UI",category:"AI",desc:"AI interface demo.",icon:"🛠️"},
-  {name:"Logo Maker",category:"Design",desc:"Create logos quickly.",icon:"🎨"},
-  {name:"Meta Tag Generator",category:"SEO",desc:"Generate SEO meta tags.",icon:"🏷️"},
-  {name:"Project Task Manager",category:"Management",desc:"Manage your projects.",icon:"📌"},
-  {name:"Team Chat UI",category:"Management",desc:"Chat with team members.",icon:"💬"},
-  {name:"Business Card Template",category:"Design",desc:"Editable card templates.",icon:"💳"},
-  {name:"Brand Color Palette Generator",category:"Design",desc:"Pick perfect brand colors.",icon:"🎨"},
-  {name:"Social Media Caption Generator",category:"Design",desc:"Generate captions for posts.",icon:"📝"},
-  {name:"Sitemap XML Generator",category:"SEO",desc:"Create sitemap XML.",icon:"🌐"},
-  {name:"Page Speed Tester",category:"SEO",desc:"Check website speed.",icon:"⚡"},
-];
+// Generate categories dynamically
+const categories = [...new Set(tools.map(t=>t.category))];
+categories.unshift("All"); // Add All
+categories.forEach(cat=>{
+  const btn = document.createElement('button');
+  btn.innerText = cat;
+  btn.className = "px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700";
+  btn.onclick = () => displayTools(cat);
+  categoryContainer.appendChild(btn);
+});
 
-// Generate tool cards
-function generateTools(category){
-  mainContainer.innerHTML = "";
+// Display tools based on category
+function displayTools(category="All"){
+  toolsGrid.innerHTML = "";
   let filtered = category==="All"?tools:tools.filter(t=>t.category===category);
-  filtered.forEach(tool=>{
-    const card = document.createElement("div");
-    card.className = "bg-white p-4 rounded-xl shadow card-hover flex flex-col justify-between";
-    card.innerHTML = `
-      <div class="text-4xl mb-2">${tool.icon}</div>
-      <h3 class="font-semibold text-lg">${tool.name}</h3>
-      <p class="text-gray-600 text-sm mb-2">${tool.desc}</p>
-      <button class="mt-auto bg-blue-600 text-white py-1 rounded hover:bg-blue-700">Open</button>
-    `;
-    mainContainer.appendChild(card);
+  filtered.forEach(t=>{
+    const div = document.createElement('div');
+    div.className="bg-white p-4 rounded-xl shadow hover:shadow-lg animate-fadeIn";
+    div.innerHTML=`<h3 class="font-semibold text-lg">${t.name}</h3><p class="text-gray-600">${t.description||""}</p><a href="${t.link}" target="_blank" class="text-blue-500 mt-2 inline-block">Open</a>`;
+    toolsGrid.appendChild(div);
   });
 }
 
-// Category tabs click
-tabBtns.forEach(btn=>{
-  btn.addEventListener("click", ()=>{
-    tabBtns.forEach(b=>b.classList.remove("tab-active"));
-    btn.classList.add("tab-active");
-    generateTools(btn.dataset.category);
-  });
-});
+// Initial display
+displayTools();
 </script>
 </body>
 </html>
