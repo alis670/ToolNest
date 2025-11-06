@@ -47,15 +47,9 @@ nav a:hover {
 }
 
 @keyframes glowPulse {
-  0% {
-    text-shadow: 0 0 10px #00bfff, 0 0 20px #00bfff;
-  }
-  50% {
-    text-shadow: 0 0 25px #00e6ff, 0 0 50px #00ffff;
-  }
-  100% {
-    text-shadow: 0 0 10px #00bfff, 0 0 20px #00bfff;
-  }
+  0% { text-shadow: 0 0 10px #00bfff, 0 0 20px #00bfff; }
+  50% { text-shadow: 0 0 25px #00e6ff, 0 0 50px #00ffff; }
+  100% { text-shadow: 0 0 10px #00bfff, 0 0 20px #00bfff; }
 }
 
 /* 🔹 Tool Cards */
@@ -84,6 +78,15 @@ nav a:hover {
 .tool-card p {
   color: #cbd5e1;
   font-size: 0.95rem;
+}
+
+/* 🔹 Category Containers */
+.category {
+  background: #0d1320;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 0 10px rgba(0,255,255,0.2);
 }
 
 /* 🔹 Layout */
