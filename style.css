@@ -1,107 +1,59 @@
-/* 🌙 Global Dark Theme */
+/* === GLOBAL STYLE === */
 body {
-  background-color: #0a0f1a;
-  color: #ffffff;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
+  background-color: #0d1117;
+  color: #f0f6fc;
   margin: 0;
+  padding: 0;
 }
 
-/* 🔹 Header & Navigation */
-header {
-  text-align: center;
-  padding: 30px 10px;
-  background: #101826;
-  color: #00e6ff;
-  box-shadow: 0 0 25px #00bfff;
-}
-
-nav {
-  text-align: center;
-  background: #0d1320;
-  padding: 10px;
-  box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
-}
-
-nav a {
-  color: #00e6ff;
-  text-decoration: none;
-  margin: 0 12px;
-  font-weight: 500;
-  transition: 0.3s;
-}
-
-nav a:hover {
-  color: #fff;
-  text-shadow: 0 0 10px #00e6ff;
-}
-
-/* 🔹 Category Titles */
-.category-title {
-  font-size: 1.8rem;
-  color: #00e6ff;
-  text-shadow: 0 0 15px #00bfff, 0 0 25px #00bfff;
-  margin: 30px 0 15px;
-  text-align: center;
-  letter-spacing: 1px;
-  animation: glowPulse 3s infinite ease-in-out;
-}
-
-@keyframes glowPulse {
-  0% { text-shadow: 0 0 10px #00bfff, 0 0 20px #00bfff; }
-  50% { text-shadow: 0 0 25px #00e6ff, 0 0 50px #00ffff; }
-  100% { text-shadow: 0 0 10px #00bfff, 0 0 20px #00bfff; }
-}
-
-/* 🔹 Tool Cards */
-.tool-card {
-  background: #101826;
-  border-radius: 14px;
-  padding: 18px;
-  margin: 15px;
-  box-shadow: 0 0 10px rgba(0, 255, 255, 0.15);
-  transition: all 0.3s ease-in-out;
-  cursor: pointer;
-  border: 1px solid rgba(0, 255, 255, 0.2);
-}
-
-.tool-card:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 25px #00e6ff, 0 0 60px #00e6ff;
-  border: 1px solid #00e6ff;
-}
-
-.tool-card h3 {
-  color: #00e6ff;
-  margin-bottom: 8px;
-}
-
-.tool-card p {
-  color: #cbd5e1;
-  font-size: 0.95rem;
-}
-
-/* 🔹 Category Containers */
+/* === CATEGORY CONTAINERS === */
 .category {
-  background: #0d1320;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 0 10px rgba(0,255,255,0.2);
+  margin: 40px auto;
+  width: 90%;
+  max-width: 1000px;
 }
 
-/* 🔹 Layout */
-.tools-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+.category h2 {
+  font-size: 22px;
+  margin-bottom: 12px;
+  color: #58a6ff;
+  border-left: 4px solid #58a6ff;
+  padding-left: 10px;
+  text-transform: uppercase;
 }
 
-/* 🔹 Footer */
-footer {
+/* === TOOLS LIST === */
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+li {
+  background: #161b22;
+  border: 1px solid #30363d;
+  padding: 14px;
+  border-radius: 8px;
+  cursor: pointer;
   text-align: center;
-  padding: 15px;
-  background: #0d1320;
-  color: #00e6ff;
-  font-size: 14px;
-  border-top: 1px solid rgba(0, 255, 255, 0.2);
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+li:hover {
+  background: #238636;
+  color: #fff;
+  transform: scale(1.03);
+}
+
+/* === ACTIVE TOOL (clicked once) === */
+li.active {
+  background: #1f6feb;
+  color: #ffffff;
+  border-color: #58a6ff;
+  transform: scale(1.05);
 }
