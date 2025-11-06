@@ -75,4 +75,66 @@ footer {
 
 .coming-soon {
   background: #fff8e1;
+}body {
+  background-color: #0a0f1a;
+  color: #ffffff;
+  font-family: 'Poppins', sans-serif;
 }
+
+/* 🔹 Category Titles with Glowing Animation */
+.category-title {
+  font-size: 1.8rem;
+  color: #00e6ff;
+  text-shadow: 0 0 15px #00bfff, 0 0 25px #00bfff;
+  margin: 30px 0 15px;
+  text-align: center;
+  letter-spacing: 1px;
+  animation: glowPulse 3s infinite ease-in-out;
+}
+
+@keyframes glowPulse {
+  0% {
+    text-shadow: 0 0 10px #00bfff, 0 0 20px #00bfff;
+  }
+  50% {
+    text-shadow: 0 0 25px #00e6ff, 0 0 50px #00ffff;
+  }
+  100% {
+    text-shadow: 0 0 10px #00bfff, 0 0 20px #00bfff;
+  }
+}
+
+/* 🔹 Tool Cards */
+.tool-card {
+  background: #101826;
+  border-radius: 14px;
+  padding: 18px;
+  margin: 15px;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.15);
+  transition: all 0.3s ease-in-out;
+  cursor: pointer;
+  border: 1px solid rgba(0, 255, 255, 0.2);
+}
+
+.tool-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 25px #00e6ff, 0 0 60px #00e6ff;
+  border: 1px solid #00e6ff;
+}
+
+.tool-card h3 {
+  color: #00e6ff;
+  margin-bottom: 8px;
+}
+
+.tool-card p {
+  color: #cbd5e1;
+  font-size: 0.95rem;
+}
+
+/* 🔹 Layout */
+.tools-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+    }
