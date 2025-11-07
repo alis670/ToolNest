@@ -27,25 +27,25 @@
     <!-- Modal Title -->
     <h2 id="modalTitle" class="text-xl font-semibold text-center mb-4 text-white">ToolNest</h2>
 
-    <!-- Email Login -->
+    <!-- Email / Password Input -->
     <input type="email" id="email" placeholder="Email" class="w-full p-2 border rounded mb-3 bg-white/30 text-white placeholder-white" />
-    <input type="password" id="password" placeholder="Password" class="w-full p-2 border rounded mb-4 bg-white/30 text-white placeholder-white" />
-    <button id="submitAuth" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold mb-3">Continue</button>
+    <input type="password" id="password" placeholder="Password" class="w-full p-2 border rounded mb-3 bg-white/30 text-white placeholder-white" />
+
+    <!-- Phone Input -->
+    <input type="text" id="phoneNumber" placeholder="+CountryCode PhoneNumber" class="w-full p-2 border rounded mb-3 bg-white/30 text-white placeholder-white" />
+
+    <!-- OTP Input (hidden initially) -->
+    <input type="text" id="otpCode" placeholder="Enter OTP" class="w-full p-2 border rounded mb-3 bg-white/30 text-white placeholder-white hidden" />
+
+    <!-- Continue Button (handles email & phone) -->
+    <button id="continueBtn" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold mb-3">Continue</button>
+
+    <!-- Create Account / Toggle -->
     <p id="toggleAuth" class="text-center text-sm text-blue-400 mt-2 cursor-pointer">Create an account</p>
     <p id="forgotPass" class="text-center text-sm text-gray-300 mt-1 cursor-pointer">Forgot Password?</p>
 
     <!-- Google Login -->
     <button id="googleSignIn" class="w-full bg-red-600 text-white py-2 rounded-lg font-semibold mt-4">Continue with Google</button>
-
-    <!-- Phone Login -->
-    <div class="mt-4">
-      <input type="text" id="phoneNumber" placeholder="+CountryCode PhoneNumber" class="w-full p-2 border rounded mb-2 bg-white/30 text-white placeholder-white" />
-      <button id="sendOTP" class="w-full bg-green-600 text-white py-2 rounded-lg font-semibold mb-2">Send OTP</button>
-    </div>
-    <div id="otpContainer" class="mt-2 hidden">
-      <input type="text" id="otpCode" placeholder="Enter OTP" class="w-full p-2 border rounded mb-2 bg-white/30 text-white placeholder-white" />
-      <button id="verifyOTP" class="w-full bg-green-800 text-white py-2 rounded-lg font-semibold">Verify OTP</button>
-    </div>
     
   </div>
 </div>
@@ -91,20 +91,17 @@ const provider = new GoogleAuthProvider();
 // UI Elements
 const authModal = document.getElementById('authModal');
 const modalTitle = document.getElementById('modalTitle');
-const submitAuth = document.getElementById('submitAuth');
+const continueBtn = document.getElementById('continueBtn');
 const toggleAuth = document.getElementById('toggleAuth');
 const forgotPass = document.getElementById('forgotPass');
 const emailInput = document.getElementById('email');
 const passInput = document.getElementById('password');
-const dashboardContainer = document.getElementById('dashboardContainer');
-const toastContainer = document.getElementById('toastContainer');
-const categoriesContainer = document.getElementById('categoriesContainer');
-const googleSignIn = document.getElementById('googleSignIn');
 const phoneInput = document.getElementById('phoneNumber');
-const sendOTP = document.getElementById('sendOTP');
-const otpContainer = document.getElementById('otpContainer');
 const otpInput = document.getElementById('otpCode');
-const verifyOTP = document.getElementById('verifyOTP');
+const googleSignIn = document.getElementById('googleSignIn');
+const dashboardContainer = document.getElementById('dashboardContainer');
+const categoriesContainer = document.getElementById('categoriesContainer');
+const toastContainer = document.getElementById('toastContainer');
 
 let isSignup = false;
 
@@ -121,40 +118,13 @@ function showToast(message, type="success"){
 function openModal(signup){
   isSignup = signup;
   modalTitle.innerText = "ToolNest";
-  submitAuth.innerText = signup?"Sign Up":"Login";
+  continueBtn.innerText = signup?"Sign Up":"Continue";
   toggleAuth.innerText = signup?"Already have an account?":"Create an account";
   authModal.classList.remove('hidden');
 }
 toggleAuth.onclick = ()=>openModal(!isSignup);
 
-// Email/Password Auth
-submitAuth.onclick = async ()=>{
-  const email = emailInput.value;
-  const pass = passInput.value;
-  if(!email||!pass){showToast("Please fill all fields","error"); return;}
-  try{
-    if(isSignup){
-      await createUserWithEmailAndPassword(auth,email,pass);
-      showToast("Account created successfully!");
-    }else{
-      await signInWithEmailAndPassword(auth,email,pass);
-      showToast("Login successful!");
-    }
-    authModal.classList.add('hidden');
-  }catch(e){showToast(e.message,"error")}
-}
-
-// Forgot password
-forgotPass.onclick = async ()=>{
-  const email = emailInput.value;
-  if(!email){showToast("Enter your email first","error"); return;}
-  try{
-    await sendPasswordResetEmail(auth,email);
-    showToast("Password reset email sent successfully!");
-  }catch(e){showToast(e.message,"error")}
-}
-
-// Google Login
+// Google login
 googleSignIn.onclick = async ()=>{
   try{
     await signInWithPopup(auth,provider);
@@ -163,34 +133,69 @@ googleSignIn.onclick = async ()=>{
   }catch(e){showToast(e.message,"error")}
 }
 
-// Phone Auth (worldwide)
-window.recaptchaVerifier = new RecaptchaVerifier('sendOTP', {
+// Recaptcha for phone
+window.recaptchaVerifier = new RecaptchaVerifier('continueBtn', {
   'size': 'invisible',
   'callback': (response) => { console.log('Recaptcha verified'); }
 }, auth);
 
-sendOTP.onclick = ()=>{
-  const phoneNumber = phoneInput.value;
-  if(!phoneNumber){ showToast("Enter phone number","error"); return; }
-  const appVerifier = window.recaptchaVerifier;
-  signInWithPhoneNumber(auth, phoneNumber, appVerifier)
-    .then((confirmationResult)=>{
-      window.confirmationResult = confirmationResult;
-      otpContainer.classList.remove('hidden');
-      showToast("OTP sent to your phone");
-    })
-    .catch((error)=>showToast(error.message,"error"));
+// Continue button handles email/password or phone
+continueBtn.onclick = async ()=>{
+  const email = emailInput.value.trim();
+  const password = passInput.value.trim();
+  const phone = phoneInput.value.trim();
+  const otp = otpInput.value.trim();
+
+  // PHONE OTP Verification
+  if(phone && otpInput.classList.contains('block')){
+    if(!otp){ showToast("Enter OTP","error"); return; }
+    window.confirmationResult.confirm(otp)
+      .then(()=>{ showToast("Phone login successful!"); authModal.classList.add('hidden'); })
+      .catch(e=>showToast(e.message,"error"));
+    return;
+  }
+
+  // PHONE LOGIN (send OTP)
+  if(phone && !otpInput.classList.contains('block')){
+    if(!phone){ showToast("Enter phone number","error"); return; }
+    const appVerifier = window.recaptchaVerifier;
+    signInWithPhoneNumber(auth, phone, appVerifier)
+      .then((confirmationResult)=>{
+        window.confirmationResult = confirmationResult;
+        otpInput.classList.remove('hidden');
+        otpInput.classList.add('block');
+        showToast("OTP sent to your phone");
+      })
+      .catch(e=>showToast(e.message,"error"));
+    return;
+  }
+
+  // EMAIL LOGIN / SIGNUP
+  if(email && password){
+    try{
+      if(isSignup){
+        await createUserWithEmailAndPassword(auth,email,password);
+        showToast("Account created successfully!");
+      }else{
+        await signInWithEmailAndPassword(auth,email,password);
+        showToast("Login successful!");
+      }
+      authModal.classList.add('hidden');
+    }catch(e){showToast(e.message,"error")}
+    return;
+  }
+
+  showToast("Enter email/password or phone number","error");
 }
 
-verifyOTP.onclick = ()=>{
-  const code = otpInput.value;
-  if(!code){ showToast("Enter OTP","error"); return; }
-  window.confirmationResult.confirm(code)
-    .then((result)=>{
-      showToast("Phone login successful!");
-      authModal.classList.add('hidden');
-    })
-    .catch((error)=>showToast(error.message,"error"));
+// Forgot password
+forgotPass.onclick = async ()=>{
+  const email = emailInput.value.trim();
+  if(!email){showToast("Enter your email first","error"); return;}
+  try{
+    await sendPasswordResetEmail(auth,email);
+    showToast("Password reset email sent!");
+  }catch(e){showToast(e.message,"error")}
 }
 
 // Logout button
@@ -205,51 +210,15 @@ logoutBtn.onclick = async ()=>{
 
 // Tool & Category Data (unchanged)
 const categories = [
-  {
-    name: "Finance & Accounting",
-    icon: "💰",
-    tools: ["ROI Calculator","Profit Margin Calculator","Break-even Analyzer","Loan EMI Calculator","Tax / GST / VAT Calculator","Currency Converter","Expense Tracker","Cash Flow Analyzer","Salary / Payroll Sheet"]
-  },
-  {
-    name: "Business Management",
-    icon: "📊",
-    tools: ["Revenue Forecast Tool","Budget Planner","Employee Attendance Tracker","Invoice Generator","Business Proposal Template","Time Tracking Tool","Meeting Notes Template"]
-  },
-  {
-    name: "E-commerce & Marketing",
-    icon: "🛒",
-    tools: ["Product Pricing Calculator","Discount Finder","Inventory Tracker","Keyword Research Tool","Competitor Tracker","Profit & Fee Calculator","Product Launch Planner"]
-  },
-  {
-    name: "Data & Productivity",
-    icon: "📈",
-    tools: ["Google Sheets Templates","Excel Business Templates","CSV → Excel Converter","Sheet Merger Tool","Data Cleaner","Dashboard Template"]
-  },
-  {
-    name: "AI & Automation",
-    icon: "🤖",
-    tools: ["ChatGPT Assistant","Gemini UI","Auto Email Generator","Task Automation Templates","AI Name/Slogan Generator","Document Summarizer"]
-  },
-  {
-    name: "Design & Branding",
-    icon: "🎨",
-    tools: ["Logo Maker","Business Card Template","Brand Color Palette Generator","Social Media Post Caption Generator"]
-  },
-  {
-    name: "Website & SEO",
-    icon: "🌐",
-    tools: ["Meta Tag Generator","SEO Keyword Density Checker","Backlink Tracker","Sitemap XML Generator","Page Speed Tester"]
-  },
-  {
-    name: "Communication & Management",
-    icon: "💬",
-    tools: ["Project Task Manager","Team Chat UI","Client Feedback Form","Email Signature Generator"]
-  },
-  {
-    name: "Premium Tools",
-    icon: "🚀",
-    tools: ["MarketNest Pro Analyzer","Business Intelligence Dashboard","AI Data Visualizer","Multi-user Team Workspace"]
-  }
+  { name: "Finance & Accounting", icon: "💰", tools: ["ROI Calculator","Profit Margin Calculator","Break-even Analyzer","Loan EMI Calculator","Tax / GST / VAT Calculator","Currency Converter","Expense Tracker","Cash Flow Analyzer","Salary / Payroll Sheet"] },
+  { name: "Business Management", icon: "📊", tools: ["Revenue Forecast Tool","Budget Planner","Employee Attendance Tracker","Invoice Generator","Business Proposal Template","Time Tracking Tool","Meeting Notes Template"] },
+  { name: "E-commerce & Marketing", icon: "🛒", tools: ["Product Pricing Calculator","Discount Finder","Inventory Tracker","Keyword Research Tool","Competitor Tracker","Profit & Fee Calculator","Product Launch Planner"] },
+  { name: "Data & Productivity", icon: "📈", tools: ["Google Sheets Templates","Excel Business Templates","CSV → Excel Converter","Sheet Merger Tool","Data Cleaner","Dashboard Template"] },
+  { name: "AI & Automation", icon: "🤖", tools: ["ChatGPT Assistant","Gemini UI","Auto Email Generator","Task Automation Templates","AI Name/Slogan Generator","Document Summarizer"] },
+  { name: "Design & Branding", icon: "🎨", tools: ["Logo Maker","Business Card Template","Brand Color Palette Generator","Social Media Post Caption Generator"] },
+  { name: "Website & SEO", icon: "🌐", tools: ["Meta Tag Generator","SEO Keyword Density Checker","Backlink Tracker","Sitemap XML Generator","Page Speed Tester"] },
+  { name: "Communication & Management", icon: "💬", tools: ["Project Task Manager","Team Chat UI","Client Feedback Form","Email Signature Generator"] },
+  { name: "Premium Tools", icon: "🚀", tools: ["MarketNest Pro Analyzer","Business Intelligence Dashboard","AI Data Visualizer","Multi-user Team Workspace"] }
 ];
 
 // Render Dashboard
@@ -263,7 +232,7 @@ function renderDashboard(){
     const iconSpan = document.createElement('span');
     iconSpan.className="text-3xl mr-3";
     iconSpan.innerText = cat.icon;
-    const nameSpan = document.createElement('span");
+    const nameSpan = document.createElement('span');
     nameSpan.className="font-semibold text-lg";
     nameSpan.innerText = cat.name;
     catHeader.append(iconSpan,nameSpan);
