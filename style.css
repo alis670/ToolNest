@@ -1,59 +1,127 @@
-/* === GLOBAL STYLE === */
+/* 🌙 Dark Futuristic Theme */
 body {
-  font-family: "Poppins", sans-serif;
-  background-color: #0d1117;
-  color: #f0f6fc;
+  background-color: #090d18;
+  color: #ffffff;
+  font-family: 'Poppins', sans-serif;
   margin: 0;
-  padding: 0;
+  overflow-x: hidden;
 }
 
-/* === CATEGORY CONTAINERS === */
+/* 🔹 Header */
+header {
+  text-align: center;
+  padding: 30px 10px;
+  background: #101826;
+  color: #00e6ff;
+  box-shadow: 0 0 25px #00bfff;
+  animation: headerGlow 4s infinite ease-in-out;
+}
+
+@keyframes headerGlow {
+  0%, 100% { text-shadow: 0 0 10px #00bfff; }
+  50% { text-shadow: 0 0 30px #00e6ff; }
+}
+
+/* 🔹 Navigation */
+nav {
+  text-align: center;
+  background: #0d1320;
+  padding: 12px;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+nav a {
+  color: #00e6ff;
+  text-decoration: none;
+  margin: 0 14px;
+  font-weight: 500;
+  transition: 0.3s;
+}
+
+nav a:hover {
+  color: #fff;
+  text-shadow: 0 0 15px #00e6ff;
+}
+
+/* 🔹 Categories */
 .category {
-  margin: 40px auto;
+  background: #0d1320;
+  border-radius: 12px;
+  padding: 25px;
+  margin: 25px auto;
   width: 90%;
-  max-width: 1000px;
+  max-width: 1200px;
+  box-shadow: 0 0 15px rgba(0,255,255,0.1);
+  transition: 0.3s ease;
 }
 
-.category h2 {
-  font-size: 22px;
-  margin-bottom: 12px;
-  color: #58a6ff;
-  border-left: 4px solid #58a6ff;
-  padding-left: 10px;
-  text-transform: uppercase;
+/* 🔹 Category Title */
+.category-title {
+  font-size: 1.8rem;
+  text-align: center;
+  color: #00e6ff;
+  text-shadow: 0 0 20px #00bfff;
+  margin-bottom: 20px;
+  animation: glowPulse 3s infinite ease-in-out;
 }
 
-/* === TOOLS LIST === */
-ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
+@keyframes glowPulse {
+  0%,100% { text-shadow: 0 0 15px #00bfff; }
+  50% { text-shadow: 0 0 35px #00e6ff; }
 }
 
-li {
-  background: #161b22;
-  border: 1px solid #30363d;
-  padding: 14px;
-  border-radius: 8px;
-  cursor: pointer;
+/* 🔹 Tool Cards */
+.tools-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 18px;
+}
+
+.tool-card {
+  background: #101826;
+  border-radius: 14px;
+  padding: 18px 25px;
   text-align: center;
   font-weight: 500;
-  transition: all 0.3s ease;
+  color: #00e6ff;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  transition: all 0.3s ease-in-out;
+  width: 260px;
+  position: relative;
 }
 
-li:hover {
-  background: #238636;
-  color: #fff;
-  transform: scale(1.03);
+.tool-card:hover {
+  transform: scale(1.07);
+  box-shadow: 0 0 35px #00e6ff, 0 0 70px #00bfff;
+  border-color: #00e6ff;
 }
 
-/* === ACTIVE TOOL (clicked once) === */
-li.active {
-  background: #1f6feb;
-  color: #ffffff;
-  border-color: #58a6ff;
-  transform: scale(1.05);
+/* 💫 Smooth Pulse Glow Animation */
+@keyframes softPulse {
+  0%,100% { box-shadow: 0 0 15px rgba(0,255,255,0.15); }
+  50% { box-shadow: 0 0 35px rgba(0,255,255,0.5); }
+}
+
+.tool-card {
+  animation: softPulse 5s infinite ease-in-out;
+}
+
+/* 🔹 Active Click Glow */
+.tool-card.active {
+  transform: scale(1.1);
+  box-shadow: 0 0 45px #00ffff, 0 0 80px #00e6ff;
+  border: 1px solid #00ffff;
+}
+
+/* 🔹 Footer */
+footer {
+  text-align: center;
+  padding: 20px;
+  background: #0d1320;
+  color: #00e6ff;
+  border-top: 1px solid rgba(0,255,255,0.3);
+  box-shadow: 0 0 15px rgba(0,255,255,0.2);
 }
