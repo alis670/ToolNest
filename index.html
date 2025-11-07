@@ -24,7 +24,6 @@
       </div>
     </div>
 
-    <!-- Modal Title -->
     <h2 id="modalTitle" class="text-xl font-semibold text-center mb-4 text-white">ToolNest</h2>
 
     <!-- Unified Input -->
@@ -39,7 +38,6 @@
     <!-- Continue Button -->
     <button id="continueBtn" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold mb-3">Continue</button>
 
-    <!-- Create Account Toggle -->
     <p id="toggleAuth" class="text-center text-sm text-blue-400 mt-2 cursor-pointer">Create an account</p>
     <p id="forgotPass" class="text-center text-sm text-gray-300 mt-1 cursor-pointer">Forgot Password?</p>
 
@@ -146,39 +144,33 @@ facebookSignIn.onclick = async ()=>{
   }catch(e){showToast(e.message,"error")}
 }
 
-// Phone recaptcha
-window.recaptchaVerifier = new RecaptchaVerifier('continueBtn', { 'size':'invisible' }, auth);
+// Logout button
+const logoutBtn = document.createElement('button');
+logoutBtn.className="fixed bottom-5 right-5 px-4 py-2 bg-red-500 text-white rounded-lg hidden";
+logoutBtn.innerText="Logout";
+document.body.appendChild(logoutBtn);
+logoutBtn.onclick = async ()=>{
+  await signOut(auth);
+  showToast("Logged out successfully!");
+}
 
 // Continue Button logic
 continueBtn.onclick = async ()=>{
   const input = userInput.value.trim();
   const password = passwordInput.value.trim();
-  const otp = otpInput.value.trim();
-
-  // OTP verification
-  if(otpInput.classList.contains('block') && otp){
-    try{
-      await window.confirmationResult.confirm(otp);
-      showToast("Phone login successful!");
-      authModal.classList.add('hidden');
-      otpInput.classList.add('hidden');
-      otpInput.classList.remove('block');
-    }catch(e){showToast(e.message,"error")}
-    return;
-  }
 
   // Phone login
-  if(input.startsWith("+") && !otpInput.classList.contains('block')){
+  if(input.startsWith("+")){
     try{
-      const appVerifier = window.recaptchaVerifier;
-      const confirmationResult = await signInWithPhoneNumber(auth,input,appVerifier);
+      // Initialize Recaptcha for phone only
+      window.recaptchaVerifier = new RecaptchaVerifier('continueBtn', { 'size':'invisible' }, auth);
+      const confirmationResult = await signInWithPhoneNumber(auth,input,window.recaptchaVerifier);
       window.confirmationResult = confirmationResult;
       otpInput.classList.remove('hidden');
-      otpInput.classList.add('block');
       passwordInput.classList.add('hidden');
       showToast("OTP sent to your phone");
-    }catch(e){showToast(e.message,"error")}
-    return;
+      return;
+    }catch(e){showToast(e.message,"error"); return;}
   }
 
   // Email login/signup
@@ -201,6 +193,21 @@ continueBtn.onclick = async ()=>{
   showToast("Enter valid email or phone number","error");
 }
 
+// OTP verification
+otpInput.onkeypress = async (e)=>{
+  if(e.key==="Enter"){
+    const otp = otpInput.value.trim();
+    if(!otp){showToast("Enter OTP","error"); return;}
+    try{
+      await window.confirmationResult.confirm(otp);
+      showToast("Phone login successful!");
+      otpInput.classList.add('hidden');
+      passwordInput.classList.remove('hidden');
+      authModal.classList.add('hidden');
+    }catch(err){showToast(err.message,"error")}
+  }
+}
+
 // Forgot password
 forgotPass.onclick = async ()=>{
   const email = userInput.value.trim();
@@ -209,16 +216,6 @@ forgotPass.onclick = async ()=>{
     await sendPasswordResetEmail(auth,email);
     showToast("Password reset email sent!");
   }catch(e){showToast(e.message,"error")}
-}
-
-// Logout button
-const logoutBtn = document.createElement('button');
-logoutBtn.className="fixed bottom-5 right-5 px-4 py-2 bg-red-500 text-white rounded-lg hidden";
-logoutBtn.innerText="Logout";
-document.body.appendChild(logoutBtn);
-logoutBtn.onclick = async ()=>{
-  await signOut(auth);
-  showToast("Logged out successfully!");
 }
 
 // Dashboard categories (unchanged)
