@@ -39,9 +39,15 @@ function showToast(msg, type="success"){
   setTimeout(()=>toast.remove(),3000);
 }
 
-// Toggle password visibility
+// Toggle password visibility with monkey/eye
 togglePass.addEventListener('click', ()=>{
-  passwordInput.type = passwordInput.type==="password"?"text":"password";
+  if(passwordInput.type==="password"){
+    passwordInput.type = "text";
+    togglePass.innerText = "🙈";
+  } else {
+    passwordInput.type = "password";
+    togglePass.innerText = "👁️";
+  }
 });
 
 // Toggle modal for login/signup
@@ -60,9 +66,7 @@ toggleAuth.addEventListener('click', ()=>toggleModal(!isSignup));
 // Initialize invisible Recaptcha
 window.recaptchaVerifier = new RecaptchaVerifier('continueBtn', {
   'size': 'invisible',
-  'callback': (response) => {
-    // reCAPTCHA solved
-  }
+  'callback': (response) => { /* reCAPTCHA solved */ }
 }, auth);
 
 // Continue button (email or phone login)
