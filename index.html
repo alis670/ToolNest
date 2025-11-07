@@ -24,6 +24,7 @@
       </div>
     </div>
 
+    <!-- Modal Title -->
     <h2 id="modalTitle" class="text-xl font-semibold text-center mb-4 text-white">ToolNest</h2>
 
     <!-- Unified Input -->
@@ -38,6 +39,7 @@
     <!-- Continue Button -->
     <button id="continueBtn" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold mb-3">Continue</button>
 
+    <!-- Create Account Toggle -->
     <p id="toggleAuth" class="text-center text-sm text-blue-400 mt-2 cursor-pointer">Create an account</p>
     <p id="forgotPass" class="text-center text-sm text-gray-300 mt-1 cursor-pointer">Forgot Password?</p>
 
@@ -51,7 +53,7 @@
 </div>
 
 <!-- Dashboard -->
-<main id="dashboardContainer" class="max-w-7xl mx-auto p-6 space-y-12 hidden">
+<main id="dashboardContainer" class="max-w-7xl mx-auto p-6 space-y-12">
   <h1 class="text-3xl font-bold text-gray-700 mb-6">ToolNest Dashboard</h1>
   <div id="categoriesContainer" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
 </main>
@@ -144,33 +146,38 @@ facebookSignIn.onclick = async ()=>{
   }catch(e){showToast(e.message,"error")}
 }
 
-// Logout button
-const logoutBtn = document.createElement('button');
-logoutBtn.className="fixed bottom-5 right-5 px-4 py-2 bg-red-500 text-white rounded-lg hidden";
-logoutBtn.innerText="Logout";
-document.body.appendChild(logoutBtn);
-logoutBtn.onclick = async ()=>{
-  await signOut(auth);
-  showToast("Logged out successfully!");
-}
+// Phone recaptcha
+window.recaptchaVerifier = new RecaptchaVerifier('continueBtn', { 'size':'invisible' }, auth);
 
 // Continue Button logic
 continueBtn.onclick = async ()=>{
   const input = userInput.value.trim();
   const password = passwordInput.value.trim();
+  const otp = otpInput.value.trim();
+
+  // OTP verification
+  if(!otpInput.classList.contains('hidden') && otp){
+    try{
+      await window.confirmationResult.confirm(otp);
+      showToast("Phone login successful!");
+      authModal.classList.add('hidden');
+      otpInput.classList.add('hidden');
+      passwordInput.classList.remove('hidden');
+    }catch(e){showToast(e.message,"error")}
+    return;
+  }
 
   // Phone login
-  if(input.startsWith("+")){
+  if(input.startsWith("+") && otpInput.classList.contains('hidden')){
     try{
-      // Initialize Recaptcha for phone only
-      window.recaptchaVerifier = new RecaptchaVerifier('continueBtn', { 'size':'invisible' }, auth);
-      const confirmationResult = await signInWithPhoneNumber(auth,input,window.recaptchaVerifier);
+      const appVerifier = window.recaptchaVerifier;
+      const confirmationResult = await signInWithPhoneNumber(auth,input,appVerifier);
       window.confirmationResult = confirmationResult;
       otpInput.classList.remove('hidden');
       passwordInput.classList.add('hidden');
       showToast("OTP sent to your phone");
-      return;
-    }catch(e){showToast(e.message,"error"); return;}
+    }catch(e){showToast(e.message,"error")}
+    return;
   }
 
   // Email login/signup
@@ -193,21 +200,6 @@ continueBtn.onclick = async ()=>{
   showToast("Enter valid email or phone number","error");
 }
 
-// OTP verification
-otpInput.onkeypress = async (e)=>{
-  if(e.key==="Enter"){
-    const otp = otpInput.value.trim();
-    if(!otp){showToast("Enter OTP","error"); return;}
-    try{
-      await window.confirmationResult.confirm(otp);
-      showToast("Phone login successful!");
-      otpInput.classList.add('hidden');
-      passwordInput.classList.remove('hidden');
-      authModal.classList.add('hidden');
-    }catch(err){showToast(err.message,"error")}
-  }
-}
-
 // Forgot password
 forgotPass.onclick = async ()=>{
   const email = userInput.value.trim();
@@ -216,6 +208,16 @@ forgotPass.onclick = async ()=>{
     await sendPasswordResetEmail(auth,email);
     showToast("Password reset email sent!");
   }catch(e){showToast(e.message,"error")}
+}
+
+// Logout button
+const logoutBtn = document.createElement('button');
+logoutBtn.className="fixed bottom-5 right-5 px-4 py-2 bg-red-500 text-white rounded-lg hidden";
+logoutBtn.innerText="Logout";
+document.body.appendChild(logoutBtn);
+logoutBtn.onclick = async ()=>{
+  await signOut(auth);
+  showToast("Logged out successfully!");
 }
 
 // Dashboard categories (unchanged)
@@ -231,7 +233,7 @@ const categories = [
   { name: "Premium Tools", icon: "🚀", tools: ["MarketNest Pro Analyzer","Business Intelligence Dashboard","AI Data Visualizer","Multi-user Team Workspace"] }
 ];
 
-// Render Dashboard
+// Render dashboard once
 function renderDashboard(){
   categoriesContainer.innerHTML = "";
   categories.forEach(cat=>{
@@ -258,19 +260,17 @@ function renderDashboard(){
     categoriesContainer.appendChild(catDiv);
   });
 }
+renderDashboard();
 
 // Auth state changes
 onAuthStateChanged(auth,user=>{
   if(user){
-    dashboardContainer.classList.remove('hidden');
     authModal.classList.add('hidden');
     logoutBtn.classList.remove('hidden');
-    renderDashboard();
+    dashboardContainer.classList.remove('hidden');
   }else{
-    dashboardContainer.classList.add('hidden');
-    logoutBtn.classList.add('hidden');
     authModal.classList.remove('hidden');
-    openModal(false);
+    logoutBtn.classList.add('hidden');
   }
 });
 
