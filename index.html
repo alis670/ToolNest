@@ -4,51 +4,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ToolNest Dashboard</title>
-<script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js"></script>
-<script src="https://cdn.tailwindcss.com"></script>
-<style>
-@keyframes fadeIn {0%{opacity:0}100%{opacity:1}}
-.animate-fadeIn {animation:fadeIn 0.5s ease-in;}
-.backdrop-blur {backdrop-filter: blur(10px);}
-</style>
-</head>
-<body class="bg-gradient-to-r from-blue-400 to-purple-600 min-h-screen text-white">
+<script type="module">
+  // Import Firebase modular SDK
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+  import { 
+    getAuth,
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    sendPasswordResetEmail,
+    signOut,
+    onAuthStateChanged,
+    GoogleAuthProvider,
+    FacebookAuthProvider,
+    signInWithPopup
+  } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-<!-- Auth Modal -->
-<div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-  <div class="bg-white/10 backdrop-blur rounded-xl w-96 p-6 shadow-lg relative animate-fadeIn border border-white/20">
-    <div class="text-center mb-4 flex flex-col items-center">
-      <div class="w-20 h-20 rounded-full bg-gradient-to-r from-blue-400 to-purple-600 flex items-center justify-center shadow-lg">
-        <span class="text-white text-2xl font-bold">ToolNest</span>
-      </div>
-    </div>
-    <h2 id="modalTitle" class="text-xl font-semibold text-center mb-4 text-white">ToolNest</h2>
-    <input type="text" id="userInput" placeholder="Email or +CountryCode Phone" class="w-full p-2 border rounded mb-3 bg-white/30 text-white placeholder-white" />
-    <div class="relative">
-      <input type="password" id="password" placeholder="Password" class="w-full p-2 border rounded mb-3 bg-white/30 text-white placeholder-white" />
-      <span id="togglePass" class="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer text-white">👁️</span>
-    </div>
-    <input type="text" id="otpCode" placeholder="Enter OTP" class="w-full p-2 border rounded mb-3 bg-white/30 text-white placeholder-white hidden" />
-    <div id="recaptcha-container"></div>
-    <button id="continueBtn" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold mb-3">Continue</button>
-    <p id="toggleAuth" class="text-center text-sm text-blue-400 mt-2 cursor-pointer">Create an account</p>
-    <p id="forgotPass" class="text-center text-sm text-gray-300 mt-1 cursor-pointer">Forgot Password?</p>
-    <button id="googleSignIn" class="w-full bg-red-600 text-white py-2 rounded-lg font-semibold mt-4">Continue with Google</button>
-    <button id="facebookSignIn" class="w-full bg-blue-800 text-white py-2 rounded-lg font-semibold mt-2">Continue with Facebook</button>
-  </div>
-</div>
-
-<!-- Dashboard -->
-<main id="dashboardContainer" class="max-w-7xl mx-auto p-6 space-y-12 hidden">
-  <h1 class="text-3xl font-bold mb-6 text-white">ToolNest Dashboard</h1>
-  <div id="categoriesContainer" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-</main>
-
-<!-- Toast Container -->
-<div id="toastContainer" class="fixed top-5 right-5 z-50"></div>
-
-<script>
+  // Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyBuYXfr-_q-BJskWHN4chB8SZqMc-P9odw",
     authDomain: "toolnest-8e42d.firebaseapp.com",
@@ -58,8 +29,8 @@
     appId: "1:988256036107:web:90f7e40f07593dff8e2e0e"
   };
 
-  const app = firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
 
   // Elements
   const authModal = document.getElementById('authModal');
@@ -68,7 +39,6 @@
   const forgotPass = document.getElementById('forgotPass');
   const userInput = document.getElementById('userInput');
   const passwordInput = document.getElementById('password');
-  const otpInput = document.getElementById('otpCode');
   const googleSignIn = document.getElementById('googleSignIn');
   const facebookSignIn = document.getElementById('facebookSignIn');
   const dashboardContainer = document.getElementById('dashboardContainer');
@@ -78,6 +48,7 @@
 
   let isSignup = false;
 
+  // Toast function
   function showToast(msg, type="success"){
     const toast = document.createElement('div');
     toast.innerText = msg;
@@ -96,50 +67,53 @@
     toggleAuth.innerText = signup?"Already have an account?":"Create an account";
     userInput.value="";
     passwordInput.value="";
-    otpInput.value="";
-    passwordInput.classList.remove('hidden');
-    otpInput.classList.add('hidden');
   }
   toggleAuth.addEventListener('click', ()=>toggleModal(!isSignup));
 
-  // Google login
-  googleSignIn.addEventListener('click', async ()=>{
-    const provider = new firebase.auth.GoogleAuthProvider();
-    try{ await auth.signInWithPopup(provider); showToast("Google login successful!"); } 
-    catch(e){ showToast(e.message,"error"); }
-  });
-
-  // Facebook login
-  facebookSignIn.addEventListener('click', async ()=>{
-    const provider = new firebase.auth.FacebookAuthProvider();
-    try{ await auth.signInWithPopup(provider); showToast("Facebook login successful!"); } 
-    catch(e){ showToast(e.message,"error"); }
-  });
-
   // Email login/signup
   continueBtn.addEventListener('click', async ()=>{
-    const input = userInput.value.trim();
+    const email = userInput.value.trim();
     const password = passwordInput.value.trim();
-    if(!input.includes("@")){ showToast("Enter valid email","error"); return; }
+    if(!email.includes("@")){ showToast("Enter valid email","error"); return; }
     if(!password){ showToast("Enter password","error"); return; }
-    try{
+    try {
       if(isSignup){
-        await auth.createUserWithEmailAndPassword(input,password);
+        await createUserWithEmailAndPassword(auth, email, password);
         showToast("Account created successfully!");
       } else {
-        await auth.signInWithEmailAndPassword(input,password);
+        await signInWithEmailAndPassword(auth, email, password);
         showToast("Login successful!");
       }
       authModal.classList.add('hidden');
-    } catch(e){ showToast(e.message,"error"); }
+    } catch(e) { showToast(e.message,"error"); }
   });
 
   // Forgot password
   forgotPass.addEventListener('click', async ()=>{
     const email = userInput.value.trim();
     if(!email.includes("@")){ showToast("Enter valid email","error"); return; }
-    try{ await auth.sendPasswordResetEmail(email); showToast("Password reset email sent!"); }
-    catch(e){ showToast(e.message,"error"); }
+    try{
+      await sendPasswordResetEmail(auth, email);
+      showToast("Password reset email sent!");
+    } catch(e){ showToast(e.message,"error"); }
+  });
+
+  // Google login
+  googleSignIn.addEventListener('click', async ()=>{
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      showToast("Google login successful!");
+    } catch(e){ showToast(e.message,"error"); }
+  });
+
+  // Facebook login
+  facebookSignIn.addEventListener('click', async ()=>{
+    try {
+      const provider = new FacebookAuthProvider();
+      await signInWithPopup(auth, provider);
+      showToast("Facebook login successful!");
+    } catch(e){ showToast(e.message,"error"); }
   });
 
   // Logout button
@@ -148,11 +122,11 @@
   logoutBtn.innerText="Logout";
   document.body.appendChild(logoutBtn);
   logoutBtn.addEventListener('click', async ()=>{
-    await auth.signOut();
+    await signOut(auth);
     showToast("Logged out successfully!");
   });
 
-  // Categories & Tools (unchanged)
+  // Categories & Tools
   const categories = [
     { name: "Finance & Accounting", icon: "💰", tools: ["ROI Calculator","Profit Margin Calculator","Break-even Analyzer","Loan EMI Calculator","Tax / GST / VAT Calculator","Currency Converter","Expense Tracker","Cash Flow Analyzer","Salary / Payroll Sheet"] },
     { name: "Business Management", icon: "📊", tools: ["Revenue Forecast Tool","Budget Planner","Employee Attendance Tracker","Invoice Generator","Business Proposal Template","Time Tracking Tool","Meeting Notes Template"] },
@@ -192,7 +166,8 @@
     });
   }
 
-  auth.onAuthStateChanged(user=>{
+  // Auth state change
+  onAuthStateChanged(auth, user=>{
     if(user){
       dashboardContainer.classList.remove('hidden');
       authModal.classList.add('hidden');
@@ -205,6 +180,14 @@
       toggleModal(false);
     }
   });
+
 </script>
-</body>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@keyframes fadeIn {0%{opacity:0}100%{opacity:1}}
+.animate-fadeIn {animation:fadeIn 0.5s ease-in;}
+.backdrop-blur {backdrop-filter: blur(10px);}
+</style>
+</head>
+<body class="bg-gradient-to-r from-blue-400 to-purple-600 min-h-screen text-white"></body>
 </html>
