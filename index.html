@@ -152,10 +152,11 @@ facebookSignIn.addEventListener('click', async ()=>{
 // OTP & Email login/signup
 window.recaptchaVerifier = new RecaptchaVerifier('continueBtn', { 'size':'invisible' }, auth);
 
+// Continue button logic
 continueBtn.addEventListener('click', async ()=>{
-  const input=userInput.value.trim();
-  const password=passwordInput.value.trim();
-  const otp=otpInput.value.trim();
+  const input = userInput.value.trim();
+  const pass = passwordInput.value.trim();
+  const otp = otpInput.value.trim();
 
   // OTP login
   if(otpInput.classList.contains('block') && otp){
@@ -192,10 +193,10 @@ continueBtn.addEventListener('click', async ()=>{
 
 // Forgot password
 forgotPass.addEventListener('click', async ()=>{
-  const email=userInput.value.trim();
-  if(!email.includes("@")){ showToast("Enter valid email","error"); return;}
+  const email = userInput.value.trim();
+  if(!email.includes("@")){ showToast("Enter valid email","error"); return; }
   try{ await sendPasswordResetEmail(auth,email); showToast("Password reset email sent!"); }
-  catch(e){ showToast(e.message,"error"); }
+  catch(e){showToast(e.message,"error");}
 });
 
 // Logout button
