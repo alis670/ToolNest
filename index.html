@@ -27,26 +27,25 @@
     <!-- Modal Title -->
     <h2 id="modalTitle" class="text-xl font-semibold text-center mb-4 text-white">ToolNest</h2>
 
-    <!-- Email / Password Input -->
-    <input type="email" id="email" placeholder="Email" class="w-full p-2 border rounded mb-3 bg-white/30 text-white placeholder-white" />
-    <input type="password" id="password" placeholder="Password" class="w-full p-2 border rounded mb-3 bg-white/30 text-white placeholder-white" />
+    <!-- Unified Input -->
+    <input type="text" id="userInput" placeholder="Email or +CountryCode Phone" class="w-full p-2 border rounded mb-3 bg-white/30 text-white placeholder-white" />
 
-    <!-- Phone Input -->
-    <input type="text" id="phoneNumber" placeholder="+CountryCode PhoneNumber" class="w-full p-2 border rounded mb-3 bg-white/30 text-white placeholder-white" />
+    <!-- Password (shown only for email login/signup) -->
+    <input type="password" id="password" placeholder="Password" class="w-full p-2 border rounded mb-3 bg-white/30 text-white placeholder-white hidden" />
 
-    <!-- OTP Input (hidden initially) -->
+    <!-- OTP Input (shown only for phone login) -->
     <input type="text" id="otpCode" placeholder="Enter OTP" class="w-full p-2 border rounded mb-3 bg-white/30 text-white placeholder-white hidden" />
 
-    <!-- Continue Button (handles email & phone) -->
+    <!-- Continue Button -->
     <button id="continueBtn" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold mb-3">Continue</button>
 
-    <!-- Create Account / Toggle -->
+    <!-- Create Account Toggle -->
     <p id="toggleAuth" class="text-center text-sm text-blue-400 mt-2 cursor-pointer">Create an account</p>
     <p id="forgotPass" class="text-center text-sm text-gray-300 mt-1 cursor-pointer">Forgot Password?</p>
 
     <!-- Google Login -->
     <button id="googleSignIn" class="w-full bg-red-600 text-white py-2 rounded-lg font-semibold mt-4">Continue with Google</button>
-    
+
   </div>
 </div>
 
@@ -94,9 +93,8 @@ const modalTitle = document.getElementById('modalTitle');
 const continueBtn = document.getElementById('continueBtn');
 const toggleAuth = document.getElementById('toggleAuth');
 const forgotPass = document.getElementById('forgotPass');
-const emailInput = document.getElementById('email');
-const passInput = document.getElementById('password');
-const phoneInput = document.getElementById('phoneNumber');
+const userInput = document.getElementById('userInput');
+const passwordInput = document.getElementById('password');
 const otpInput = document.getElementById('otpCode');
 const googleSignIn = document.getElementById('googleSignIn');
 const dashboardContainer = document.getElementById('dashboardContainer');
@@ -105,7 +103,7 @@ const toastContainer = document.getElementById('toastContainer');
 
 let isSignup = false;
 
-// Toast function
+// Toast
 function showToast(message, type="success"){
   const toast = document.createElement('div');
   toast.innerText = message;
@@ -133,51 +131,51 @@ googleSignIn.onclick = async ()=>{
   }catch(e){showToast(e.message,"error")}
 }
 
-// Recaptcha for phone
-window.recaptchaVerifier = new RecaptchaVerifier('continueBtn', {
-  'size': 'invisible',
-  'callback': (response) => { console.log('Recaptcha verified'); }
-}, auth);
+// Phone recaptcha
+window.recaptchaVerifier = new RecaptchaVerifier('continueBtn', { 'size':'invisible' }, auth);
 
-// Continue button handles email/password or phone
+// Continue Button logic
 continueBtn.onclick = async ()=>{
-  const email = emailInput.value.trim();
-  const password = passInput.value.trim();
-  const phone = phoneInput.value.trim();
+  const input = userInput.value.trim();
+  const password = passwordInput.value.trim();
   const otp = otpInput.value.trim();
 
   // PHONE OTP Verification
-  if(phone && otpInput.classList.contains('block')){
-    if(!otp){ showToast("Enter OTP","error"); return; }
-    window.confirmationResult.confirm(otp)
-      .then(()=>{ showToast("Phone login successful!"); authModal.classList.add('hidden'); })
-      .catch(e=>showToast(e.message,"error"));
+  if(otpInput.classList.contains('block') && otp){
+    try{
+      await window.confirmationResult.confirm(otp);
+      showToast("Phone login successful!");
+      authModal.classList.add('hidden');
+      otpInput.classList.add('hidden');
+      otpInput.classList.remove('block');
+    }catch(e){showToast(e.message,"error")}
     return;
   }
 
-  // PHONE LOGIN (send OTP)
-  if(phone && !otpInput.classList.contains('block')){
-    if(!phone){ showToast("Enter phone number","error"); return; }
-    const appVerifier = window.recaptchaVerifier;
-    signInWithPhoneNumber(auth, phone, appVerifier)
-      .then((confirmationResult)=>{
-        window.confirmationResult = confirmationResult;
-        otpInput.classList.remove('hidden');
-        otpInput.classList.add('block');
-        showToast("OTP sent to your phone");
-      })
-      .catch(e=>showToast(e.message,"error"));
+  // Phone login
+  if(input.startsWith("+") && !otpInput.classList.contains('block')){
+    try{
+      const appVerifier = window.recaptchaVerifier;
+      const confirmationResult = await signInWithPhoneNumber(auth,input,appVerifier);
+      window.confirmationResult = confirmationResult;
+      otpInput.classList.remove('hidden');
+      otpInput.classList.add('block');
+      passwordInput.classList.add('hidden');
+      showToast("OTP sent to your phone");
+    }catch(e){showToast(e.message,"error")}
     return;
   }
 
-  // EMAIL LOGIN / SIGNUP
-  if(email && password){
+  // Email login/signup
+  if(input.includes("@")){
+    passwordInput.classList.remove('hidden');
+    if(!password){showToast("Enter password","error"); return;}
     try{
       if(isSignup){
-        await createUserWithEmailAndPassword(auth,email,password);
+        await createUserWithEmailAndPassword(auth,input,password);
         showToast("Account created successfully!");
       }else{
-        await signInWithEmailAndPassword(auth,email,password);
+        await signInWithEmailAndPassword(auth,input,password);
         showToast("Login successful!");
       }
       authModal.classList.add('hidden');
@@ -185,13 +183,13 @@ continueBtn.onclick = async ()=>{
     return;
   }
 
-  showToast("Enter email/password or phone number","error");
+  showToast("Enter valid email or phone number","error");
 }
 
 // Forgot password
 forgotPass.onclick = async ()=>{
-  const email = emailInput.value.trim();
-  if(!email){showToast("Enter your email first","error"); return;}
+  const email = userInput.value.trim();
+  if(!email.includes("@")){showToast("Enter valid email for reset","error"); return;}
   try{
     await sendPasswordResetEmail(auth,email);
     showToast("Password reset email sent!");
@@ -208,7 +206,7 @@ logoutBtn.onclick = async ()=>{
   showToast("Logged out successfully!");
 }
 
-// Tool & Category Data (unchanged)
+// Dashboard categories (unchanged)
 const categories = [
   { name: "Finance & Accounting", icon: "💰", tools: ["ROI Calculator","Profit Margin Calculator","Break-even Analyzer","Loan EMI Calculator","Tax / GST / VAT Calculator","Currency Converter","Expense Tracker","Cash Flow Analyzer","Salary / Payroll Sheet"] },
   { name: "Business Management", icon: "📊", tools: ["Revenue Forecast Tool","Budget Planner","Employee Attendance Tracker","Invoice Generator","Business Proposal Template","Time Tracking Tool","Meeting Notes Template"] },
