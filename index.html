@@ -122,17 +122,18 @@ function showToast(message, type="success"){
   setTimeout(()=>toast.remove(),3000);
 }
 
-// Toggle modal
-toggleAuth.onclick = ()=>{
-  isSignup = !isSignup;
-  continueBtn.innerText = isSignup ? "Sign Up" : "Continue";
-  toggleAuth.innerText = isSignup ? "Already have an account?" : "Create an account";
+// Toggle modal function
+function toggleModal(signup){
+  isSignup = signup;
+  continueBtn.innerText = signup ? "Sign Up" : "Continue";
+  toggleAuth.innerText = signup ? "Already have an account?" : "Create an account";
   userInput.value = "";
   passwordInput.value = "";
   otpInput.value = "";
   otpInput.classList.add('hidden');
   passwordInput.classList.remove('hidden');
 }
+toggleAuth.onclick = () => toggleModal(!isSignup);
 
 // Show/Hide Password
 togglePassword.onclick = () => {
@@ -166,7 +167,7 @@ facebookSignIn.onclick = async ()=>{
 // Phone recaptcha
 window.recaptchaVerifier = new RecaptchaVerifier('continueBtn', { 'size':'invisible' }, auth);
 
-// Continue Button logic
+// Continue button logic
 continueBtn.onclick = async ()=>{
   const input = userInput.value.trim();
   const password = passwordInput.value.trim();
@@ -177,9 +178,9 @@ continueBtn.onclick = async ()=>{
     try{
       await window.confirmationResult.confirm(otp);
       showToast("Phone login successful!");
-      authModal.classList.add('hidden');
       otpInput.classList.add('hidden');
       passwordInput.classList.remove('hidden');
+      authModal.classList.add('hidden');
     }catch(e){showToast(e.message,"error")}
     return;
   }
@@ -289,9 +290,7 @@ onAuthStateChanged(auth,user=>{
     dashboardContainer.classList.add('hidden');
     logoutBtn.classList.add('hidden');
     authModal.classList.remove('hidden');
-    isSignup = false;
-    continueBtn.innerText = "Continue";
-    toggleAuth.innerText = "Create an account";
+    toggleModal(false);
   }
 });
 
