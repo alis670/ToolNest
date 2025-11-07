@@ -119,14 +119,28 @@ function showToast(message, type="success"){
 }
 
 // Toggle modal
-function openModal(signup){
-  isSignup = signup;
+toggleAuth.onclick = ()=>{
+  isSignup = !isSignup;
   modalTitle.innerText = "ToolNest";
-  continueBtn.innerText = signup?"Sign Up":"Continue";
-  toggleAuth.innerText = signup?"Already have an account?":"Create an account";
-  authModal.classList.remove('hidden');
+  continueBtn.innerText = isSignup ? "Sign Up" : "Continue";
+  toggleAuth.innerText = isSignup ? "Already have an account?" : "Create an account";
+  userInput.value = "";
+  passwordInput.value = "";
+  otpInput.value = "";
+  otpInput.classList.add('hidden');
+  passwordInput.classList.remove('hidden');
 }
-toggleAuth.onclick = ()=>openModal(!isSignup);
+
+// Forgot password
+forgotPass.onclick = async ()=>{
+  const email = userInput.value.trim();
+  if(!email){ showToast("Enter your email first","error"); return;}
+  if(!email.includes("@")){ showToast("Enter valid email","error"); return;}
+  try{
+    await sendPasswordResetEmail(auth,email);
+    showToast("Password reset email sent!");
+  }catch(e){ showToast(e.message,"error"); }
+}
 
 // Google login
 googleSignIn.onclick = async ()=>{
@@ -149,7 +163,7 @@ facebookSignIn.onclick = async ()=>{
 // Phone recaptcha
 window.recaptchaVerifier = new RecaptchaVerifier('continueBtn', { 'size':'invisible' }, auth);
 
-// Continue Button logic
+// Continue button logic
 continueBtn.onclick = async ()=>{
   const input = userInput.value.trim();
   const password = passwordInput.value.trim();
@@ -200,16 +214,6 @@ continueBtn.onclick = async ()=>{
   showToast("Enter valid email or phone number","error");
 }
 
-// Forgot password
-forgotPass.onclick = async ()=>{
-  const email = userInput.value.trim();
-  if(!email.includes("@")){showToast("Enter valid email for reset","error"); return;}
-  try{
-    await sendPasswordResetEmail(auth,email);
-    showToast("Password reset email sent!");
-  }catch(e){showToast(e.message,"error")}
-}
-
 // Logout button
 const logoutBtn = document.createElement('button');
 logoutBtn.className="fixed bottom-5 right-5 px-4 py-2 bg-red-500 text-white rounded-lg hidden";
@@ -233,7 +237,7 @@ const categories = [
   { name: "Premium Tools", icon: "🚀", tools: ["MarketNest Pro Analyzer","Business Intelligence Dashboard","AI Data Visualizer","Multi-user Team Workspace"] }
 ];
 
-// Render dashboard once
+// Render dashboard
 function renderDashboard(){
   categoriesContainer.innerHTML = "";
   categories.forEach(cat=>{
