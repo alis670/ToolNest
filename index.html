@@ -65,26 +65,21 @@ const firebaseConfig = {
   messagingSenderId: "988256036107",
   appId: "1:988256036107:web:90f7e40f07593dff8e2e0e"
 };
-
+// UI elements
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 const facebookProvider = new FacebookAuthProvider();
-
-// UI elements
-const userInput = document.getElementById('Emailorphonenumbersignuplogin');
-const passwordInput = document.getElementById('password');
-const otpInput = document.getElementById('otpCode');
+const authModal = document.getElementById('authModal');
 const continueBtn = document.getElementById('continueBtn');
 const toggleAuth = document.getElementById('toggleAuth');
 const forgotPass = document.getElementById('forgotPass');
+const userInput = document.getElementById('userInput');
+const passwordInput = document.getElementById('password');
+const otpInput = document.getElementById('otpCode');
 const googleSignIn = document.getElementById('googleSignIn');
 const facebookSignIn = document.getElementById('facebookSignIn');
-const authModal = document.getElementById('authModal');
-const dashboardContainer = document.getElementById('dashboardContainer');
-const categoriesContainer = document.getElementById('categoriesContainer');
-const toastContainer = document.getElementById('toastContainer');
-const togglePass = document.getElementById('togglePass');
+
 
 let isSignup = false;
 let confirmationResult = null;
