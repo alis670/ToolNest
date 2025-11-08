@@ -115,7 +115,10 @@ function showToast(msg,type="success"){
 }
 
 // Show/hide password
-togglePass.addEventListener('click',()=>{ passwordInput.type = passwordInput.type==="password"?"text":"password"; });
+  togglePass.addEventListener('click', ()=>{
+  if(passwordInput.type==="password"){ passwordInput.type="text"; togglePass.innerText="👁️"; } 
+  else { passwordInput.type="password"; togglePass.innerText="🙈"; }
+});
 
 // Toggle modal
 function toggleModal(signup){
