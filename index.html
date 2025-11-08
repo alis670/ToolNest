@@ -13,7 +13,7 @@
 </head>
 <body class="bg-gradient-to-r from-blue-400 to-purple-600 min-h-screen text-white">
 
-<main id="dashboardContainer" class="max-w-7xl mx-auto p-6 space-y-12 hidden">
+<main id="dashboardContainer" class="max-w-7xl mx-auto p-6 space-y-12">
   <h1 class="text-3xl font-bold mb-6 text-white">ToolNest Dashboard</h1>
   <div id="categoriesContainer" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
 </main>
@@ -22,10 +22,9 @@
 
 <script type="module">
 import { auth } from './firebase.js';
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-// Dashboard Elements
-const dashboardContainer = document.getElementById('dashboardContainer');
+// Elements
 const categoriesContainer = document.getElementById('categoriesContainer');
 const toastContainer = document.getElementById('toastContainer');
 
@@ -38,14 +37,14 @@ logoutBtn.addEventListener('click', async ()=>{ await signOut(auth); showToast("
 
 // Toast
 function showToast(msg,type="success"){
-  const toast = document.createElement('div');
-  toast.innerText = msg;
-  toast.className = `px-4 py-2 mb-2 rounded shadow-lg text-white ${type==="success"?"bg-green-500":"bg-red-500"} animate-fadeIn`;
+  const toast=document.createElement('div');
+  toast.innerText=msg;
+  toast.className=`px-4 py-2 mb-2 rounded shadow-lg text-white ${type==="success"?"bg-green-500":"bg-red-500"} animate-fadeIn`;
   toastContainer.appendChild(toast);
   setTimeout(()=>toast.remove(),3000);
 }
 
-// Dashboard Categories
+// Dashboard categories
 const categories = [
   { name: "Finance & Accounting", icon: "💰", tools: ["ROI Calculator","Profit Margin Calculator","Break-even Analyzer","Loan EMI Calculator","Tax / GST / VAT Calculator","Currency Converter","Expense Tracker","Cash Flow Analyzer","Salary / Payroll Sheet"] },
   { name: "Business Management", icon: "📊", tools: ["Revenue Forecast Tool","Budget Planner","Employee Attendance Tracker","Invoice Generator","Business Proposal Template","Time Tracking Tool","Meeting Notes Template"] },
@@ -88,13 +87,10 @@ function renderDashboard(){
 // Auth state
 onAuthStateChanged(auth,user=>{
   if(user){
-    dashboardContainer.classList.remove('hidden');
-    logoutBtn.classList.remove('hidden');
     renderDashboard();
+    logoutBtn.classList.remove('hidden');
   } else {
-    dashboardContainer.classList.add('hidden');
-    logoutBtn.classList.add('hidden');
-    window.location.href = "auth.html";
+    window.location.href="auth.html"; // redirect to login
   }
 });
 </script>
