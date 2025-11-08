@@ -18,15 +18,14 @@
 <div class="bg-white/10 backdrop-blur rounded-xl w-96 p-6 shadow-lg relative animate-fadeIn border border-white/20">
   <h2 class="text-xl font-semibold text-center mb-4 text-white">ToolNest</h2>
 
-  <!-- Inputs -->
   <input type="text" id="userInput" placeholder="Email or +CountryCode Phone" class="w-full p-2 border rounded mb-3 bg-white/30 text-white placeholder-white">
   <input type="password" id="password" placeholder="Password" class="w-full p-2 border rounded mb-3 bg-white/30 text-white placeholder-white">
   <input type="text" id="otpCode" placeholder="Enter OTP" class="w-full p-2 border rounded mb-3 bg-white/30 text-white placeholder-white hidden">
 
   <!-- Buttons -->
   <button id="continueBtn" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold mb-2">Continue</button>
-  <p id="toggleAuth" class="text-center text-sm text-blue-400 mt-2 cursor-pointer">Create an account</p>
-  <p id="forgotPass" class="text-center text-sm text-gray-300 mt-1 cursor-pointer hover:text-white">Forgot Password?</p>
+  <p id="toggleAuth" class="text-center text-sm text-blue-400 mt-2 cursor-pointer select-none">Create an account</p>
+  <p id="forgotPass" class="text-center text-sm text-gray-300 mt-1 cursor-pointer hover:text-white select-none">Forgot Password?</p>
   <button id="googleSignIn" class="w-full bg-red-600 text-white py-2 rounded-lg font-semibold mt-4">Continue with Google</button>
   <button id="facebookSignIn" class="w-full bg-blue-800 text-white py-2 rounded-lg font-semibold mt-2">Continue with Facebook</button>
 
@@ -48,7 +47,6 @@ import {
   signInWithPhoneNumber
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyBuYXfr-_q-BJskWHN4chB8SZqMc-P9odw",
   authDomain: "toolnest-8e42d.firebaseapp.com",
@@ -63,7 +61,6 @@ const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 const facebookProvider = new FacebookAuthProvider();
 
-// UI Elements
 const userInput = document.getElementById('userInput');
 const passwordInput = document.getElementById('password');
 const otpInput = document.getElementById('otpCode');
@@ -77,7 +74,6 @@ const toastContainer = document.getElementById('toastContainer');
 let isSignup = false;
 let confirmationResult = null;
 
-// Toast
 function showToast(msg,type="success"){
   const toast=document.createElement('div');
   toast.innerText=msg;
@@ -86,7 +82,6 @@ function showToast(msg,type="success"){
   setTimeout(()=>toast.remove(),3000);
 }
 
-// Toggle sign up / login
 toggleAuth.addEventListener('click', ()=>{
   isSignup = !isSignup;
   toggleAuth.innerText = isSignup ? "Already have an account?" : "Create an account";
@@ -97,16 +92,16 @@ toggleAuth.addEventListener('click', ()=>{
   passwordInput.value = "";
 });
 
-// Recaptcha
-window.recaptchaVerifier = new RecaptchaVerifier('continueBtn', { size:'invisible' }, auth);
+// Initialize Recaptcha separately
+window.recaptchaVerifier = new RecaptchaVerifier('recaptcha-container', {
+  'size': 'invisible'
+}, auth);
 
-// Continue button
 continueBtn.addEventListener('click', async ()=>{
   const input = userInput.value.trim();
   const password = passwordInput.value.trim();
   const otp = otpInput.value.trim();
 
-  // OTP verify
   if(otpInput.classList.contains('block') && otp){
     try{
       await confirmationResult.confirm(otp);
@@ -117,7 +112,6 @@ continueBtn.addEventListener('click', async ()=>{
     } catch(e){ showToast(e.message,"error"); return; }
   }
 
-  // Phone login
   if(input.startsWith("+") && !otpInput.classList.contains('block')){
     try{
       confirmationResult = await signInWithPhoneNumber(auth,input,window.recaptchaVerifier);
@@ -128,7 +122,6 @@ continueBtn.addEventListener('click', async ()=>{
     return;
   }
 
-  // Email login/signup
   if(input.includes("@")){
     if(!password){ showToast("Enter password","error"); return; }
     try{
@@ -146,7 +139,6 @@ continueBtn.addEventListener('click', async ()=>{
   showToast("Enter valid email or phone number","error");
 });
 
-// Forgot password
 forgotPass.addEventListener('click', async ()=>{
   const email = userInput.value.trim();
   if(!email.includes("@")){ showToast("Enter valid email","error"); return; }
@@ -156,17 +148,19 @@ forgotPass.addEventListener('click', async ()=>{
   } catch(e){ showToast(e.message,"error"); }
 });
 
-// Google login
 googleSignIn.addEventListener('click', async ()=>{
   try{ await signInWithPopup(auth,googleProvider); showToast("Google login successful!"); } 
   catch(e){ showToast(e.message,"error"); }
 });
 
-// Facebook login
 facebookSignIn.addEventListener('click', async ()=>{
   try{ await signInWithPopup(auth,facebookProvider); showToast("Facebook login successful!"); } 
   catch(e){ showToast(e.message,"error"); }
 });
 </script>
+
+<!-- Recaptcha container outside buttons -->
+<div id="recaptcha-container"></div>
+
 </body>
 </html>
