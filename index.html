@@ -176,11 +176,17 @@ logoutBtn.innerText="Logout";
 document.body.appendChild(logoutBtn);
 logoutBtn.addEventListener('click', async ()=>{ await signOut(auth); showToast("Logged out successfully!"); });
 
-// Dashboard Categories
+// Categories unchanged
 const categories = [
-  { name: "Finance & Accounting", icon: "💰", tools: ["ROI Calculator","Profit Margin Calculator","Break-even Analyzer"] },
-  { name: "Business Management", icon: "📊", tools: ["Revenue Forecast Tool","Budget Planner"] },
-  { name: "AI Tools", icon: "🤖", tools: ["ChatGPT Assistant","AI Name Generator"] }
+{ name: "Finance & Accounting", icon: "💰", tools: ["ROI Calculator","Profit Margin Calculator","Break-even Analyzer","Loan EMI Calculator","Tax / GST / VAT Calculator","Currency Converter","Expense Tracker","Cash Flow Analyzer","Salary / Payroll Sheet"] },
+{ name: "Business Management", icon: "📊", tools: ["Revenue Forecast Tool","Budget Planner","Employee Attendance Tracker","Invoice Generator","Business Proposal Template","Time Tracking Tool","Meeting Notes Template"] },
+{ name: "E-commerce & Marketing", icon: "🛒", tools: ["Product Pricing Calculator","Discount Finder","Inventory Tracker","Keyword Research Tool","Competitor Tracker","Profit & Fee Calculator","Product Launch Planner"] },
+{ name: "Data & Productivity", icon: "📈", tools: ["Google Sheets Templates","Excel Business Templates","CSV → Excel Converter","Sheet Merger Tool","Data Cleaner","Dashboard Template"] },
+{ name: "AI & Automation", icon: "🤖", tools: ["ChatGPT Assistant","Gemini UI","Auto Email Generator","Task Automation Templates","AI Name/Slogan Generator","Document Summarizer"] },
+{ name: "Design & Branding", icon: "🎨", tools: ["Logo Maker","Business Card Template","Brand Color Palette Generator","Social Media Post Caption Generator"] },
+{ name: "Website & SEO", icon: "🌐", tools: ["Meta Tag Generator","SEO Keyword Density Checker","Backlink Tracker","Sitemap XML Generator","Page Speed Tester"] },
+{ name: "Communication & Management", icon: "💬", tools: ["Project Task Manager","Team Chat UI","Client Feedback Form","Email Signature Generator"] },
+{ name: "Premium Tools", icon: "🚀", tools: ["MarketNest Pro Analyzer","Business Intelligence Dashboard","AI Data Visualizer","Multi-user Team Workspace"] }
 ];
 
 function renderDashboard(){
