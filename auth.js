@@ -13,6 +13,7 @@
 </head>
 <body class="bg-gradient-to-r from-blue-400 to-purple-600 min-h-screen text-white">
 
+<!-- Auth Modal -->
 <div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
   <div class="bg-white/10 backdrop-blur rounded-xl w-96 p-6 shadow-lg relative animate-fadeIn border border-white/20">
     <div class="text-center mb-4 flex flex-col items-center">
@@ -23,10 +24,12 @@
     <h2 class="text-xl font-semibold text-center mb-4 text-white">ToolNest</h2>
 
     <input type="text" id="userInput" placeholder="Email or +CountryCode Phone" class="w-full p-2 border rounded mb-3 bg-white/30 text-white placeholder-white" />
+
     <div class="relative">
       <input type="password" id="password" placeholder="Password" class="w-full p-2 border rounded mb-3 bg-white/30 text-white placeholder-white" />
       <span id="togglePass" class="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer text-white text-xl">🙈</span>
     </div>
+
     <input type="text" id="otpCode" placeholder="Enter OTP" class="w-full p-2 border rounded mb-3 bg-white/30 text-white placeholder-white hidden" />
 
     <div id="recaptcha-container"></div>
@@ -48,15 +51,15 @@ import {
   signInWithEmailAndPassword,
   signOut,
   sendPasswordResetEmail,
-  onAuthStateChanged,
   GoogleAuthProvider,
   FacebookAuthProvider,
   signInWithPopup,
   RecaptchaVerifier,
-  signInWithPhoneNumber
+  signInWithPhoneNumber,
+  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-// UI Elements
+// Elements
 const authModal = document.getElementById('authModal');
 const continueBtn = document.getElementById('continueBtn');
 const toggleAuth = document.getElementById('toggleAuth');
@@ -71,41 +74,48 @@ const togglePass = document.getElementById('togglePass');
 
 let isSignup = false;
 let confirmationResult = null;
-const googleProvider = new GoogleAuthProvider();
-const facebookProvider = new FacebookAuthProvider();
 
 // Toast
 function showToast(msg,type="success"){
-  const toast = document.createElement('div');
-  toast.innerText = msg;
-  toast.className = `px-4 py-2 mb-2 rounded shadow-lg text-white ${type==="success"?"bg-green-500":"bg-red-500"} animate-fadeIn`;
+  const toast=document.createElement('div');
+  toast.innerText=msg;
+  toast.className=`px-4 py-2 mb-2 rounded shadow-lg text-white ${type==="success"?"bg-green-500":"bg-red-500"} animate-fadeIn`;
   toastContainer.appendChild(toast);
   setTimeout(()=>toast.remove(),3000);
 }
 
 // Toggle password
 togglePass.addEventListener('click', ()=>{
-  passwordInput.type = passwordInput.type==="password"?"text":"password";
-  togglePass.innerText = passwordInput.type==="password"?"🙈":"👁️";
+  if(passwordInput.type==="password"){ passwordInput.type="text"; togglePass.innerText="👁️"; }
+  else { passwordInput.type="password"; togglePass.innerText="🙈"; }
 });
 
-// Toggle modal
-function toggleModal(signup){
-  isSignup = signup;
-  continueBtn.innerText = signup?"Sign Up":"Continue";
-  toggleAuth.innerText = signup?"Already have an account?":"Create an account";
-  userInput.value = "";
-  passwordInput.value = "";
-  otpInput.value = "";
+// Toggle signup/login
+toggleAuth.addEventListener('click', ()=>{
+  isSignup = !isSignup;
+  continueBtn.innerText = isSignup ? "Sign Up" : "Continue";
+  toggleAuth.innerText = isSignup ? "Already have an account?" : "Create an account";
+  userInput.value = passwordInput.value = otpInput.value = "";
   passwordInput.classList.remove('hidden');
   otpInput.classList.add('hidden');
-}
-toggleAuth.addEventListener('click', ()=>toggleModal(!isSignup));
+});
+
+// Google
+googleSignIn.addEventListener('click', async ()=>{
+  try { await signInWithPopup(auth,new GoogleAuthProvider()); showToast("Google login successful!"); } 
+  catch(e){ showToast(e.message,"error"); }
+});
+
+// Facebook
+facebookSignIn.addEventListener('click', async ()=>{
+  try { await signInWithPopup(auth,new FacebookAuthProvider()); showToast("Facebook login successful!"); } 
+  catch(e){ showToast(e.message,"error"); }
+});
 
 // Recaptcha
-window.recaptchaVerifier = new RecaptchaVerifier('continueBtn', { 'size':'invisible' }, auth);
+window.recaptchaVerifier = new RecaptchaVerifier('continueBtn', { size:'invisible' }, auth);
 
-// Continue Button
+// Continue button logic
 continueBtn.addEventListener('click', async ()=>{
   const input = userInput.value.trim();
   const password = passwordInput.value.trim();
@@ -119,67 +129,41 @@ continueBtn.addEventListener('click', async ()=>{
 
   // Phone login
   if(input.startsWith("+") && !otpInput.classList.contains('block')){
-    try{
+    try {
       confirmationResult = await signInWithPhoneNumber(auth,input,window.recaptchaVerifier);
-      window.confirmationResult = confirmationResult;
       otpInput.classList.remove('hidden'); otpInput.classList.add('block');
       passwordInput.classList.add('hidden');
       showToast("OTP sent to your phone!");
-      return;
-    } catch(e){ showToast(e.message,"error"); return; }
+    } catch(e){ showToast(e.message,"error"); }
+    return;
   }
 
   // Email login/signup
   if(input.includes("@")){
     if(!password){ showToast("Enter password","error"); return; }
-    try{
-      if(isSignup){ await createUserWithEmailAndPassword(auth,input,password); showToast("Account created successfully!"); }
-      else{ await signInWithEmailAndPassword(auth,input,password); showToast("Login successful!"); }
+    try {
+      if(isSignup) await createUserWithEmailAndPassword(auth,input,password);
+      else await signInWithEmailAndPassword(auth,input,password);
+      showToast(isSignup?"Account created!":"Login successful!");
       authModal.classList.add('hidden');
-      return;
-    } catch(e){ showToast(e.message,"error"); return; }
+    } catch(e){ showToast(e.message,"error"); }
+    return;
   }
 
   showToast("Enter valid email or phone number","error");
 });
 
-// Forgot Password
+// Forgot password
 forgotPass.addEventListener('click', async ()=>{
   const email = userInput.value.trim();
   if(!email.includes("@")){ showToast("Enter valid email","error"); return; }
-  try{ await sendPasswordResetEmail(auth,email); showToast("Password reset email sent!"); }
+  try { await sendPasswordResetEmail(auth,email); showToast("Password reset email sent!"); }
   catch(e){ showToast(e.message,"error"); }
 });
 
-// Google SignIn
-googleSignIn.addEventListener('click', async ()=>{
-  try{ await signInWithPopup(auth,googleProvider); showToast("Google login successful!"); } 
-  catch(e){ showToast(e.message,"error"); }
-});
-
-// Facebook SignIn
-facebookSignIn.addEventListener('click', async ()=>{
-  try{ await signInWithPopup(auth,facebookProvider); showToast("Facebook login successful!"); } 
-  catch(e){ showToast(e.message,"error"); }
-});
-
-// Logout Button
-const logoutBtn = document.createElement('button');
-logoutBtn.className="fixed bottom-5 right-5 px-4 py-2 bg-red-500 text-white rounded-lg hidden";
-logoutBtn.innerText="Logout";
-document.body.appendChild(logoutBtn);
-logoutBtn.addEventListener('click', async ()=>{ await signOut(auth); showToast("Logged out successfully!"); });
-
-// Auth state
+// Redirect after login (optional)
 onAuthStateChanged(auth,user=>{
-  if(user){
-    authModal.classList.add('hidden');
-    logoutBtn.classList.remove('hidden');
-  } else {
-    authModal.classList.remove('hidden');
-    logoutBtn.classList.add('hidden');
-    toggleModal(false);
-  }
+  if(user) window.location.href="index.html";
 });
 </script>
 </body>
