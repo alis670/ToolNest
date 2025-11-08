@@ -228,10 +228,19 @@ function renderDashboard(){
   });
  }
 
-// Auth state change
+// Auth state
 onAuthStateChanged(auth,user=>{
-  if(user){ dashboardContainer.classList.remove('hidden'); authModal.classList.add('hidden'); logoutBtn.classList.remove('hidden'); renderDashboard(); }
-  else{ dashboardContainer.classList.add('hidden'); logoutBtn.classList.add('hidden'); authModal.classList.remove('hidden'); toggleModal(false);}
+  if(user){
+    dashboardContainer.classList.remove('hidden');
+    authModal.classList.add('hidden');
+    logoutBtn.classList.remove('hidden');
+    renderDashboard();
+  } else {
+    dashboardContainer.classList.add('hidden');
+    logoutBtn.classList.add('hidden');
+    authModal.classList.remove('hidden');
+    toggleModal(false);
+  }
 });
 </script>
 </body>
