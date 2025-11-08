@@ -209,7 +209,7 @@ function renderDashboard(){
   categoriesContainer.innerHTML="";
   categories.forEach(cat=>{
     const catDiv=document.createElement('div');
-    catDiv.className="bg-white rounded-xl shadow p-4 hover:shadow-lg";
+    catDiv.className="bg-white/10 backdrop-blur rounded-xl shadow p-4 hover:shadow-lg";
     const catHeader=document.createElement('div');
     catHeader.className="flex items-center mb-3";
     const iconSpan=document.createElement('span');
@@ -221,16 +221,12 @@ function renderDashboard(){
     catHeader.append(iconSpan,nameSpan);
     catDiv.appendChild(catHeader);
     const toolsList=document.createElement('ul');
-    toolsList.className="list-disc list-inside text-gray-600 space-y-1";
-    cat.tools.forEach(tool=>{
-      const li=document.createElement('li');
-      li.innerText=tool;
-      toolsList.appendChild(li);
-    });
+    toolsList.className="list-disc list-inside text-white/80 space-y-1";
+    cat.tools.forEach(tool=>{ const li=document.createElement('li'); li.innerText=tool; toolsList.appendChild(li); });
     catDiv.appendChild(toolsList);
     categoriesContainer.appendChild(catDiv);
   });
-}
+ }
 
 // Auth state change
 onAuthStateChanged(auth,user=>{
