@@ -87,7 +87,7 @@ const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 const facebookProvider = new FacebookAuthProvider();
 
-// Elements
+// UI Elements
 const authModal = document.getElementById('authModal');
 const continueBtn = document.getElementById('continueBtn');
 const toggleAuth = document.getElementById('toggleAuth');
@@ -103,6 +103,7 @@ const toastContainer = document.getElementById('toastContainer');
 const togglePass = document.getElementById('togglePass');
 
 let isSignup = false;
+let confirmationResult = null;
 
 // Toast
 function showToast(msg,type="success"){
@@ -113,15 +114,10 @@ function showToast(msg,type="success"){
   setTimeout(()=>toast.remove(),3000);
 }
 
-// Password show/hide with monkey/eye
+// Password show/hide
 togglePass.addEventListener('click', ()=>{
-  if(passwordInput.type==="password"){
-    passwordInput.type="text";
-    togglePass.innerText="👁️";
-  } else {
-    passwordInput.type="password";
-    togglePass.innerText="🙈";
-  }
+  if(passwordInput.type==="password"){ passwordInput.type="text"; togglePass.innerText="👁️"; } 
+  else { passwordInput.type="password"; togglePass.innerText="🙈"; }
 });
 
 // Toggle modal
@@ -137,76 +133,74 @@ function toggleModal(signup){
 }
 toggleAuth.addEventListener('click', ()=>toggleModal(!isSignup));
 
-// Google
+// Google SignIn
 googleSignIn.addEventListener('click', async ()=>{
   try{ await signInWithPopup(auth,googleProvider); showToast("Google login successful!"); } 
   catch(e){ showToast(e.message,"error"); }
 });
 
-// Facebook
+// Facebook SignIn
 facebookSignIn.addEventListener('click', async ()=>{
   try{ await signInWithPopup(auth,facebookProvider); showToast("Facebook login successful!"); } 
   catch(e){ showToast(e.message,"error"); }
 });
 
-// OTP & Email login/signup
-window.recaptchaVerifier = new RecaptchaVerifier('continueBtn', { 'size':'invisible' }, auth);
+// Recaptcha
+window.recaptchaVerifier = new RecaptchaVerifier('continueBtn', { size:'invisible' }, auth);
 
 // Continue button logic
 continueBtn.addEventListener('click', async ()=>{
   const input = userInput.value.trim();
-  const pass = passwordInput.value.trim();
+  const password = passwordInput.value.trim();
   const otp = otpInput.value.trim();
 
-  // OTP login
+  // OTP verification
   if(otpInput.classList.contains('block') && otp){
-    try{ await window.confirmationResult.confirm(otp); showToast("Phone login successful!"); otpInput.classList.add('hidden'); otpInput.classList.remove('block'); return; }
+    try { await confirmationResult.confirm(otp); showToast("Phone login successful!"); otpInput.classList.add('hidden'); otpInput.classList.remove('block'); passwordInput.classList.remove('hidden'); authModal.classList.add('hidden'); return; }
     catch(e){ showToast(e.message,"error"); return; }
   }
 
   // Phone login
   if(input.startsWith("+") && !otpInput.classList.contains('block')){
     try{
-      const confirmationResult=await signInWithPhoneNumber(auth,input,window.recaptchaVerifier);
-      window.confirmationResult=confirmationResult;
+      confirmationResult = await signInWithPhoneNumber(auth,input,window.recaptchaVerifier);
       otpInput.classList.remove('hidden'); otpInput.classList.add('block');
       passwordInput.classList.add('hidden');
-      showToast("OTP sent to your phone");
-    } catch(e){ showToast(e.message,"error");}
+      showToast("OTP sent to your phone!");
+    } catch(e){ showToast(e.message,"error"); }
     return;
   }
 
   // Email login/signup
   if(input.includes("@")){
-    passwordInput.classList.remove('hidden');
-    if(!password){ showToast("Enter password","error"); return;}
+    if(!password){ showToast("Enter password","error"); return; }
     try{
       if(isSignup){ await createUserWithEmailAndPassword(auth,input,password); showToast("Account created successfully!"); }
       else{ await signInWithEmailAndPassword(auth,input,password); showToast("Login successful!"); }
-    } catch(e){ showToast(e.message,"error"); return;}
-    authModal.classList.add('hidden');
+      authModal.classList.add('hidden');
+    } catch(e){ showToast(e.message,"error"); }
     return;
   }
 
   showToast("Enter valid email or phone number","error");
 });
 
-// Forgot password
+// Forgot Password
 forgotPass.addEventListener('click', async ()=>{
   const email = userInput.value.trim();
   if(!email.includes("@")){ showToast("Enter valid email","error"); return; }
   try{ await sendPasswordResetEmail(auth,email); showToast("Password reset email sent!"); }
-  catch(e){showToast(e.message,"error");}
+  catch(e){ showToast(e.message,"error"); }
 });
 
 // Logout button
-const logoutBtn=document.createElement('button');
+const logoutBtn = document.createElement('button');
 logoutBtn.className="fixed bottom-5 right-5 px-4 py-2 bg-red-500 text-white rounded-lg hidden";
 logoutBtn.innerText="Logout";
 document.body.appendChild(logoutBtn);
 logoutBtn.addEventListener('click', async ()=>{ await signOut(auth); showToast("Logged out successfully!"); });
 
-// Categories & Tools (unchanged)
+// Dashboard Categories
 const categories = [
   { name: "Finance & Accounting", icon: "💰", tools: ["ROI Calculator","Profit Margin Calculator","Break-even Analyzer","Loan EMI Calculator","Tax / GST / VAT Calculator","Currency Converter","Expense Tracker","Cash Flow Analyzer","Salary / Payroll Sheet"] },
   { name: "Business Management", icon: "📊", tools: ["Revenue Forecast Tool","Budget Planner","Employee Attendance Tracker","Invoice Generator","Business Proposal Template","Time Tracking Tool","Meeting Notes Template"] },
