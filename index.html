@@ -236,17 +236,114 @@ logoutBtn.innerText="Logout";
 document.body.appendChild(logoutBtn);
 logoutBtn.addEventListener('click', async ()=>{ await signOut(auth); showToast("Logged out successfully!"); });
 
-// Categories & Dashboard Render
+// Categories with tools, icons, and page links
 const categories = [
-  { name: "Finance & Accounting", icon: "💰", tools: ["ROI Calculator","Profit Margin Calculator","Break-even Analyzer","Loan EMI Calculator","Tax / GST / VAT Calculator","Currency Converter","Expense Tracker","Cash Flow Analyzer","Salary / Payroll Sheet"] },
-  { name: "Business Management", icon: "📊", tools: ["Revenue Forecast Tool","Budget Planner","Employee Attendance Tracker","Invoice Generator","Business Proposal Template","Time Tracking Tool","Meeting Notes Template"] },
-  { name: "E-commerce & Marketing", icon: "🛒", tools: ["Product Pricing Calculator","Discount Finder","Inventory Tracker","Keyword Research Tool","Competitor Tracker","Profit & Fee Calculator","Product Launch Planner"] },
-  { name: "Data & Productivity", icon: "📈", tools: ["Google Sheets Templates","Excel Business Templates","CSV → Excel Converter","Sheet Merger Tool","Data Cleaner","Dashboard Template"] },
-  { name: "AI & Automation", icon: "🤖", tools: ["ChatGPT Assistant","Gemini UI","Auto Email Generator","Task Automation Templates","AI Name/Slogan Generator","Document Summarizer"] },
-  { name: "Design & Branding", icon: "🎨", tools: ["Logo Maker","Business Card Template","Brand Color Palette Generator","Social Media Post Caption Generator"] },
-  { name: "Website & SEO", icon: "🌐", tools: ["Meta Tag Generator","SEO Keyword Density Checker","Backlink Tracker","Sitemap XML Generator","Page Speed Tester"] },
-  { name: "Communication & Management", icon: "💬", tools: ["Project Task Manager","Team Chat UI","Client Feedback Form","Email Signature Generator"] },
-  { name: "Premium Tools", icon: "🚀", tools: ["MarketNest Pro Analyzer","Business Intelligence Dashboard","AI Data Visualizer","Multi-user Team Workspace"] }
+  {
+    name: "Finance & Accounting",
+    icon: "💰",
+    tools: [
+      { name: "ROI Calculator", page: "roi-calculator.html" },
+      { name: "Profit Margin Calculator", page: "profit-margin-calculator.html" },
+      { name: "Break-even Analyzer", page: "break-even-analyzer.html" },
+      { name: "Loan EMI Calculator", page: "loan-emi-calculator.html" },
+      { name: "Tax / GST / VAT Calculator", page: "tax-gst-vat-calculator.html" },
+      { name: "Currency Converter", page: "currency-converter.html" },
+      { name: "Expense Tracker", page: "expense-tracker.html" },
+      { name: "Cash Flow Analyzer", page: "cash-flow-analyzer.html" },
+      { name: "Salary / Payroll Sheet", page: "salary-payroll-sheet.html" }
+    ]
+  },
+  {
+    name: "Business Management",
+    icon: "📊",
+    tools: [
+      { name: "Revenue Forecast Tool", page: "revenue-forecast-tool.html" },
+      { name: "Budget Planner", page: "budget-planner.html" },
+      { name: "Employee Attendance Tracker", page: "employee-attendance-tracker.html" },
+      { name: "Invoice Generator", page: "invoice-generator.html" },
+      { name: "Business Proposal Template", page: "business-proposal-template.html" },
+      { name: "Time Tracking Tool", page: "time-tracking-tool.html" },
+      { name: "Meeting Notes Template", page: "meeting-notes-template.html" }
+    ]
+  },
+  {
+    name: "E-commerce & Marketing",
+    icon: "🛒",
+    tools: [
+      { name: "Product Pricing Calculator", page: "product-pricing-calculator.html" },
+      { name: "Discount Finder", page: "discount-finder.html" },
+      { name: "Inventory Tracker", page: "inventory-tracker.html" },
+      { name: "Keyword Research Tool", page: "keyword-research-tool.html" },
+      { name: "Competitor Tracker", page: "competitor-tracker.html" },
+      { name: "Profit & Fee Calculator", page: "profit-fee-calculator.html" },
+      { name: "Product Launch Planner", page: "product-launch-planner.html" }
+    ]
+  },
+  {
+    name: "Data & Productivity",
+    icon: "📈",
+    tools: [
+      { name: "Google Sheets Templates", page: "google-sheets-templates.html" },
+      { name: "Excel Business Templates", page: "excel-business-templates.html" },
+      { name: "CSV → Excel Converter", page: "csv-excel-converter.html" },
+      { name: "Sheet Merger Tool", page: "sheet-merger-tool.html" },
+      { name: "Data Cleaner", page: "data-cleaner.html" },
+      { name: "Dashboard Template", page: "dashboard-template.html" }
+    ]
+  },
+  {
+    name: "AI & Automation",
+    icon: "🤖",
+    tools: [
+      { name: "ChatGPT Assistant", page: "chatgpt-assistant.html" },
+      { name: "Gemini UI", page: "gemini-ui.html" },
+      { name: "Auto Email Generator", page: "auto-email-generator.html" },
+      { name: "Task Automation Templates", page: "task-automation-templates.html" },
+      { name: "AI Name/Slogan Generator", page: "ai-name-slogan-generator.html" },
+      { name: "Document Summarizer", page: "document-summarizer.html" }
+    ]
+  },
+  {
+    name: "Design & Branding",
+    icon: "🎨",
+    tools: [
+      { name: "Logo Maker", page: "logo-maker.html" },
+      { name: "Business Card Template", page: "business-card-template.html" },
+      { name: "Brand Color Palette Generator", page: "brand-color-palette-generator.html" },
+      { name: "Social Media Post Caption Generator", page: "social-media-caption-generator.html" }
+    ]
+  },
+  {
+    name: "Website & SEO",
+    icon: "🌐",
+    tools: [
+      { name: "Meta Tag Generator", page: "meta-tag-generator.html" },
+      { name: "SEO Keyword Density Checker", page: "seo-keyword-density-checker.html" },
+      { name: "Backlink Tracker", page: "backlink-tracker.html" },
+      { name: "Sitemap XML Generator", page: "sitemap-xml-generator.html" },
+      { name: "Page Speed Tester", page: "page-speed-tester.html" }
+    ]
+  },
+  {
+    name: "Communication & Management",
+    icon: "💬",
+    tools: [
+      { name: "Project Task Manager", page: "project-task-manager.html" },
+      { name: "Team Chat UI", page: "team-chat-ui.html" },
+      { name: "Client Feedback Form", page: "client-feedback-form.html" },
+      { name: "Email Signature Generator", page: "email-signature-generator.html" }
+    ]
+  },
+  {
+    name: "Premium Tools",
+    icon: "🚀",
+    tools: [
+      { name: "MarketNest Pro Analyzer", page: "marketnest-pro-analyzer.html" },
+      { name: "Business Intelligence Dashboard", page: "business-intelligence-dashboard.html" },
+      { name: "AI Data Visualizer", page: "ai-data-visualizer.html" },
+      { name: "Multi-user Team Workspace", page: "multiuser-team-workspace.html" }
+    ]
+  }
 ];
 
 function renderDashboard(){
