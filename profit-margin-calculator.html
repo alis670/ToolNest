@@ -1,99 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Profit Margin Calculator</title>
-  <link rel="stylesheet" href="style.css">
-  <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #007bff, #6610f2);
-      color: #333;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-    .calculator-container {
-      background: white;
-      padding: 25px;
-      border-radius: 20px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-      width: 340px;
-      text-align: center;
-    }
-    h2 {
-      color: #007bff;
-      margin-bottom: 20px;
-    }
-    input {
-      width: 90%;
-      padding: 10px;
-      margin: 8px 0;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      font-size: 16px;
-      transition: 0.2s;
-    }
-    input:focus {
-      border-color: #007bff;
-      outline: none;
-      box-shadow: 0 0 5px rgba(0,123,255,0.4);
-    }
-    button {
-      background-color: #007bff;
-      color: white;
-      padding: 10px 25px;
-      border: none;
-      border-radius: 10px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: 0.3s;
-      margin-top: 10px;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    .result {
-      margin-top: 20px;
-      font-size: 18px;
-      color: #28a745;
-      font-weight: bold;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profit Margin Calculator</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
-  <div class="calculator-container">
-    <h2>Profit Margin Calculator</h2>
-    <input type="number" id="revenue" placeholder="Enter Total Revenue" />
-    <input type="number" id="cost" placeholder="Enter Total Cost" />
-    <button onclick="calculateMargin()">Calculate</button>
-    <div class="result" id="result"></div>
+<body class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 min-h-screen flex items-center justify-center p-4">
+
+<div class="bg-white/10 backdrop-blur rounded-xl p-6 shadow-lg w-full max-w-lg text-white">
+  <h1 class="text-2xl font-bold mb-4 text-center">Profit Margin Calculator</h1>
+
+  <div class="space-y-3">
+    <input type="number" id="revenue" placeholder="Revenue" class="w-full p-2 rounded bg-white/30 text-white placeholder-white">
+    <input type="number" id="cogs" placeholder="Cost of Goods Sold (COGS)" class="w-full p-2 rounded bg-white/30 text-white placeholder-white">
+    <input type="number" id="operatingExpenses" placeholder="Operating Expenses" class="w-full p-2 rounded bg-white/30 text-white placeholder-white">
+    <input type="number" id="taxes" placeholder="Taxes" class="w-full p-2 rounded bg-white/30 text-white placeholder-white">
+    <input type="number" id="otherExpenses" placeholder="Other Expenses" class="w-full p-2 rounded bg-white/30 text-white placeholder-white">
   </div>
 
-  <script>
-    function calculateMargin() {
-      const revenue = parseFloat(document.getElementById("revenue").value);
-      const cost = parseFloat(document.getElementById("cost").value);
-      const resultDiv = document.getElementById("result");
+  <div class="flex space-x-2 mt-4">
+    <button id="calculateBtn" class="w-1/2 bg-indigo-600 py-2 rounded font-semibold hover:bg-indigo-700">Calculate</button>
+    <button id="resetBtn" class="w-1/2 bg-red-600 py-2 rounded font-semibold hover:bg-red-700">Reset</button>
+  </div>
 
-      if (isNaN(revenue) || isNaN(cost) || revenue <= 0) {
-        resultDiv.innerHTML = "⚠️ Please enter valid numbers.";
-        resultDiv.style.color = "red";
-        return;
-      }
+  <div class="mt-6 space-y-2" id="results" style="display:none;">
+    <p id="grossProfit"></p>
+    <p id="operatingProfit"></p>
+    <p id="netProfit"></p>
+    <canvas id="profitChart" class="mt-4 bg-white/20 rounded-lg p-2"></canvas>
+  </div>
 
-      const profit = revenue - cost;
-      const margin = (profit / revenue) * 100;
+  <button id="backBtn" class="mt-4 w-full bg-purple-600 py-2 rounded font-semibold hover:bg-purple-700">Back to Dashboard</button>
+</div>
 
-      resultDiv.style.color = "#28a745";
-      resultDiv.innerHTML = `
-        Profit: $${profit.toFixed(2)} <br>
-        Profit Margin: ${margin.toFixed(2)}%
-      `;
+<script>
+const revenueInput = document.getElementById('revenue');
+const cogsInput = document.getElementById('cogs');
+const operatingExpensesInput = document.getElementById('operatingExpenses');
+const taxesInput = document.getElementById('taxes');
+const otherExpensesInput = document.getElementById('otherExpenses');
+const calculateBtn = document.getElementById('calculateBtn');
+const resetBtn = document.getElementById('resetBtn');
+const resultsDiv = document.getElementById('results');
+const grossProfitP = document.getElementById('grossProfit');
+const operatingProfitP = document.getElementById('operatingProfit');
+const netProfitP = document.getElementById('netProfit');
+const backBtn = document.getElementById('backBtn');
+let profitChart;
+
+calculateBtn.addEventListener('click', ()=>{
+  const revenue = parseFloat(revenueInput.value) || 0;
+  const cogs = parseFloat(cogsInput.value) || 0;
+  const operatingExpenses = parseFloat(operatingExpensesInput.value) || 0;
+  const taxes = parseFloat(taxesInput.value) || 0;
+  const otherExpenses = parseFloat(otherExpensesInput.value) || 0;
+
+  if(revenue <= 0){ alert("Revenue must be greater than 0"); return; }
+
+  const grossProfit = revenue - cogs;
+  const operatingProfit = grossProfit - operatingExpenses;
+  const netProfit = operatingProfit - taxes - otherExpenses;
+
+  const grossMargin = ((grossProfit/revenue)*100).toFixed(2);
+  const operatingMargin = ((operatingProfit/revenue)*100).toFixed(2);
+  const netMargin = ((netProfit/revenue)*100).toFixed(2);
+
+  grossProfitP.innerText = `Gross Profit: $${grossProfit} (${grossMargin}%)`;
+  operatingProfitP.innerText = `Operating Profit: $${operatingProfit} (${operatingMargin}%)`;
+  netProfitP.innerText = `Net Profit: $${netProfit} (${netMargin}%)`;
+
+  resultsDiv.style.display = 'block';
+
+  if(profitChart) profitChart.destroy();
+  const ctx = document.getElementById('profitChart').getContext('2d');
+  profitChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Gross Margin', 'Operating Margin', 'Net Margin'],
+      datasets: [{
+        label: 'Profit Margin %',
+        data: [grossMargin, operatingMargin, netMargin],
+        backgroundColor: ['#4f46e5','#8b5cf6','#ec4899']
+      }]
+    },
+    options: {
+      responsive:true,
+      scales: { y: { beginAtZero: true, max:100 } }
     }
-  </script>
+  });
+});
+
+resetBtn.addEventListener('click', ()=>{
+  revenueInput.value = cogsInput.value = operatingExpensesInput.value = taxesInput.value = otherExpensesInput.value = '';
+  resultsDiv.style.display = 'none';
+  if(profitChart) profitChart.destroy();
+});
+
+backBtn.addEventListener('click', ()=>{
+  window.location.href = "index.html";
+});
+</script>
 </body>
 </html>
