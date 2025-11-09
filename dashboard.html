@@ -1,20 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ToolNest Dashboard</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<style>
-.backdrop-blur {backdrop-filter: blur(10px);}
-.animate-fadeIn {animation: fadeIn 0.5s ease-in;}
-@keyframes fadeIn {0%{opacity:0}100%{opacity:1}}
-</style>
-</head>
-<body class="bg-gradient-to-r from-blue-400 to-purple-600 min-h-screen text-white">
-
-<!-- Dashboard Container -->
-<main id="dashboardContainer" class="max-w-7xl mx-auto p-6 space-y-12">
+<!-- Dashboard (Replace your existing dashboardContainer and renderDashboard function) -->
+<main id="dashboardContainer" class="max-w-7xl mx-auto p-6 space-y-12 hidden">
 
   <!-- Header -->
   <header class="flex items-center justify-between mb-8">
@@ -22,12 +7,12 @@
       <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-400 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
         TN
       </div>
-      <h1 class="text-2xl font-bold">ToolNest Dashboard</h1>
+      <h1 class="text-2xl font-bold text-gray-700">ToolNest Dashboard</h1>
     </div>
     <nav class="space-x-6">
-      <a href="#dashboardContainer" class="hover:text-blue-300 font-semibold">Home</a>
-      <a href="#aboutUsSection" class="hover:text-blue-300 font-semibold">About Us</a>
-      <a href="#contactUsSection" class="hover:text-blue-300 font-semibold">Contact</a>
+      <a href="#dashboardContainer" class="hover:text-blue-600 font-semibold">Home</a>
+      <a href="#aboutUsSection" class="hover:text-blue-600 font-semibold">About Us</a>
+      <a href="#contactUsSection" class="hover:text-blue-600 font-semibold">Contact</a>
     </nav>
   </header>
 
@@ -35,20 +20,20 @@
   <section id="categoriesGrid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></section>
 
   <!-- About Us Section -->
-  <section id="aboutUsSection" class="bg-white/20 backdrop-blur p-6 rounded-xl shadow space-y-4 text-gray-100">
-    <h2 class="text-xl font-semibold text-white">About Us</h2>
+  <section id="aboutUsSection" class="bg-white/20 backdrop-blur p-6 rounded-xl shadow space-y-4 text-gray-700">
+    <h2 class="text-xl font-semibold">About Us</h2>
     <p>
       ToolNest is your all-in-one professional dashboard platform offering tools across Finance, Business, AI, Design, and more. Our mission is to empower professionals with seamless productivity solutions.
     </p>
   </section>
 
   <!-- Contact Us Section -->
-  <section id="contactUsSection" class="bg-white/20 backdrop-blur p-6 rounded-xl shadow space-y-4 text-gray-100">
-    <h2 class="text-xl font-semibold text-white">Contact Us</h2>
+  <section id="contactUsSection" class="bg-white/20 backdrop-blur p-6 rounded-xl shadow space-y-4 text-gray-700">
+    <h2 class="text-xl font-semibold">Contact Us</h2>
     <form id="contactForm" class="space-y-4">
-      <input type="text" placeholder="Name" class="w-full p-2 rounded bg-white/30 placeholder-white border border-white/20">
-      <input type="email" placeholder="Email" class="w-full p-2 rounded bg-white/30 placeholder-white border border-white/20">
-      <textarea placeholder="Message" class="w-full p-2 rounded bg-white/30 placeholder-white border border-white/20"></textarea>
+      <input type="text" placeholder="Name" class="w-full p-2 rounded bg-white/30 placeholder-gray-700 border border-white/20">
+      <input type="email" placeholder="Email" class="w-full p-2 rounded bg-white/30 placeholder-gray-700 border border-white/20">
+      <textarea placeholder="Message" class="w-full p-2 rounded bg-white/30 placeholder-gray-700 border border-white/20"></textarea>
       <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded font-semibold hover:bg-blue-700">Send</button>
     </form>
   </section>
@@ -57,7 +42,7 @@
   <button id="backToTopBtn" class="fixed bottom-5 right-5 bg-purple-600 text-white p-3 rounded-full shadow-lg hover:bg-purple-700 hidden">🔝</button>
 
   <!-- Footer -->
-  <footer class="mt-12 text-center text-gray-300">
+  <footer class="mt-12 text-center text-gray-500">
     © All rights reserved by ToolNest
   </footer>
 </main>
@@ -78,44 +63,48 @@ const categories = [
 
 const categoriesGrid = document.getElementById('categoriesGrid');
 
-// Render categories & tools
-categories.forEach(cat => {
-  const catCard = document.createElement('div');
-  catCard.className = "bg-white/20 p-4 rounded-xl shadow hover:shadow-lg transition duration-300 space-y-3 text-white";
+function renderDashboard(){
+  categoriesGrid.innerHTML = "";
+  categories.forEach(cat => {
+    const catCard = document.createElement('div');
+    catCard.className = "bg-white/10 p-4 rounded-xl shadow hover:shadow-lg transition duration-300 space-y-3";
 
-  // Category header
-  const catHeader = document.createElement('div');
-  catHeader.className = "flex items-center space-x-2";
-  const icon = document.createElement('span'); icon.className="text-3xl"; icon.innerText = cat.icon;
-  const name = document.createElement('span'); name.className="font-semibold text-lg"; name.innerText = cat.name;
-  catHeader.append(icon,name);
-  catCard.appendChild(catHeader);
+    // Category Header
+    const catHeader = document.createElement('div');
+    catHeader.className = "flex items-center space-x-2 text-gray-700";
+    const icon = document.createElement('span'); icon.className="text-3xl"; icon.innerText = cat.icon;
+    const name = document.createElement('span'); name.className="font-semibold text-lg"; name.innerText = cat.name;
+    catHeader.append(icon,name);
+    catCard.appendChild(catHeader);
 
-  // Tools list
-  const toolsList = document.createElement('div'); toolsList.className="grid gap-2";
-  cat.tools.forEach(tool => {
-    const toolBox = document.createElement('div');
-    toolBox.className="bg-white/10 p-2 rounded cursor-pointer hover:bg-blue-500 transition duration-200";
-    toolBox.innerText = tool;
+    // Tools List
+    const toolsList = document.createElement('div'); toolsList.className="grid gap-2";
+    cat.tools.forEach(tool => {
+      const toolBox = document.createElement('div');
+      toolBox.className="bg-white/20 p-2 rounded cursor-pointer hover:bg-blue-500 transition duration-200";
+      toolBox.innerText = tool;
 
-    let isActive = false;
-    toolBox.addEventListener('click', ()=>{
-      if(!isActive){
-        toolBox.classList.add('bg-blue-400', 'font-semibold');
-        isActive = true;
-      } else {
-        alert(`Opening ${tool}...`); // Replace with actual tool functionality
-      }
+      let isActive = false;
+      toolBox.addEventListener('click', ()=>{
+        if(!isActive){
+          toolBox.classList.add('bg-blue-400', 'font-semibold');
+          isActive = true;
+        } else {
+          alert(`Opening ${tool}...`); // Replace with real tool functionality
+        }
+      });
+
+      toolsList.appendChild(toolBox);
     });
 
-    toolsList.appendChild(toolBox);
+    catCard.appendChild(toolsList);
+    categoriesGrid.appendChild(catCard);
   });
+}
 
-  catCard.appendChild(toolsList);
-  categoriesGrid.appendChild(catCard);
-});
+renderDashboard();
 
-// Back to Top Button
+// Back to Top
 const backToTopBtn = document.getElementById('backToTopBtn');
 window.addEventListener('scroll', ()=>{
   if(window.scrollY > 300) backToTopBtn.classList.remove('hidden');
@@ -126,8 +115,6 @@ backToTopBtn.addEventListener('click', ()=>window.scrollTo({top:0,behavior:'smoo
 // Contact Form Submit
 document.getElementById('contactForm').addEventListener('submit', e=>{
   e.preventDefault();
-  alert('Message sent!'); // Replace with real email sending function
+  alert('Message sent!'); // Replace with actual email functionality
 });
 </script>
-</body>
-</html>
