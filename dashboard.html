@@ -121,6 +121,11 @@ function renderDashboard(){
 
     catCard.appendChild(toolsList);
     categoriesGrid.appendChild(catCard);
+    
+    toolBox.addEventListener('click', ()=>{
+  const clickedTool = tools.find(t=>t.name === tool);
+  openTool(clickedTool);
+});
   }
 }
 
