@@ -1,145 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Break-even Analyzer</title>
-  <style>
-    body {
-      font-family: "Poppins", sans-serif;
-      background: #f3f4f6;
-      color: #333;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      padding: 20px;
-    }
-    .container {
-      background: white;
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 500px;
-    }
-    h1 {
-      text-align: center;
-      color: #2563eb;
-      margin-bottom: 20px;
-    }
-    label {
-      font-weight: 500;
-      display: block;
-      margin-top: 12px;
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      margin-top: 6px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-    }
-    button {
-      width: 100%;
-      padding: 12px;
-      background: #2563eb;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      margin-top: 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #1d4ed8;
-    }
-    .result {
-      margin-top: 20px;
-      background: #e0f2fe;
-      padding: 15px;
-      border-radius: 10px;
-      text-align: center;
-    }
-    canvas {
-      margin-top: 20px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Break-even Analyzer</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
-  <div class="container">
-    <h1>Break-Even Point Analyzer</h1>
-    <label>Fixed Costs ($)</label>
-    <input type="number" id="fixedCosts" placeholder="Enter fixed costs" />
+<body class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 min-h-screen flex items-center justify-center p-4">
 
-    <label>Variable Cost per Unit ($)</label>
-    <input type="number" id="variableCost" placeholder="Enter variable cost per unit" />
+<div class="bg-white/10 backdrop-blur rounded-xl p-6 shadow-lg w-full max-w-lg text-white">
+  <h1 class="text-2xl font-bold mb-4 text-center">Break-even Analyzer</h1>
 
-    <label>Selling Price per Unit ($)</label>
-    <input type="number" id="pricePerUnit" placeholder="Enter selling price per unit" />
-
-    <label>Units Sold (optional)</label>
-    <input type="number" id="unitsSold" placeholder="Enter units sold (optional)" />
-
-    <button onclick="calculateBreakEven()">Calculate</button>
-
-    <div class="result" id="result"></div>
-
-    <canvas id="chart" width="400" height="250"></canvas>
+  <div class="space-y-3">
+    <input type="number" id="fixedCosts" placeholder="Fixed Costs ($)" class="w-full p-2 rounded bg-white/30 text-white placeholder-white">
+    <input type="number" id="variableCost" placeholder="Variable Cost per Unit ($)" class="w-full p-2 rounded bg-white/30 text-white placeholder-white">
+    <input type="number" id="sellingPrice" placeholder="Selling Price per Unit ($)" class="w-full p-2 rounded bg-white/30 text-white placeholder-white">
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-    function calculateBreakEven() {
-      const fixedCosts = parseFloat(document.getElementById("fixedCosts").value);
-      const variableCost = parseFloat(document.getElementById("variableCost").value);
-      const pricePerUnit = parseFloat(document.getElementById("pricePerUnit").value);
-      const unitsSold = parseFloat(document.getElementById("unitsSold").value) || 0;
+  <div class="flex space-x-2 mt-4">
+    <button id="calculateBtn" class="w-1/2 bg-indigo-600 py-2 rounded font-semibold hover:bg-indigo-700">Calculate</button>
+    <button id="resetBtn" class="w-1/2 bg-red-600 py-2 rounded font-semibold hover:bg-red-700">Reset</button>
+  </div>
 
-      if (isNaN(fixedCosts) || isNaN(variableCost) || isNaN(pricePerUnit)) {
-        alert("Please fill all required fields!");
-        return;
-      }
+  <div class="mt-6 space-y-2" id="results" style="display:none;">
+    <p id="breakEvenUnits"></p>
+    <p id="breakEvenRevenue"></p>
+    <canvas id="breakEvenChart" class="mt-4 bg-white/20 rounded-lg p-2"></canvas>
+  </div>
 
-      const contributionMargin = pricePerUnit - variableCost;
-      const breakEvenUnits = fixedCosts / contributionMargin;
-      const breakEvenRevenue = breakEvenUnits * pricePerUnit;
+  <button id="backBtn" class="mt-4 w-full bg-purple-600 py-2 rounded font-semibold hover:bg-purple-700">Back to Dashboard</button>
+</div>
 
-      document.getElementById("result").innerHTML = `
-        <strong>Break-Even Units:</strong> ${breakEvenUnits.toFixed(2)} units<br>
-        <strong>Break-Even Revenue:</strong> $${breakEvenRevenue.toFixed(2)}
-      `;
+<script>
+const fixedCostsInput = document.getElementById('fixedCosts');
+const variableCostInput = document.getElementById('variableCost');
+const sellingPriceInput = document.getElementById('sellingPrice');
+const calculateBtn = document.getElementById('calculateBtn');
+const resetBtn = document.getElementById('resetBtn');
+const resultsDiv = document.getElementById('results');
+const breakEvenUnitsP = document.getElementById('breakEvenUnits');
+const breakEvenRevenueP = document.getElementById('breakEvenRevenue');
+const backBtn = document.getElementById('backBtn');
+let breakEvenChart;
 
-      drawChart(fixedCosts, variableCost, pricePerUnit, breakEvenUnits, unitsSold);
-    }
+calculateBtn.addEventListener('click', ()=>{
+  const fixedCosts = parseFloat(fixedCostsInput.value) || 0;
+  const variableCost = parseFloat(variableCostInput.value) || 0;
+  const sellingPrice = parseFloat(sellingPriceInput.value) || 0;
 
-    function drawChart(fixedCosts, variableCost, pricePerUnit, breakEvenUnits, unitsSold) {
-      const ctx = document.getElementById("chart").getContext("2d");
-      const maxUnits = Math.max(breakEvenUnits * 1.5, unitsSold * 1.2, 50);
-      const labels = Array.from({ length: Math.ceil(maxUnits) }, (_, i) => i + 1);
+  if(fixedCosts<0 || variableCost<=0 || sellingPrice<=0){
+    alert("Enter valid positive numbers. Variable cost and selling price must be > 0");
+    return;
+  }
 
-      const totalCost = labels.map(x => fixedCosts + variableCost * x);
-      const totalRevenue = labels.map(x => pricePerUnit * x);
+  const breakEvenUnits = Math.ceil(fixedCosts / (sellingPrice - variableCost));
+  const breakEvenRevenue = breakEvenUnits * sellingPrice;
 
-      if (window.chart) window.chart.destroy();
+  breakEvenUnitsP.innerText = `Break-even Point: ${breakEvenUnits} units`;
+  breakEvenRevenueP.innerText = `Break-even Revenue: $${breakEvenRevenue.toFixed(2)}`;
+  resultsDiv.style.display = 'block';
 
-      window.chart = new Chart(ctx, {
-        type: "line",
-        data: {
-          labels,
-          datasets: [
-            { label: "Total Cost", data: totalCost, borderColor: "#ef4444", fill: false },
-            { label: "Total Revenue", data: totalRevenue, borderColor: "#22c55e", fill: false }
-          ]
-        },
-        options: {
-          plugins: { legend: { position: "bottom" } },
-          scales: { y: { beginAtZero: true } },
-          elements: { point: { radius: 0 } }
-        }
-      });
-    }
-  </script>
+  // Generate chart
+  if(breakEvenChart) breakEvenChart.destroy();
+
+  const labels = [];
+  const totalCost = [];
+  const revenue = [];
+  const profit = [];
+
+  for(let i=0; i<=breakEvenUnits*2; i+=Math.ceil(breakEvenUnits/10)||1){
+    labels.push(i);
+    totalCost.push(fixedCosts + variableCost*i);
+    revenue.push(sellingPrice*i);
+    profit.push(sellingPrice*i - (fixedCosts + variableCost*i));
+  }
+
+  const ctx = document.getElementById('breakEvenChart').getContext('2d');
+  breakEvenChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: 'Total Cost', data: totalCost, borderColor:'#f87171', backgroundColor:'rgba(248,113,113,0.2)', fill:true },
+        { label: 'Revenue', data: revenue, borderColor:'#4f46e5', backgroundColor:'rgba(79,70,229,0.2)', fill:true },
+        { label: 'Profit', data: profit, borderColor:'#22c55e', backgroundColor:'rgba(34,197,94,0.2)', fill:true }
+      ]
+    },
+    options: { responsive:true, plugins:{legend:{labels:{color:'white'}}}, scales:{ x:{ ticks:{color:'white'} }, y:{ ticks:{color:'white'} } } }
+  });
+});
+
+resetBtn.addEventListener('click', ()=>{
+  fixedCostsInput.value = variableCostInput.value = sellingPriceInput.value = '';
+  resultsDiv.style.display = 'none';
+  if(breakEvenChart) breakEvenChart.destroy();
+});
+
+backBtn.addEventListener('click', ()=>window.location.href='index.html');
+</script>
 </body>
 </html>
