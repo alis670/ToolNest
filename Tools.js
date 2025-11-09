@@ -1,6 +1,6 @@
 export const tools = [
   // Finance & Accounting
-  {name:"ROI Calculator", category:"Finance", description:"Calculate your ROI easily.", link:"tools/roi-calculator.html"},
+  {name:"ROI Calculator", category:"Finance", description:"Calculate your ROI easily.", link:"#"},
   {name:"Profit Margin Calculator", category:"Finance", description:"Check profit margins.", link:"#"},
   {name:"Break-even Analyzer", category:"Finance", description:"Find your break-even point.", link:"#"},
   {name:"Loan EMI Calculator", category:"Finance", description:"Calculate EMI quickly.", link:"#"},
