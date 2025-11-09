@@ -11,21 +11,20 @@
 .backdrop-blur {backdrop-filter: blur(10px);}
 .animate-fadeIn {animation: fadeIn 0.5s ease-in;}
 @keyframes fadeIn {0%{opacity:0}100%{opacity:1}}
-/* Logout button fix */
-#logoutBtn{z-index:50; bottom:80px;}
-/* Back to Top fix */
-#backToTopBtn{z-index:40;}
+/* Professional Header */
+header a { transition: color 0.3s; }
+header a:hover { color: #4f46e5; }
 </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 min-h-screen">
 
-<!-- Auth Modal -->
-<div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+<!-- Auth Modal (Unchanged) -->
+<div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
   <div class="bg-white/10 backdrop-blur rounded-xl w-96 p-6 shadow-lg relative animate-fadeIn border border-white/20">
 
     <!-- ToolNest Logo -->
     <div class="text-center mb-4 flex flex-col items-center">
-      <div class="w-20 h-20 rounded-full bg-gradient-to-r from-blue-400 to-purple-600 flex items-center justify-center shadow-lg">
+      <div class="w-20 h-20 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
         <span class="text-white text-2xl font-bold">ToolNest</span>
       </div>
     </div>
@@ -37,14 +36,14 @@
 
     <!-- Password Input -->
     <div class="relative">
-<input type="password" id="password" placeholder="Password" class="w-full p-2 rounded mb-3 bg-white/30 text-white placeholder-white">
+      <input type="password" id="password" placeholder="Password" class="w-full p-2 rounded mb-3 bg-white/30 text-white placeholder-white">
       <span id="togglePass" class="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer text-white text-xl select-none">🙈</span>
-  </div>
+    </div>
 
     <!-- OTP Input -->
     <input type="text" id="otpCode" placeholder="Enter OTP" class="w-full p-2 border rounded mb-3 bg-white/30 text-white placeholder-white hidden" />
 
-    <button id="continueBtn" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold mb-3">Continue</button>
+    <button id="continueBtn" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-semibold mb-3">Continue</button>
 
     <p id="toggleAuth" class="text-center text-sm text-blue-400 mt-2 cursor-pointer">Create an account</p>
     <p id="forgotPass" class="text-center text-sm text-gray-300 mt-1 cursor-pointer">Forgot Password?</p>
@@ -55,21 +54,19 @@
   </div>
 </div>
 
-<!-- Dashboard Container -->
+<!-- Dashboard -->
 <main id="dashboardContainer" class="max-w-7xl mx-auto p-6 space-y-12 hidden">
 
   <!-- Header -->
-  <header class="flex items-center justify-between mb-8">
+  <header class="flex flex-col md:flex-row items-center justify-between mb-8 space-y-4 md:space-y-0">
     <div class="flex items-center space-x-3">
-      <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-400 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
-        TN
-      </div>
-      <h1 class="text-2xl font-bold text-gray-700">ToolNest Dashboard</h1>
+      <div class="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xl shadow-lg">TN</div>
+      <h1 class="text-2xl font-bold text-white">ToolNest Dashboard</h1>
     </div>
-    <nav class="space-x-6">
-      <a href="#categoriesGrid" class="hover:text-blue-600 font-semibold">Home</a>
-      <a href="#aboutUsSection" class="hover:text-blue-600 font-semibold">About Us</a>
-      <a href="#contactUsSection" class="hover:text-blue-600 font-semibold">Contact</a>
+    <nav class="space-x-6 text-white font-semibold">
+      <a href="#dashboardContainer">Home</a>
+      <a href="#aboutUsSection">About Us</a>
+      <a href="#contactUsSection">Contact</a>
     </nav>
   </header>
 
@@ -77,103 +74,52 @@
   <section id="categoriesGrid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></section>
 
   <!-- About Us Section -->
-  <section id="aboutUsSection" class="bg-white rounded-xl shadow p-6 space-y-4 text-gray-700">
+  <section id="aboutUsSection" class="bg-white/20 backdrop-blur p-6 rounded-xl shadow space-y-4 text-gray-700">
     <h2 class="text-xl font-semibold">About Us</h2>
-    <p>
-      ToolNest is your all-in-one professional dashboard platform offering tools across Finance, Business, AI, Design, and more. Our mission is to empower professionals with seamless productivity solutions.
-    </p>
+    <p>ToolNest is your all-in-one professional dashboard platform offering tools across Finance, Business, AI, Design, and more. Our mission is to empower professionals with seamless productivity solutions.</p>
   </section>
 
   <!-- Contact Us Section -->
-  <section id="contactUsSection" class="bg-white rounded-xl shadow p-6 space-y-4 text-gray-700">
+  <section id="contactUsSection" class="bg-white/20 backdrop-blur p-6 rounded-xl shadow space-y-4 text-gray-700">
     <h2 class="text-xl font-semibold">Contact Us</h2>
     <form id="contactForm" class="space-y-4">
-      <input type="text" placeholder="Name" class="w-full p-2 rounded border border-gray-300">
-      <input type="email" placeholder="Email" class="w-full p-2 rounded border border-gray-300">
-      <textarea placeholder="Message" class="w-full p-2 rounded border border-gray-300"></textarea>
-      <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded font-semibold hover:bg-blue-700">Send</button>
+      <input type="text" placeholder="Name" class="w-full p-2 rounded bg-white/30 placeholder-gray-700 border border-white/20">
+      <input type="email" placeholder="Email" class="w-full p-2 rounded bg-white/30 placeholder-gray-700 border border-white/20">
+      <textarea placeholder="Message" class="w-full p-2 rounded bg-white/30 placeholder-gray-700 border border-white/20"></textarea>
+      <button type="submit" class="bg-indigo-600 text-white py-2 px-4 rounded font-semibold hover:bg-indigo-700">Send</button>
     </form>
   </section>
 
-  <!-- Back to Top -->
-  <button id="backToTopBtn" class="fixed bottom-5 right-5 bg-purple-600 text-white p-3 rounded-full shadow-lg hover:bg-purple-700 hidden">🔝</button>
-
   <!-- Footer -->
-  <footer class="mt-12 text-center text-gray-500">
+  <footer class="mt-12 text-center text-white/70">
     © All rights reserved by ToolNest
   </footer>
+
+  <!-- Back to Top -->
+  <button id="backToTopBtn" class="fixed bottom-20 right-5 bg-purple-600 text-white p-3 rounded-full shadow-lg hover:bg-purple-700 hidden z-40">🔝</button>
+
 </main>
 
+<!-- Toast container -->
 <div id="toastContainer" class="fixed top-5 right-5 z-50"></div>
 
-<script>
-const categories = [
-  { name: "Finance & Accounting", icon: "💰", tools: ["ROI Calculator","Profit Margin Calculator","Break-even Analyzer","Loan EMI Calculator","Tax / GST / VAT Calculator","Currency Converter","Expense Tracker","Cash Flow Analyzer","Salary / Payroll Sheet"] },
-  { name: "Business Management", icon: "📊", tools: ["Revenue Forecast Tool","Budget Planner","Employee Attendance Tracker","Invoice Generator","Business Proposal Template","Time Tracking Tool","Meeting Notes Template"] },
-  { name: "E-commerce & Marketing", icon: "🛒", tools: ["Product Pricing Calculator","Discount Finder","Inventory Tracker","Keyword Research Tool","Competitor Tracker","Profit & Fee Calculator","Product Launch Planner"] },
-  { name: "Data & Productivity", icon: "📈", tools: ["Google Sheets Templates","Excel Business Templates","CSV → Excel Converter","Sheet Merger Tool","Data Cleaner","Dashboard Template"] },
-  { name: "AI & Automation", icon: "🤖", tools: ["ChatGPT Assistant","Gemini UI","Auto Email Generator","Task Automation Templates","AI Name/Slogan Generator","Document Summarizer"] },
-  { name: "Design & Branding", icon: "🎨", tools: ["Logo Maker","Business Card Template","Brand Color Palette Generator","Social Media Post Caption Generator"] },
-  { name: "Website & SEO", icon: "🌐", tools: ["Meta Tag Generator","SEO Keyword Density Checker","Backlink Tracker","Sitemap XML Generator","Page Speed Tester"] },
-  { name: "Communication & Management", icon: "💬", tools: ["Project Task Manager","Team Chat UI","Client Feedback Form","Email Signature Generator"] },
-  { name: "Premium Tools", icon: "🚀", tools: ["MarketNest Pro Analyzer","Business Intelligence Dashboard","AI Data Visualizer","Multi-user Team Workspace"] }
-];
-
-const categoriesGrid = document.getElementById('categoriesGrid');
-
-function renderDashboard(){
-  categoriesGrid.innerHTML = "";
-  categories.forEach(cat => {
-    const catCard = document.createElement('div');
-    catCard.className = "bg-white p-4 rounded-xl shadow hover:shadow-lg transition duration-300 space-y-3";
-
-    const catHeader = document.createElement('div');
-    catHeader.className = "flex items-center space-x-2 text-gray-700";
-    const icon = document.createElement('span'); icon.className="text-3xl"; icon.innerText = cat.icon;
-    const name = document.createElement('span'); name.className="font-semibold text-lg"; name.innerText = cat.name;
-    catHeader.append(icon,name);
-    catCard.appendChild(catHeader);
-
-    const toolsList = document.createElement('div'); toolsList.className="grid gap-2";
-    cat.tools.forEach(tool => {
-      const toolBox = document.createElement('div');
-      toolBox.className="bg-gray-100 p-2 rounded cursor-pointer hover:bg-blue-500 hover:text-white transition duration-200";
-      toolBox.innerText = tool;
-      let isActive = false;
-      toolBox.addEventListener('click', ()=>{
-        if(!isActive){
-          toolBox.classList.add('bg-blue-400', 'font-semibold', 'text-white');
-          isActive = true;
-        } else {
-          alert(`Opening ${tool}...`);
-        }
-      });
-      toolsList.appendChild(toolBox);
-    });
-
-    catCard.appendChild(toolsList);
-    categoriesGrid.appendChild(catCard);
-  });
-}
-
-// Back to Top
-const backToTopBtn = document.getElementById('backToTopBtn');
-window.addEventListener('scroll', ()=>{
-  if(window.scrollY > 300) backToTopBtn.classList.remove('hidden');
-  else backToTopBtn.classList.add('hidden');
-});
-backToTopBtn.addEventListener('click', ()=>window.scrollTo({top:0,behavior:'smooth'}));
-
-// Contact Form
-document.getElementById('contactForm').addEventListener('submit', e=>{
-  e.preventDefault();
-  alert('Message sent!');
-});
-
-// Firebase Auth
+<script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, onAuthStateChanged, GoogleAuthProvider, FacebookAuthProvider, signInWithPopup, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { 
+  getAuth, 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  signOut, 
+  sendPasswordResetEmail,
+  onAuthStateChanged,
+  GoogleAuthProvider,
+  FacebookAuthProvider,
+  signInWithPopup,
+  RecaptchaVerifier,
+  signInWithPhoneNumber
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyBuYXfr-_q-BJskWHN4chB8SZqMc-P9odw",
   authDomain: "toolnest-8e42d.firebaseapp.com",
@@ -182,12 +128,12 @@ const firebaseConfig = {
   messagingSenderId: "988256036107",
   appId: "1:988256036107:web:90f7e40f07593dff8e2e0e"
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 const facebookProvider = new FacebookAuthProvider();
 
+// Elements
 const authModal = document.getElementById('authModal');
 const continueBtn = document.getElementById('continueBtn');
 const toggleAuth = document.getElementById('toggleAuth');
@@ -198,10 +144,13 @@ const otpInput = document.getElementById('otpCode');
 const googleSignIn = document.getElementById('googleSignIn');
 const facebookSignIn = document.getElementById('facebookSignIn');
 const dashboardContainer = document.getElementById('dashboardContainer');
+const categoriesGrid = document.getElementById('categoriesGrid');
 const toastContainer = document.getElementById('toastContainer');
 const togglePass = document.getElementById('togglePass');
-let isSignup=false;
 
+let isSignup = false;
+
+// Toast
 function showToast(msg,type="success"){
   const t = document.createElement('div');
   t.innerText = msg;
@@ -210,7 +159,7 @@ function showToast(msg,type="success"){
   setTimeout(()=>t.remove(),3000);
 }
 
-// Password toggle
+// Show/hide password
 togglePass.addEventListener('click', ()=>{
   if(passwordInput.type==="password"){ passwordInput.type="text"; togglePass.innerText="👁️"; } 
   else { passwordInput.type="password"; togglePass.innerText="🙈"; }
@@ -283,16 +232,90 @@ forgotPass.addEventListener('click', async ()=>{
 
 // Logout button
 const logoutBtn = document.createElement('button');
-logoutBtn.id="logoutBtn";
-logoutBtn.className="fixed right-5 px-4 py-2 bg-red-500 text-white rounded-lg hidden";
+logoutBtn.className="fixed bottom-5 right-5 px-4 py-2 bg-red-500 text-white rounded-lg hidden z-50";
 logoutBtn.innerText="Logout";
 document.body.appendChild(logoutBtn);
 logoutBtn.addEventListener('click', async ()=>{ await signOut(auth); showToast("Logged out successfully!"); });
 
-// Auth state
+// Categories & Dashboard Render
+const categories = [
+  { name: "Finance & Accounting", icon: "💰", tools: ["ROI Calculator","Profit Margin Calculator","Break-even Analyzer","Loan EMI Calculator","Tax / GST / VAT Calculator","Currency Converter","Expense Tracker","Cash Flow Analyzer","Salary / Payroll Sheet"] },
+  { name: "Business Management", icon: "📊", tools: ["Revenue Forecast Tool","Budget Planner","Employee Attendance Tracker","Invoice Generator","Business Proposal Template","Time Tracking Tool","Meeting Notes Template"] },
+  { name: "E-commerce & Marketing", icon: "🛒", tools: ["Product Pricing Calculator","Discount Finder","Inventory Tracker","Keyword Research Tool","Competitor Tracker","Profit & Fee Calculator","Product Launch Planner"] },
+  { name: "Data & Productivity", icon: "📈", tools: ["Google Sheets Templates","Excel Business Templates","CSV → Excel Converter","Sheet Merger Tool","Data Cleaner","Dashboard Template"] },
+  { name: "AI & Automation", icon: "🤖", tools: ["ChatGPT Assistant","Gemini UI","Auto Email Generator","Task Automation Templates","AI Name/Slogan Generator","Document Summarizer"] },
+  { name: "Design & Branding", icon: "🎨", tools: ["Logo Maker","Business Card Template","Brand Color Palette Generator","Social Media Post Caption Generator"] },
+  { name: "Website & SEO", icon: "🌐", tools: ["Meta Tag Generator","SEO Keyword Density Checker","Backlink Tracker","Sitemap XML Generator","Page Speed Tester"] },
+  { name: "Communication & Management", icon: "💬", tools: ["Project Task Manager","Team Chat UI","Client Feedback Form","Email Signature Generator"] },
+  { name: "Premium Tools", icon: "🚀", tools: ["MarketNest Pro Analyzer","Business Intelligence Dashboard","AI Data Visualizer","Multi-user Team Workspace"] }
+];
+
+function renderDashboard(){
+  categoriesGrid.innerHTML = "";
+  categories.forEach(cat => {
+    const catCard = document.createElement('div');
+    catCard.className = "bg-white/10 p-4 rounded-xl shadow hover:shadow-lg transition duration-300 space-y-3";
+
+    // Category Header
+    const catHeader = document.createElement('div');
+    catHeader.className = "flex items-center space-x-2 text-white";
+    const icon = document.createElement('span'); icon.className="text-3xl"; icon.innerText = cat.icon;
+    const name = document.createElement('span'); name.className="font-semibold text-lg"; name.innerText = cat.name;
+    catHeader.append(icon,name);
+    catCard.appendChild(catHeader);
+
+    // Tools List
+    const toolsList = document.createElement('div'); toolsList.className="grid gap-2";
+    cat.tools.forEach(tool => {
+      const toolBox = document.createElement('div');
+      toolBox.className="bg-white/20 p-2 rounded cursor-pointer hover:bg-indigo-500 transition duration-200 text-white";
+      toolBox.innerText = tool;
+
+      let isActive = false;
+      toolBox.addEventListener('click', ()=>{
+        if(!isActive){
+          toolBox.classList.add('bg-indigo-400', 'font-semibold');
+          isActive = true;
+        } else {
+          alert(`Opening ${tool}...`);
+        }
+      });
+
+      toolsList.appendChild(toolBox);
+    });
+
+    catCard.appendChild(toolsList);
+    categoriesGrid.appendChild(catCard);
+  });
+}
+
+// Back to Top
+const backToTopBtn = document.getElementById('backToTopBtn');
+window.addEventListener('scroll', ()=>{
+  if(window.scrollY > 300) backToTopBtn.classList.remove('hidden');
+  else backToTopBtn.classList.add('hidden');
+});
+backToTopBtn.addEventListener('click', ()=>window.scrollTo({top:0,behavior:'smooth'}));
+
+// Contact Form Submit
+document.getElementById('contactForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  alert('Message sent!');
+});
+
+// Auth state change
 onAuthStateChanged(auth,user=>{
-  if(user){ dashboardContainer.classList.remove('hidden'); authModal.classList.add('hidden'); logoutBtn.classList.remove('hidden'); renderDashboard(); }
-  else{ dashboardContainer.classList.add('hidden'); logoutBtn.classList.add('hidden'); authModal.classList.remove('hidden'); toggleModal(false);}
+  if(user){ 
+    dashboardContainer.classList.remove('hidden'); 
+    authModal.classList.add('hidden'); 
+    logoutBtn.classList.remove('hidden'); 
+    renderDashboard(); 
+  } else { 
+    dashboardContainer.classList.add('hidden'); 
+    logoutBtn.classList.add('hidden'); 
+    authModal.classList.remove('hidden'); 
+    toggleModal(false);
+  }
 });
 </script>
 </body>
