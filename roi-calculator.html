@@ -3,37 +3,111 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ROI Calculator</title>
+<title>Advanced ROI Calculator - ToolNest</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
-  <div class="bg-white p-8 rounded shadow w-96">
-    <h1 class="text-xl font-bold mb-4">ROI Calculator</h1>
+<body class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 min-h-screen flex items-center justify-center">
 
-    <label class="block mb-2">Gain from Investment:</label>
-    <input type="number" id="gain" class="w-full p-2 mb-4 border rounded" placeholder="Enter gain">
+<div class="bg-white/20 backdrop-blur rounded-xl p-8 w-full max-w-lg shadow-lg space-y-6">
+  <h1 class="text-2xl font-bold text-white text-center mb-4">Advanced ROI Calculator</h1>
 
-    <label class="block mb-2">Cost of Investment:</label>
-    <input type="number" id="cost" class="w-full p-2 mb-4 border rounded" placeholder="Enter cost">
-
-    <button id="calculateBtn" class="w-full bg-indigo-600 text-white py-2 rounded mb-4">Calculate ROI</button>
-
-    <p id="result" class="text-lg font-semibold"></p>
+  <div class="space-y-4">
+    <div>
+      <label class="text-white font-semibold">Investment Amount</label>
+      <input id="investment" type="number" placeholder="Enter investment amount" class="w-full p-2 rounded bg-white/30 text-white placeholder-white border border-white/30">
+    </div>
+    <div>
+      <label class="text-white font-semibold">Return Amount</label>
+      <input id="returnAmount" type="number" placeholder="Enter return amount" class="w-full p-2 rounded bg-white/30 text-white placeholder-white border border-white/30">
+    </div>
+    <div>
+      <label class="text-white font-semibold">Time Period (years)</label>
+      <input id="timePeriod" type="number" placeholder="Optional, for annualized ROI" class="w-full p-2 rounded bg-white/30 text-white placeholder-white border border-white/30">
+    </div>
   </div>
 
-<script>
-document.getElementById('calculateBtn').addEventListener('click', () => {
-  const gain = parseFloat(document.getElementById('gain').value);
-  const cost = parseFloat(document.getElementById('cost').value);
+  <div class="flex space-x-2">
+    <button id="calculateBtn" class="flex-1 bg-indigo-600 text-white py-2 rounded-lg font-semibold hover:bg-indigo-700">Calculate</button>
+    <button id="resetBtn" class="flex-1 bg-red-500 text-white py-2 rounded-lg font-semibold hover:bg-red-600">Reset</button>
+  </div>
 
-  if(isNaN(gain) || isNaN(cost) || cost === 0){
-    alert("Please enter valid numbers and cost cannot be zero");
+  <div id="result" class="text-white font-semibold text-center text-lg mt-4"></div>
+
+  <canvas id="roiChart" class="mt-6 bg-white/10 rounded-lg"></canvas>
+
+  <button onclick="window.history.back()" class="w-full bg-purple-600 text-white py-2 rounded-lg font-semibold hover:bg-purple-700">Back to Dashboard</button>
+</div>
+
+<script>
+const investmentInput = document.getElementById('investment');
+const returnInput = document.getElementById('returnAmount');
+const timeInput = document.getElementById('timePeriod');
+const calculateBtn = document.getElementById('calculateBtn');
+const resetBtn = document.getElementById('resetBtn');
+const resultDiv = document.getElementById('result');
+const ctx = document.getElementById('roiChart').getContext('2d');
+let chart;
+
+function calculateROI() {
+  const investment = parseFloat(investmentInput.value);
+  const returns = parseFloat(returnInput.value);
+  const time = parseFloat(timeInput.value) || 1;
+
+  if(isNaN(investment) || investment <= 0 || isNaN(returns) || returns <= 0){
+    resultDiv.innerText = "Enter valid positive numbers for investment and return.";
     return;
   }
 
-  const roi = ((gain - cost) / cost) * 100;
-  document.getElementById('result').innerText = `ROI: ${roi.toFixed(2)}%`;
+  const simpleROI = ((returns - investment)/investment) * 100;
+  const annualizedROI = ((returns/investment)**(1/time) - 1) * 100;
+
+  resultDiv.innerHTML = `
+    Simple ROI: <span class="font-bold">${simpleROI.toFixed(2)}%</span><br>
+    Annualized ROI: <span class="font-bold">${annualizedROI.toFixed(2)}%</span>
+  `;
+
+  // Generate chart data
+  const years = [];
+  const values = [];
+  for(let i=0;i<=time;i++){
+    years.push(i);
+    values.push(investment * (1 + annualizedROI/100)**i);
+  }
+
+  if(chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: years,
+      datasets: [{
+        label: 'Investment Growth',
+        data: values,
+        borderColor: 'rgba(255,255,255,0.8)',
+        backgroundColor: 'rgba(255,255,255,0.3)',
+        fill: true,
+        tension: 0.3
+      }]
+    },
+    options: {
+      plugins: { legend: { labels: { color: 'white' } } },
+      scales: {
+        x: { ticks: { color: 'white' }, title: { color: 'white', display:true, text:'Year' } },
+        y: { ticks: { color: 'white' }, title: { color: 'white', display:true, text:'Value' } }
+      }
+    }
+  });
+}
+
+calculateBtn.addEventListener('click', calculateROI);
+resetBtn.addEventListener('click', () => {
+  investmentInput.value = '';
+  returnInput.value = '';
+  timeInput.value = '';
+  resultDiv.innerHTML = '';
+  if(chart) chart.destroy();
 });
 </script>
+
 </body>
 </html>
