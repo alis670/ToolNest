@@ -1,0 +1,121 @@
+<!-- salary-payroll-sheet.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Salary / Payroll Sheet</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 min-h-screen p-4 flex justify-center items-start">
+
+<div class="bg-white/10 backdrop-blur rounded-xl p-6 shadow-lg w-full max-w-4xl text-white">
+  <h1 class="text-2xl font-bold mb-4 text-center">Salary / Payroll Sheet</h1>
+
+  <!-- Add Employee -->
+  <div class="grid gap-2 mb-4 md:grid-cols-2 lg:grid-cols-4">
+    <input type="text" id="empName" placeholder="Employee Name" class="p-2 rounded bg-white/30 text-white placeholder-white">
+    <input type="number" id="basicSalary" placeholder="Basic Salary" class="p-2 rounded bg-white/30 text-white placeholder-white">
+    <input type="number" id="bonus" placeholder="Bonus" class="p-2 rounded bg-white/30 text-white placeholder-white">
+    <input type="number" id="deductions" placeholder="Deductions" class="p-2 rounded bg-white/30 text-white placeholder-white">
+  </div>
+
+  <button id="addEmpBtn" class="w-full bg-indigo-600 py-2 rounded font-semibold hover:bg-indigo-700 mb-4">Add Employee</button>
+
+  <!-- Payroll Table -->
+  <div class="overflow-x-auto mb-4">
+    <table class="w-full text-white text-left border-collapse">
+      <thead>
+        <tr>
+          <th class="border-b px-2 py-1">Employee</th>
+          <th class="border-b px-2 py-1">Basic Salary</th>
+          <th class="border-b px-2 py-1">Bonus</th>
+          <th class="border-b px-2 py-1">Deductions</th>
+          <th class="border-b px-2 py-1">Net Salary</th>
+          <th class="border-b px-2 py-1">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="payrollTable"></tbody>
+    </table>
+  </div>
+
+  <div class="flex justify-between">
+    <button id="exportBtn" class="bg-green-500 px-4 py-2 rounded font-semibold hover:bg-green-600">Export CSV</button>
+    <button id="backBtn" class="bg-purple-600 px-4 py-2 rounded font-semibold hover:bg-purple-700">Back to Dashboard</button>
+  </div>
+</div>
+
+<script>
+const empName = document.getElementById('empName');
+const basicSalary = document.getElementById('basicSalary');
+const bonus = document.getElementById('bonus');
+const deductions = document.getElementById('deductions');
+const addEmpBtn = document.getElementById('addEmpBtn');
+const payrollTable = document.getElementById('payrollTable');
+const exportBtn = document.getElementById('exportBtn');
+const backBtn = document.getElementById('backBtn');
+
+let employees = JSON.parse(localStorage.getItem('employees')) || [];
+
+function renderTable() {
+  payrollTable.innerHTML = "";
+  employees.forEach((emp, index) => {
+    const netSalary = emp.basic + emp.bonus - emp.deductions;
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td class="border-b px-2 py-1">${emp.name}</td>
+      <td class="border-b px-2 py-1">${emp.basic}</td>
+      <td class="border-b px-2 py-1">${emp.bonus}</td>
+      <td class="border-b px-2 py-1">${emp.deductions}</td>
+      <td class="border-b px-2 py-1">${netSalary}</td>
+      <td class="border-b px-2 py-1">
+        <button onclick="removeEmployee(${index})" class="bg-red-500 px-2 py-1 rounded hover:bg-red-600">Remove</button>
+      </td>
+    `;
+    payrollTable.appendChild(row);
+  });
+}
+
+function removeEmployee(index){
+  employees.splice(index,1);
+  localStorage.setItem('employees', JSON.stringify(employees));
+  renderTable();
+}
+
+addEmpBtn.addEventListener('click', ()=>{
+  const name = empName.value.trim();
+  const basic = parseFloat(basicSalary.value);
+  const bns = parseFloat(bonus.value) || 0;
+  const ded = parseFloat(deductions.value) || 0;
+
+  if(!name || isNaN(basic)) return alert("Enter valid name and basic salary.");
+
+  employees.push({name, basic, bonus:bns, deductions:ded});
+  localStorage.setItem('employees', JSON.stringify(employees));
+  empName.value = basicSalary.value = bonus.value = deductions.value = "";
+  renderTable();
+});
+
+exportBtn.addEventListener('click', ()=>{
+  if(employees.length === 0) return alert("No data to export.");
+  let csv = "Employee,Basic Salary,Bonus,Deductions,Net Salary\n";
+  employees.forEach(emp=>{
+    const netSalary = emp.basic + emp.bonus - emp.deductions;
+    csv += `${emp.name},${emp.basic},${emp.bonus},${emp.deductions},${netSalary}\n`;
+  });
+  const blob = new Blob([csv], {type:"text/csv"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = "payroll.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+backBtn.addEventListener('click', ()=>window.location.href='index.html');
+
+// Initial render
+renderTable();
+</script>
+</body>
+</html>
