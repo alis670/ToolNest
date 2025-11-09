@@ -1,0 +1,139 @@
+<!-- expense-tracker.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Expense Tracker</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 min-h-screen p-4 flex justify-center items-start">
+
+<div class="bg-white/10 backdrop-blur rounded-xl p-6 shadow-lg w-full max-w-3xl text-white">
+  <h1 class="text-2xl font-bold mb-4 text-center">Expense Tracker</h1>
+
+  <!-- Add Expense Form -->
+  <div class="grid gap-2 mb-4 md:grid-cols-2">
+    <input type="number" id="amount" placeholder="Amount" class="p-2 rounded bg-white/30 text-white placeholder-white">
+    <input type="text" id="description" placeholder="Description" class="p-2 rounded bg-white/30 text-white placeholder-white">
+    <select id="category" class="p-2 rounded bg-white/30 text-white">
+      <option value="">Select Category</option>
+      <option value="Food">Food</option>
+      <option value="Transport">Transport</option>
+      <option value="Shopping">Shopping</option>
+      <option value="Bills">Bills</option>
+      <option value="Others">Others</option>
+    </select>
+    <input type="date" id="date" class="p-2 rounded bg-white/30 text-white">
+  </div>
+
+  <button id="addExpenseBtn" class="w-full bg-indigo-600 py-2 rounded font-semibold hover:bg-indigo-700 mb-4">Add Expense</button>
+
+  <!-- Expenses Table -->
+  <div class="overflow-x-auto mb-4">
+    <table class="w-full text-white text-left border-collapse">
+      <thead>
+        <tr>
+          <th class="border-b px-2 py-1">Date</th>
+          <th class="border-b px-2 py-1">Category</th>
+          <th class="border-b px-2 py-1">Description</th>
+          <th class="border-b px-2 py-1">Amount</th>
+        </tr>
+      </thead>
+      <tbody id="expensesTable"></tbody>
+    </table>
+  </div>
+
+  <!-- Summary -->
+  <div class="mb-4">
+    <h2 class="text-xl font-semibold mb-2">Category-wise Total:</h2>
+    <ul id="categorySummary" class="list-disc pl-5"></ul>
+  </div>
+
+  <!-- Chart -->
+  <canvas id="expenseChart" class="mb-4 bg-white/10 rounded-lg p-2"></canvas>
+
+  <button id="backBtn" class="w-full bg-purple-600 py-2 rounded font-semibold hover:bg-purple-700">Back to Dashboard</button>
+</div>
+
+<script>
+const amountInput = document.getElementById('amount');
+const descriptionInput = document.getElementById('description');
+const categoryInput = document.getElementById('category');
+const dateInput = document.getElementById('date');
+const addExpenseBtn = document.getElementById('addExpenseBtn');
+const expensesTable = document.getElementById('expensesTable');
+const categorySummary = document.getElementById('categorySummary');
+const backBtn = document.getElementById('backBtn');
+
+let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+
+function renderExpenses() {
+  expensesTable.innerHTML = "";
+  categorySummary.innerHTML = "";
+
+  const categoryTotals = {};
+
+  expenses.forEach(exp => {
+    const row = document.createElement('tr');
+    row.innerHTML = `<td class="border-b px-2 py-1">${exp.date}</td>
+                     <td class="border-b px-2 py-1">${exp.category}</td>
+                     <td class="border-b px-2 py-1">${exp.description}</td>
+                     <td class="border-b px-2 py-1">${exp.amount}</td>`;
+    expensesTable.appendChild(row);
+
+    if(categoryTotals[exp.category]) categoryTotals[exp.category] += parseFloat(exp.amount);
+    else categoryTotals[exp.category] = parseFloat(exp.amount);
+  });
+
+  for(const cat in categoryTotals){
+    const li = document.createElement('li');
+    li.innerText = `${cat}: ${categoryTotals[cat].toFixed(2)}`;
+    categorySummary.appendChild(li);
+  }
+
+  renderChart(categoryTotals);
+}
+
+function renderChart(data) {
+  const ctx = document.getElementById('expenseChart').getContext('2d');
+  if(window.expenseChartInstance) window.expenseChartInstance.destroy();
+  window.expenseChartInstance = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: Object.keys(data),
+      datasets: [{
+        label: 'Expenses',
+        data: Object.values(data),
+        backgroundColor: ['#6366F1','#EC4899','#F59E0B','#10B981','#3B82F6','#8B5CF6','#F43F5E']
+      }]
+    },
+    options: { responsive: true }
+  });
+}
+
+addExpenseBtn.addEventListener('click', ()=>{
+  const amount = parseFloat(amountInput.value);
+  const description = descriptionInput.value.trim();
+  const category = categoryInput.value;
+  const date = dateInput.value;
+
+  if(!amount || !description || !category || !date){
+    alert("Please fill all fields correctly.");
+    return;
+  }
+
+  expenses.push({amount, description, category, date});
+  localStorage.setItem('expenses', JSON.stringify(expenses));
+  amountInput.value = descriptionInput.value = categoryInput.value = dateInput.value = "";
+  renderExpenses();
+});
+
+backBtn.addEventListener('click', ()=>window.location.href='index.html');
+
+// Initial Render
+renderExpenses();
+</script>
+</body>
+</html>
