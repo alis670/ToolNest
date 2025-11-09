@@ -8,54 +8,68 @@
 <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js"></script>
 <style>
-.backdrop-blur {backdrop-filter: blur(12px);}
+.backdrop-blur {backdrop-filter: blur(10px);}
 .animate-fadeIn {animation: fadeIn 0.5s ease-in;}
 @keyframes fadeIn {0%{opacity:0}100%{opacity:1}}
-/* Custom scrollbar */
-::-webkit-scrollbar {width: 8px;}
-::-webkit-scrollbar-thumb {background-color: rgba(100,100,100,0.4); border-radius: 4px;}
+/* Logout button fix */
+#logoutBtn{z-index:50; bottom:80px;}
+/* Back to Top fix */
+#backToTopBtn{z-index:40;}
 </style>
 </head>
-<body class="bg-gradient-to-r from-gray-100 via-white to-gray-200 min-h-screen font-sans">
+<body class="bg-gray-50 min-h-screen">
 
-<!-- Auth Modal (unchanged) -->
-<div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+<!-- Auth Modal -->
+<div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
   <div class="bg-white/10 backdrop-blur rounded-xl w-96 p-6 shadow-lg relative animate-fadeIn border border-white/20">
+
+    <!-- ToolNest Logo -->
     <div class="text-center mb-4 flex flex-col items-center">
-      <div class="w-20 h-20 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center shadow-lg">
+      <div class="w-20 h-20 rounded-full bg-gradient-to-r from-blue-400 to-purple-600 flex items-center justify-center shadow-lg">
         <span class="text-white text-2xl font-bold">ToolNest</span>
       </div>
     </div>
+
     <h2 id="modalTitle" class="text-xl font-semibold text-center mb-4 text-white">ToolNest</h2>
+
+    <!-- User input -->
     <input type="text" id="userInput" placeholder="Email or Phone Number" class="w-full p-2 border rounded mb-3 bg-white/30 text-white placeholder-white" />
+
+    <!-- Password Input -->
     <div class="relative">
-      <input type="password" id="password" placeholder="Password" class="w-full p-2 rounded mb-3 bg-white/30 text-white placeholder-white">
+<input type="password" id="password" placeholder="Password" class="w-full p-2 rounded mb-3 bg-white/30 text-white placeholder-white">
       <span id="togglePass" class="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer text-white text-xl select-none">🙈</span>
-    </div>
+  </div>
+
+    <!-- OTP Input -->
     <input type="text" id="otpCode" placeholder="Enter OTP" class="w-full p-2 border rounded mb-3 bg-white/30 text-white placeholder-white hidden" />
-    <button id="continueBtn" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold mb-3 hover:bg-blue-700 transition">Continue</button>
-    <p id="toggleAuth" class="text-center text-sm text-blue-400 mt-2 cursor-pointer hover:underline">Create an account</p>
-    <p id="forgotPass" class="text-center text-sm text-gray-300 mt-1 cursor-pointer hover:underline">Forgot Password?</p>
-    <button id="googleSignIn" class="w-full bg-red-600 text-white py-2 rounded-lg font-semibold mt-4 hover:bg-red-700 transition">Continue with Google</button>
-    <button id="facebookSignIn" class="w-full bg-blue-800 text-white py-2 rounded-lg font-semibold mt-2 hover:bg-blue-900 transition">Continue with Facebook</button>
+
+    <button id="continueBtn" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold mb-3">Continue</button>
+
+    <p id="toggleAuth" class="text-center text-sm text-blue-400 mt-2 cursor-pointer">Create an account</p>
+    <p id="forgotPass" class="text-center text-sm text-gray-300 mt-1 cursor-pointer">Forgot Password?</p>
+
+    <button id="googleSignIn" class="w-full bg-red-600 text-white py-2 rounded-lg font-semibold mt-4">Continue with Google</button>
+    <button id="facebookSignIn" class="w-full bg-blue-800 text-white py-2 rounded-lg font-semibold mt-2">Continue with Facebook</button>
+
   </div>
 </div>
 
-<!-- Dashboard -->
-<main id="dashboardContainer" class="max-w-7xl mx-auto p-6 space-y-8 hidden">
+<!-- Dashboard Container -->
+<main id="dashboardContainer" class="max-w-7xl mx-auto p-6 space-y-12 hidden">
 
   <!-- Header -->
-  <header class="flex flex-col md:flex-row items-center justify-between mb-8">
-    <div class="flex items-center space-x-3 mb-3 md:mb-0">
-      <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-xl shadow-lg">
+  <header class="flex items-center justify-between mb-8">
+    <div class="flex items-center space-x-3">
+      <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-400 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
         TN
       </div>
-      <h1 class="text-2xl font-bold text-gray-800">ToolNest Dashboard</h1>
+      <h1 class="text-2xl font-bold text-gray-700">ToolNest Dashboard</h1>
     </div>
-    <nav class="flex space-x-6 text-gray-700 font-semibold">
-      <a href="#dashboardContainer" class="hover:text-blue-600 transition">Home</a>
-      <a href="#aboutUsSection" class="hover:text-blue-600 transition">About Us</a>
-      <a href="#contactUsSection" class="hover:text-blue-600 transition">Contact</a>
+    <nav class="space-x-6">
+      <a href="#categoriesGrid" class="hover:text-blue-600 font-semibold">Home</a>
+      <a href="#aboutUsSection" class="hover:text-blue-600 font-semibold">About Us</a>
+      <a href="#contactUsSection" class="hover:text-blue-600 font-semibold">Contact</a>
     </nav>
   </header>
 
@@ -63,34 +77,36 @@
   <section id="categoriesGrid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></section>
 
   <!-- About Us Section -->
-  <section id="aboutUsSection" class="bg-white shadow-lg p-6 rounded-xl space-y-3 text-gray-700">
-    <h2 class="text-xl font-semibold text-gray-800">About Us</h2>
-    <p>ToolNest is your all-in-one professional dashboard platform offering tools across Finance, Business, AI, Design, and more. Our mission is to empower professionals with seamless productivity solutions.</p>
+  <section id="aboutUsSection" class="bg-white rounded-xl shadow p-6 space-y-4 text-gray-700">
+    <h2 class="text-xl font-semibold">About Us</h2>
+    <p>
+      ToolNest is your all-in-one professional dashboard platform offering tools across Finance, Business, AI, Design, and more. Our mission is to empower professionals with seamless productivity solutions.
+    </p>
   </section>
 
   <!-- Contact Us Section -->
-  <section id="contactUsSection" class="bg-white shadow-lg p-6 rounded-xl space-y-3 text-gray-700">
-    <h2 class="text-xl font-semibold text-gray-800">Contact Us</h2>
-    <form id="contactForm" class="space-y-3">
+  <section id="contactUsSection" class="bg-white rounded-xl shadow p-6 space-y-4 text-gray-700">
+    <h2 class="text-xl font-semibold">Contact Us</h2>
+    <form id="contactForm" class="space-y-4">
       <input type="text" placeholder="Name" class="w-full p-2 rounded border border-gray-300">
       <input type="email" placeholder="Email" class="w-full p-2 rounded border border-gray-300">
       <textarea placeholder="Message" class="w-full p-2 rounded border border-gray-300"></textarea>
-      <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded font-semibold hover:bg-blue-700 transition">Send</button>
+      <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded font-semibold hover:bg-blue-700">Send</button>
     </form>
   </section>
 
-  <!-- Footer -->
-  <footer class="mt-12 text-center text-gray-500">© All rights reserved by ToolNest</footer>
-</main>
+  <!-- Back to Top -->
+  <button id="backToTopBtn" class="fixed bottom-5 right-5 bg-purple-600 text-white p-3 rounded-full shadow-lg hover:bg-purple-700 hidden">🔝</button>
 
-<!-- Buttons -->
-<button id="logoutBtn" class="fixed bottom-16 right-5 px-4 py-2 bg-red-500 text-white rounded-lg hidden hover:bg-red-600 transition z-40">Logout</button>
-<button id="backToTopBtn" class="fixed bottom-5 right-5 bg-purple-600 text-white p-3 rounded-full shadow-lg hover:bg-purple-700 hidden z-30">🔝</button>
+  <!-- Footer -->
+  <footer class="mt-12 text-center text-gray-500">
+    © All rights reserved by ToolNest
+  </footer>
+</main>
 
 <div id="toastContainer" class="fixed top-5 right-5 z-50"></div>
 
 <script>
-// Categories & Tools
 const categories = [
   { name: "Finance & Accounting", icon: "💰", tools: ["ROI Calculator","Profit Margin Calculator","Break-even Analyzer","Loan EMI Calculator","Tax / GST / VAT Calculator","Currency Converter","Expense Tracker","Cash Flow Analyzer","Salary / Payroll Sheet"] },
   { name: "Business Management", icon: "📊", tools: ["Revenue Forecast Tool","Budget Planner","Employee Attendance Tracker","Invoice Generator","Business Proposal Template","Time Tracking Tool","Meeting Notes Template"] },
@@ -104,33 +120,37 @@ const categories = [
 ];
 
 const categoriesGrid = document.getElementById('categoriesGrid');
+
 function renderDashboard(){
   categoriesGrid.innerHTML = "";
   categories.forEach(cat => {
     const catCard = document.createElement('div');
     catCard.className = "bg-white p-4 rounded-xl shadow hover:shadow-lg transition duration-300 space-y-3";
 
-    // Header
     const catHeader = document.createElement('div');
-    catHeader.className = "flex items-center space-x-2 text-gray-800";
+    catHeader.className = "flex items-center space-x-2 text-gray-700";
     const icon = document.createElement('span'); icon.className="text-3xl"; icon.innerText = cat.icon;
     const name = document.createElement('span'); name.className="font-semibold text-lg"; name.innerText = cat.name;
     catHeader.append(icon,name);
     catCard.appendChild(catHeader);
 
-    // Tools
     const toolsList = document.createElement('div'); toolsList.className="grid gap-2";
     cat.tools.forEach(tool => {
       const toolBox = document.createElement('div');
-      toolBox.className="bg-gray-100 p-2 rounded cursor-pointer hover:bg-blue-500 hover:text-white transition";
+      toolBox.className="bg-gray-100 p-2 rounded cursor-pointer hover:bg-blue-500 hover:text-white transition duration-200";
       toolBox.innerText = tool;
       let isActive = false;
       toolBox.addEventListener('click', ()=>{
-        if(!isActive){ toolBox.classList.add('bg-blue-400','font-semibold'); isActive=true; }
-        else { alert(`Opening ${tool}...`); }
+        if(!isActive){
+          toolBox.classList.add('bg-blue-400', 'font-semibold', 'text-white');
+          isActive = true;
+        } else {
+          alert(`Opening ${tool}...`);
+        }
       });
       toolsList.appendChild(toolBox);
     });
+
     catCard.appendChild(toolsList);
     categoriesGrid.appendChild(catCard);
   });
@@ -138,53 +158,142 @@ function renderDashboard(){
 
 // Back to Top
 const backToTopBtn = document.getElementById('backToTopBtn');
-window.addEventListener('scroll', ()=>{ if(window.scrollY > 300) backToTopBtn.classList.remove('hidden'); else backToTopBtn.classList.add('hidden'); });
+window.addEventListener('scroll', ()=>{
+  if(window.scrollY > 300) backToTopBtn.classList.remove('hidden');
+  else backToTopBtn.classList.add('hidden');
+});
 backToTopBtn.addEventListener('click', ()=>window.scrollTo({top:0,behavior:'smooth'}));
 
 // Contact Form
-document.getElementById('contactForm').addEventListener('submit', e=>{ e.preventDefault(); alert('Message sent!'); });
-</script>
+document.getElementById('contactForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  alert('Message sent!');
+});
 
-<script type="module">
+// Firebase Auth
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, onAuthStateChanged, GoogleAuthProvider, FacebookAuthProvider, signInWithPopup, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-const firebaseConfig = { apiKey:"AIzaSyBuYXfr-_q-BJskWHN4chB8SZqMc-P9odw", authDomain:"toolnest-8e42d.firebaseapp.com", projectId:"toolnest-8e42d", storageBucket:"toolnest-8e42d.firebasestorage.app", messagingSenderId:"988256036107", appId:"1:988256036107:web:90f7e40f07593dff8e2e0e" };
+const firebaseConfig = {
+  apiKey: "AIzaSyBuYXfr-_q-BJskWHN4chB8SZqMc-P9odw",
+  authDomain: "toolnest-8e42d.firebaseapp.com",
+  projectId: "toolnest-8e42d",
+  storageBucket: "toolnest-8e42d.firebasestorage.app",
+  messagingSenderId: "988256036107",
+  appId: "1:988256036107:web:90f7e40f07593dff8e2e0e"
+};
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 const facebookProvider = new FacebookAuthProvider();
 
-const authModal=document.getElementById('authModal'); const continueBtn=document.getElementById('continueBtn'); const toggleAuth=document.getElementById('toggleAuth');
-const forgotPass=document.getElementById('forgotPass'); const userInput=document.getElementById('userInput'); const passwordInput=document.getElementById('password');
-const otpInput=document.getElementById('otpCode'); const googleSignIn=document.getElementById('googleSignIn'); const facebookSignIn=document.getElementById('facebookSignIn');
-const dashboardContainer=document.getElementById('dashboardContainer'); const toastContainer=document.getElementById('toastContainer'); const togglePass=document.getElementById('togglePass');
-const logoutBtn=document.getElementById('logoutBtn');
-
+const authModal = document.getElementById('authModal');
+const continueBtn = document.getElementById('continueBtn');
+const toggleAuth = document.getElementById('toggleAuth');
+const forgotPass = document.getElementById('forgotPass');
+const userInput = document.getElementById('userInput');
+const passwordInput = document.getElementById('password');
+const otpInput = document.getElementById('otpCode');
+const googleSignIn = document.getElementById('googleSignIn');
+const facebookSignIn = document.getElementById('facebookSignIn');
+const dashboardContainer = document.getElementById('dashboardContainer');
+const toastContainer = document.getElementById('toastContainer');
+const togglePass = document.getElementById('togglePass');
 let isSignup=false;
 
-function showToast(msg,type="success"){ const t=document.createElement('div'); t.innerText=msg; t.className=`px-4 py-2 mb-2 rounded shadow-lg text-white ${type==="success"?"bg-green-500":"bg-red-500"} animate-fadeIn`; toastContainer.appendChild(t); setTimeout(()=>t.remove(),3000); }
+function showToast(msg,type="success"){
+  const t = document.createElement('div');
+  t.innerText = msg;
+  t.className = `px-4 py-2 mb-2 rounded shadow-lg text-white ${type==="success"?"bg-green-500":"bg-red-500"} animate-fadeIn`;
+  toastContainer.appendChild(t);
+  setTimeout(()=>t.remove(),3000);
+}
 
-togglePass.addEventListener('click', ()=>{ if(passwordInput.type==="password"){ passwordInput.type="text"; togglePass.innerText="👁️"; } else{ passwordInput.type="password"; togglePass.innerText="🙈"; } });
-function toggleModal(signup){ isSignup=signup; continueBtn.innerText=signup?"Sign Up":"Continue"; toggleAuth.innerText=signup?"Already have an account?":"Create an account"; userInput.value=""; passwordInput.value=""; otpInput.value=""; passwordInput.classList.remove('hidden'); otpInput.classList.add('hidden'); }
-toggleAuth.addEventListener('click', ()=>toggleModal(!isSignup));
+// Password toggle
+togglePass.addEventListener('click', ()=>{
+  if(passwordInput.type==="password"){ passwordInput.type="text"; togglePass.innerText="👁️"; } 
+  else { passwordInput.type="password"; togglePass.innerText="🙈"; }
+});
 
-googleSignIn.addEventListener('click', async ()=>{ try{ await signInWithPopup(auth,googleProvider); showToast("Google login successful!"); }catch(e){showToast(e.message,"error");} });
-facebookSignIn.addEventListener('click', async ()=>{ try{ await signInWithPopup(auth,facebookProvider); showToast("Facebook login successful!"); }catch(e){showToast(e.message,"error");} });
+// Toggle modal
+function toggleModal(signup){
+  isSignup = signup;
+  continueBtn.innerText = signup?"Sign Up":"Continue";
+  toggleAuth.innerText = signup?"Already have an account?":"Create an account";
+  userInput.value=""; passwordInput.value=""; otpInput.value="";
+  passwordInput.classList.remove('hidden'); otpInput.classList.add('hidden');
+}
+toggleAuth.addEventListener('click',()=>toggleModal(!isSignup));
 
+// Google login
+googleSignIn.addEventListener('click', async ()=>{
+  try{ await signInWithPopup(auth,googleProvider); showToast("Google login successful!"); }catch(e){showToast(e.message,"error");}
+});
+
+// Facebook login
+facebookSignIn.addEventListener('click', async ()=>{
+  try{ await signInWithPopup(auth,facebookProvider); showToast("Facebook login successful!"); }catch(e){showToast(e.message,"error");}
+});
+
+// Continue button logic
 continueBtn.addEventListener('click', async ()=>{
-  const input=userInput.value.trim(); const pass=passwordInput.value.trim(); const otp=otpInput.value.trim();
-  if(otpInput.classList.contains('block') && otp){ try{ await window.confirmationResult.confirm(otp); showToast("Phone login successful!"); otpInput.classList.add('hidden'); otpInput.classList.remove('block'); return; } catch(e){showToast(e.message,"error"); return;} }
-  if(input.startsWith("+") && !otpInput.classList.contains('block')){ try{ window.recaptchaVerifier=new RecaptchaVerifier(continueBtn,{size:'invisible'},auth); const confirmationResult=await signInWithPhoneNumber(auth,input,window.recaptchaVerifier); window.confirmationResult=confirmationResult; otpInput.classList.remove('hidden'); otpInput.classList.add('block'); passwordInput.classList.add('hidden'); showToast("OTP sent to your phone"); }catch(e){showToast(e.message,"error");} return;}
-  if(input.includes("@")){ passwordInput.classList.remove('hidden'); if(!pass){ showToast("Enter password","error"); return;} try{ if(isSignup){ await createUserWithEmailAndPassword(auth,input,pass); showToast("Account created successfully!"); } else{ await signInWithEmailAndPassword(auth,input,pass); showToast("Login successful!"); } authModal.classList.add('hidden'); } catch(e){showToast(e.message,"error");} return;}
+  const input = userInput.value.trim();
+  const pass = passwordInput.value.trim();
+  const otp = otpInput.value.trim();
+
+  if(otpInput.classList.contains('block') && otp){
+    try{ await window.confirmationResult.confirm(otp); showToast("Phone login successful!"); otpInput.classList.add('hidden'); otpInput.classList.remove('block'); return; }
+    catch(e){ showToast(e.message,"error"); return; }
+  }
+
+  if(input.startsWith("+") && !otpInput.classList.contains('block')){
+    try{
+      window.recaptchaVerifier = new RecaptchaVerifier(continueBtn, {size:'invisible'}, auth);
+      const confirmationResult = await signInWithPhoneNumber(auth,input,window.recaptchaVerifier);
+      window.confirmationResult = confirmationResult;
+      otpInput.classList.remove('hidden'); otpInput.classList.add('block');
+      passwordInput.classList.add('hidden');
+      showToast("OTP sent to your phone");
+    }catch(e){showToast(e.message,"error");}
+    return;
+  }
+
+  if(input.includes("@")){
+    passwordInput.classList.remove('hidden');
+    if(!pass){ showToast("Enter password","error"); return; }
+    try{
+      if(isSignup){ await createUserWithEmailAndPassword(auth,input,pass); showToast("Account created successfully!"); }
+      else{ await signInWithEmailAndPassword(auth,input,pass); showToast("Login successful!"); }
+      authModal.classList.add('hidden');
+    }catch(e){showToast(e.message,"error");}
+    return;
+  }
+
   showToast("Enter valid email or phone number","error");
 });
 
-forgotPass.addEventListener('click', async ()=>{ const email=userInput.value.trim(); if(!email.includes("@")){ showToast("Enter valid email","error"); return;} try{ await sendPasswordResetEmail(auth,email); showToast("Password reset email sent!"); }catch(e){showToast(e.message,"error");} });
+// Forgot password
+forgotPass.addEventListener('click', async ()=>{
+  const email = userInput.value.trim();
+  if(!email.includes("@")){ showToast("Enter valid email","error"); return; }
+  try{ await sendPasswordResetEmail(auth,email); showToast("Password reset email sent!"); }
+  catch(e){showToast(e.message,"error");}
+});
 
+// Logout button
+const logoutBtn = document.createElement('button');
+logoutBtn.id="logoutBtn";
+logoutBtn.className="fixed right-5 px-4 py-2 bg-red-500 text-white rounded-lg hidden";
+logoutBtn.innerText="Logout";
+document.body.appendChild(logoutBtn);
 logoutBtn.addEventListener('click', async ()=>{ await signOut(auth); showToast("Logged out successfully!"); });
 
-onAuthStateChanged(auth,user=>{ if(user){ dashboardContainer.classList.remove('hidden'); authModal.classList.add('hidden'); logoutBtn.classList.remove('hidden'); renderDashboard(); } else{ dashboardContainer.classList.add('hidden'); logoutBtn.classList.add('hidden'); authModal.classList.remove('hidden'); toggleModal(false);} });
+// Auth state
+onAuthStateChanged(auth,user=>{
+  if(user){ dashboardContainer.classList.remove('hidden'); authModal.classList.add('hidden'); logoutBtn.classList.remove('hidden'); renderDashboard(); }
+  else{ dashboardContainer.classList.add('hidden'); logoutBtn.classList.add('hidden'); authModal.classList.remove('hidden'); toggleModal(false);}
+});
 </script>
 </body>
 </html>
