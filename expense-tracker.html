@@ -3,49 +3,76 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Advanced Expense Tracker</title>
+<title>Elite Expense Tracker</title>
 <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  body {
+    background: linear-gradient(to bottom right, #f8fafc, #e2e8f0);
+    font-family: 'Inter', sans-serif;
+  }
+  .card {
+    background: white;
+    backdrop-filter: blur(8px);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  }
+  th {
+    background-color: #f3f4f6;
+  }
+  .btn {
+    transition: all 0.2s ease;
+  }
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  }
+</style>
 </head>
 
-<body class="bg-gray-100 text-gray-900">
+<body class="text-gray-900">
 
-<div class="max-w-5xl mx-auto p-6">
-  <h1 class="text-3xl font-bold mb-6 text-center">💰 Advanced Expense Tracker</h1>
-
-  <!-- Input Form -->
-  <div class="bg-white shadow-md rounded-lg p-5 mb-6">
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <input id="date" type="date" class="border p-2 rounded" />
-      <input id="category" type="text" placeholder="Category (e.g. Food)" class="border p-2 rounded" />
-      <input id="amount" type="number" placeholder="Amount" class="border p-2 rounded" />
-      <input id="note" type="text" placeholder="Note (optional)" class="border p-2 rounded" />
-    </div>
-    <button onclick="addExpense()" class="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Add Expense</button>
+<div class="max-w-6xl mx-auto p-6 space-y-6">
+  <!-- Header -->
+  <div class="text-center">
+    <h1 class="text-4xl font-bold text-gray-800">💰 Expense Tracker Dashboard</h1>
+    <p class="text-gray-500 mt-1">Track, analyze, and export your daily expenses easily.</p>
   </div>
 
-  <!-- Summary -->
-  <div class="flex justify-between items-center mb-4">
-    <h2 class="text-xl font-semibold">Expense Summary</h2>
-    <div>
-      <button onclick="exportExcel()" class="bg-blue-600 text-white px-3 py-2 rounded mr-2 hover:bg-blue-700">📘 Export Excel</button>
-      <button onclick="exportPDF()" class="bg-red-600 text-white px-3 py-2 rounded mr-2 hover:bg-red-700">📄 Export PDF</button>
-      <button onclick="resetTracker()" class="bg-gray-600 text-white px-3 py-2 rounded hover:bg-gray-700">♻ Reset</button>
+  <!-- Input Form -->
+  <div class="card p-5">
+    <h2 class="text-lg font-semibold mb-4 text-gray-700">➕ Add New Expense</h2>
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <input id="date" type="date" class="border p-2 rounded-md focus:ring-2 focus:ring-indigo-500" />
+      <input id="category" type="text" placeholder="Category (e.g. Food)" class="border p-2 rounded-md focus:ring-2 focus:ring-indigo-500" />
+      <input id="amount" type="number" placeholder="Amount" class="border p-2 rounded-md focus:ring-2 focus:ring-indigo-500" />
+      <input id="note" type="text" placeholder="Note (optional)" class="border p-2 rounded-md focus:ring-2 focus:ring-indigo-500" />
+      <button onclick="addExpense()" class="bg-indigo-600 text-white px-4 py-2 rounded-md btn">Add</button>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="flex justify-between items-center">
+    <h2 class="text-xl font-semibold text-gray-700">📊 Expense Summary</h2>
+    <div class="flex gap-2">
+      <button onclick="exportExcel()" class="bg-green-600 text-white px-3 py-2 rounded-md btn">📘 Excel</button>
+      <button onclick="exportPDF()" class="bg-red-600 text-white px-3 py-2 rounded-md btn">📄 PDF</button>
+      <button onclick="resetTracker()" class="bg-gray-600 text-white px-3 py-2 rounded-md btn">♻ Reset</button>
     </div>
   </div>
 
   <!-- Table -->
-  <div class="overflow-x-auto bg-white rounded-lg shadow-md">
-    <table id="expenseTable" class="min-w-full text-left border-collapse">
-      <thead class="bg-gray-200">
+  <div class="card overflow-x-auto p-4">
+    <table id="expenseTable" class="min-w-full border-collapse text-left">
+      <thead>
         <tr>
-          <th class="p-3 border">Date</th>
-          <th class="p-3 border">Category</th>
-          <th class="p-3 border">Amount</th>
-          <th class="p-3 border">Note</th>
-          <th class="p-3 border">Action</th>
+          <th class="p-3 border-b font-semibold">Date</th>
+          <th class="p-3 border-b font-semibold">Category</th>
+          <th class="p-3 border-b font-semibold">Amount</th>
+          <th class="p-3 border-b font-semibold">Note</th>
+          <th class="p-3 border-b font-semibold">Action</th>
         </tr>
       </thead>
       <tbody id="expenseBody"></tbody>
@@ -53,12 +80,12 @@
   </div>
 
   <!-- Total -->
-  <div class="mt-6 text-right text-xl font-semibold">
-    Total: $<span id="totalAmount">0</span>
+  <div class="flex justify-between items-center">
+    <div class="text-xl font-semibold text-gray-700">Total: <span id="totalAmount" class="text-indigo-600">$0.00</span></div>
   </div>
 
   <!-- Chart -->
-  <div class="mt-8 bg-white p-5 rounded-lg shadow-md">
+  <div class="card p-5">
     <canvas id="expenseChart"></canvas>
   </div>
 </div>
@@ -75,29 +102,29 @@ function renderTable() {
   expenses.forEach((e, i) => {
     total += e.amount;
     tbody.innerHTML += `
-      <tr class="border-b">
-        <td class="p-3 border">${e.date}</td>
-        <td class="p-3 border">${e.category}</td>
-        <td class="p-3 border">$${e.amount.toFixed(2)}</td>
-        <td class="p-3 border">${e.note || ''}</td>
-        <td class="p-3 border text-center">
+      <tr class="hover:bg-gray-50 transition">
+        <td class="p-3 border-b">${e.date}</td>
+        <td class="p-3 border-b font-medium text-indigo-600">${e.category}</td>
+        <td class="p-3 border-b text-green-700">$${e.amount.toFixed(2)}</td>
+        <td class="p-3 border-b text-gray-500">${e.note || ''}</td>
+        <td class="p-3 border-b text-center">
           <button onclick="deleteExpense(${i})" class="text-red-600 hover:underline">Delete</button>
         </td>
       </tr>`;
   });
 
-  document.getElementById('totalAmount').textContent = total.toFixed(2);
+  document.getElementById('totalAmount').textContent = '$' + total.toFixed(2);
   updateChart();
   localStorage.setItem('expenses', JSON.stringify(expenses));
 }
 
 function addExpense() {
   const date = document.getElementById('date').value;
-  const category = document.getElementById('category').value;
+  const category = document.getElementById('category').value.trim();
   const amount = parseFloat(document.getElementById('amount').value);
-  const note = document.getElementById('note').value;
+  const note = document.getElementById('note').value.trim();
 
-  if (!date || !category || isNaN(amount)) return alert('Please enter valid details.');
+  if (!date || !category || isNaN(amount)) return alert('Please fill all required fields.');
 
   expenses.push({ date, category, amount, note });
   renderTable();
@@ -114,8 +141,9 @@ function deleteExpense(i) {
 }
 
 function resetTracker() {
-  if (confirm("Are you sure you want to reset all data?")) {
+  if (confirm("⚠ This will permanently delete all data. Continue?")) {
     expenses = [];
+    localStorage.removeItem('expenses');
     renderTable();
   }
 }
@@ -127,13 +155,20 @@ function updateChart() {
 
   if (chart) chart.destroy();
   chart = new Chart(ctx, {
-    type: 'pie',
+    type: 'doughnut',
     data: {
       labels: Object.keys(categoryTotals),
       datasets: [{
         data: Object.values(categoryTotals),
-        backgroundColor: ['#4CAF50', '#2196F3', '#FF9800', '#E91E63', '#9C27B0', '#795548']
+        backgroundColor: ['#6366F1', '#10B981', '#F59E0B', '#EF4444', '#3B82F6', '#8B5CF6', '#EC4899'],
+        borderWidth: 2
       }]
+    },
+    options: {
+      plugins: {
+        legend: { position: 'bottom' },
+      },
+      animation: { animateScale: true }
     }
   });
 }
@@ -153,15 +188,14 @@ async function exportPDF() {
   doc.text("Expense Tracker Report", 14, 10);
   let y = 20;
   expenses.forEach((e, i) => {
-    doc.text(`${i + 1}. ${e.date} | ${e.category} | $${e.amount} | ${e.note}`, 14, y);
+    doc.text(`${i + 1}. ${e.date} | ${e.category} | $${e.amount.toFixed(2)} | ${e.note}`, 14, y);
     y += 8;
   });
-  doc.text(`\nTotal: $${expenses.reduce((a, b) => a + b.amount, 0).toFixed(2)}`, 14, y + 5);
+  doc.text(`Total: $${expenses.reduce((a, b) => a + b.amount, 0).toFixed(2)}`, 14, y + 10);
   doc.save("ExpenseReport.pdf");
 }
 
 renderTable();
 </script>
-
 </body>
 </html>
