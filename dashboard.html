@@ -61,12 +61,9 @@ function renderDashboard(){
       toolBox.title = tool.description;
 
       toolBox.addEventListener('click', ()=>{
-        if(tool.link && tool.link !== "#"){
-          window.location.href = tool.link; // Navigate to the tool
-        } else {
-          alert(tool.name + " is not ready yet!");
-        }
-      });
+  const clickedTool = tools.find(t=>t.name === tool);
+  openTool(clickedTool);
+});
 
       toolsList.appendChild(toolBox);
     });
