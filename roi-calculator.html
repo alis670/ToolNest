@@ -3,76 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ROI Calculator - ToolNest</title>
+<title>ROI Calculator</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<style>
-  body { background: #f3f4f6; font-family: Arial, sans-serif; }
-  .result-box { background: #e0f2fe; padding: 1rem; border-radius: 0.5rem; text-align: center; }
-</style>
 </head>
-<body class="min-h-screen flex flex-col items-center p-6">
-
-<header class="w-full max-w-3xl mb-8">
-  <h1 class="text-3xl font-bold text-center text-gray-700">ROI Calculator</h1>
-  <p class="text-center text-gray-500 mt-2">Calculate Return on Investment easily</p>
-</header>
-
-<main class="w-full max-w-3xl bg-white p-6 rounded-xl shadow space-y-4">
-
-  <div>
-    <label class="block mb-1 font-semibold">Initial Investment ($):</label>
-    <input type="number" id="investment" class="w-full p-2 border rounded" placeholder="Enter your investment">
-  </div>
-
-  <div>
-    <label class="block mb-1 font-semibold">Net Profit ($):</label>
-    <input type="number" id="profit" class="w-full p-2 border rounded" placeholder="Enter your profit">
-  </div>
-
-  <div>
-    <label class="block mb-1 font-semibold">Investment Period (years):</label>
-    <input type="number" id="period" class="w-full p-2 border rounded" placeholder="Enter period in years">
-  </div>
-
-  <button id="calculateBtn" class="w-full bg-blue-600 text-white py-2 rounded font-semibold hover:bg-blue-700">Calculate ROI</button>
-
-  <div id="result" class="result-box hidden"></div>
-
-  <button id="backBtn" class="w-full bg-gray-400 text-white py-2 rounded font-semibold hover:bg-gray-500">Back to Dashboard</button>
-</main>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+<div class="bg-white p-6 rounded-xl shadow-md w-full max-w-md">
+  <h1 class="text-2xl font-bold mb-4 text-center">ROI Calculator</h1>
+  <input type="number" id="gain" placeholder="Gain from Investment" class="w-full p-2 mb-3 border rounded">
+  <input type="number" id="cost" placeholder="Cost of Investment" class="w-full p-2 mb-3 border rounded">
+  <button id="calcBtn" class="w-full bg-blue-600 text-white py-2 rounded font-semibold">Calculate ROI</button>
+  <p class="mt-4 font-semibold text-center">ROI: <span id="result">0%</span></p>
+</div>
 
 <script>
-const calculateBtn = document.getElementById('calculateBtn');
-const resultDiv = document.getElementById('result');
-const backBtn = document.getElementById('backBtn');
-
-calculateBtn.addEventListener('click', () => {
-  const investment = parseFloat(document.getElementById('investment').value);
-  const profit = parseFloat(document.getElementById('profit').value);
-  const period = parseFloat(document.getElementById('period').value);
-
-  if(isNaN(investment) || isNaN(profit) || isNaN(period) || period <= 0) {
-    alert("Please enter valid numbers");
-    return;
-  }
-
-  // ROI formula: ROI = (Net Profit / Investment) * 100
-  const roi = ((profit / investment) * 100).toFixed(2);
-  // Annualized ROI = ROI / years
-  const annualROI = (roi / period).toFixed(2);
-
-  resultDiv.innerHTML = `
-    <p class="text-lg font-semibold">Total ROI: ${roi}%</p>
-    <p class="text-gray-700">Annualized ROI: ${annualROI}% per year</p>
-  `;
-  resultDiv.classList.remove('hidden');
-});
-
-// Back to dashboard
-backBtn.addEventListener('click', () => {
-  window.location.href = "index.html"; // redirect back to dashboard
+document.getElementById('calcBtn').addEventListener('click',()=>{
+  const gain = parseFloat(document.getElementById('gain').value);
+  const cost = parseFloat(document.getElementById('cost').value);
+  if(isNaN(gain) || isNaN(cost) || cost===0){ alert("Enter valid numbers"); return; }
+  const roi = ((gain - cost)/cost*100).toFixed(2);
+  document.getElementById('result').innerText = roi + "%";
 });
 </script>
-
 </body>
 </html>
