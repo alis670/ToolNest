@@ -1,0 +1,64 @@
+<!-- currency-converter.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Currency Converter</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 min-h-screen flex items-center justify-center p-4">
+<div class="bg-white/10 backdrop-blur rounded-xl p-6 shadow-lg w-full max-w-md text-white">
+  <h1 class="text-2xl font-bold mb-4 text-center">Currency Converter</h1>
+
+  <div class="space-y-3">
+    <input type="number" id="amount" placeholder="Amount" class="w-full p-2 rounded bg-white/30 text-white placeholder-white">
+    <select id="fromCurrency" class="w-full p-2 rounded bg-white/30 text-white">
+      <option value="USD">USD</option>
+      <option value="EUR">EUR</option>
+      <option value="GBP">GBP</option>
+      <option value="PKR">PKR</option>
+      <option value="INR">INR</option>
+    </select>
+    <select id="toCurrency" class="w-full p-2 rounded bg-white/30 text-white">
+      <option value="PKR">PKR</option>
+      <option value="USD">USD</option>
+      <option value="EUR">EUR</option>
+      <option value="GBP">GBP</option>
+      <option value="INR">INR</option>
+    </select>
+  </div>
+
+  <button id="convertBtn" class="w-full bg-indigo-600 py-2 rounded font-semibold hover:bg-indigo-700 mt-3">Convert</button>
+  <p id="result" class="mt-3 text-center text-lg"></p>
+  <button id="backBtn" class="mt-4 w-full bg-purple-600 py-2 rounded font-semibold hover:bg-purple-700">Back to Dashboard</button>
+</div>
+
+<script>
+const amountInput = document.getElementById('amount');
+const fromCurrency = document.getElementById('fromCurrency');
+const toCurrency = document.getElementById('toCurrency');
+const convertBtn = document.getElementById('convertBtn');
+const resultP = document.getElementById('result');
+const backBtn = document.getElementById('backBtn');
+
+convertBtn.addEventListener('click', async () => {
+  const amount = parseFloat(amountInput.value);
+  if(!amount || amount <= 0){ alert("Enter valid amount"); return; }
+
+  const from = fromCurrency.value;
+  const to = toCurrency.value;
+
+  try {
+    const res = await fetch(`https://api.exchangerate.host/convert?from=${from}&to=${to}&amount=${amount}`);
+    const data = await res.json();
+    resultP.innerText = `${amount} ${from} = ${data.result.toFixed(2)} ${to}`;
+  } catch(e){
+    resultP.innerText = "Error fetching exchange rates";
+  }
+});
+
+backBtn.addEventListener('click', ()=>window.location.href='index.html');
+</script>
+</body>
+</html>
