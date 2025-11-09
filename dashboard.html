@@ -61,7 +61,7 @@ function renderDashboard(){
       toolBox.title = tool.description;
 
       toolBox.addEventListener('click', ()=>{
-  const clickedTool = tools.find(t=>t.name === tool);
+  const clickedTool = tools.find(t => t.name === tool.name);
   openTool(clickedTool);
 });
 
