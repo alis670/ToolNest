@@ -3,26 +3,40 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ROI Calculator</title>
+<title>ROI Calculator | ToolNest</title>
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
-<div class="bg-white p-6 rounded-xl shadow-md w-full max-w-md">
-  <h1 class="text-2xl font-bold mb-4 text-center">ROI Calculator</h1>
-  <input type="number" id="gain" placeholder="Gain from Investment" class="w-full p-2 mb-3 border rounded">
-  <input type="number" id="cost" placeholder="Cost of Investment" class="w-full p-2 mb-3 border rounded">
-  <button id="calcBtn" class="w-full bg-blue-600 text-white py-2 rounded font-semibold">Calculate ROI</button>
-  <p class="mt-4 font-semibold text-center">ROI: <span id="result">0%</span></p>
-</div>
+<body class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 min-h-screen flex flex-col items-center justify-center text-white p-6">
+
+  <div class="bg-white/20 backdrop-blur p-6 rounded-xl shadow-xl w-full max-w-md">
+    <h1 class="text-2xl font-bold mb-4 text-center">ROI Calculator</h1>
+
+    <div class="space-y-3">
+      <input type="number" id="gain" placeholder="Total Gain from Investment" class="w-full p-2 rounded text-black">
+      <input type="number" id="cost" placeholder="Total Cost of Investment" class="w-full p-2 rounded text-black">
+      <button id="calcBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 py-2 rounded-lg font-semibold">Calculate ROI</button>
+    </div>
+
+    <p id="result" class="text-center mt-4 font-semibold"></p>
+
+    <button onclick="window.history.back()" class="mt-6 w-full bg-red-600 hover:bg-red-700 py-2 rounded-lg">🔙 Go Back</button>
+  </div>
 
 <script>
-document.getElementById('calcBtn').addEventListener('click',()=>{
+document.getElementById('calcBtn').addEventListener('click', () => {
   const gain = parseFloat(document.getElementById('gain').value);
   const cost = parseFloat(document.getElementById('cost').value);
-  if(isNaN(gain) || isNaN(cost) || cost===0){ alert("Enter valid numbers"); return; }
-  const roi = ((gain - cost)/cost*100).toFixed(2);
-  document.getElementById('result').innerText = roi + "%";
+  const resultBox = document.getElementById('result');
+
+  if (isNaN(gain) || isNaN(cost) || cost <= 0) {
+    resultBox.innerText = "Please enter valid numbers.";
+    return;
+  }
+
+  const roi = ((gain - cost) / cost) * 100;
+  resultBox.innerText = `ROI: ${roi.toFixed(2)}%`;
 });
 </script>
+
 </body>
 </html>
