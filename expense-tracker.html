@@ -129,7 +129,26 @@ addExpenseBtn.addEventListener('click', ()=>{
   amountInput.value = descriptionInput.value = categoryInput.value = dateInput.value = "";
   renderExpenses();
 });
+  
+<button id="resetBtn" class="bg-red-600 py-1 px-3 rounded hover:bg-red-700 mt-2 text-white">Reset</button>
 
+<script>
+const resetBtn = document.getElementById('resetBtn');
+
+resetBtn.addEventListener('click', () => {
+  // Clear inputs
+  document.getElementById('expenseName').value = '';
+  document.getElementById('expenseAmount').value = '';
+
+  // Clear expense list
+  const expenseList = document.getElementById('expenseList');
+  expenseList.innerHTML = '';
+
+  // Reset totals
+  document.getElementById('totalExpenses').innerText = '0';
+  document.getElementById('balance').innerText = '0';
+});
+</script>
 backBtn.addEventListener('click', ()=>window.location.href='index.html');
 
 // Initial Render
