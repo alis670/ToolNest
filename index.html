@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ToolNest Dashboard</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js"></script>
 <style>
@@ -34,9 +33,9 @@
 
     <!-- Password Input -->
     <div class="relative">
-<input type="password" id="password" placeholder="Password" class="w-full p-2 rounded mb-3 bg-white/30 text-white placeholder-white">
+      <input type="password" id="password" placeholder="Password" class="w-full p-2 rounded mb-3 bg-white/30 text-white placeholder-white">
       <span id="togglePass" class="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer text-white text-xl select-none">🙈</span>
-  </div>
+    </div>
 
     <!-- OTP Input -->
     <input type="text" id="otpCode" placeholder="Enter OTP" class="w-full p-2 border rounded mb-3 bg-white/30 text-white placeholder-white hidden" />
@@ -52,7 +51,7 @@
   </div>
 </div>
 
-<!-- Dashboard Container (Replace old dashboardContainer in index.html) -->
+<!-- Dashboard Container -->
 <main id="dashboardContainer" class="max-w-7xl mx-auto p-6 space-y-12 hidden">
 
   <!-- Header -->
@@ -101,76 +100,6 @@
   </footer>
 </main>
 
-<script>
-// Categories & Tools
-const categories = [
-  { name: "Finance & Accounting", icon: "💰", tools: ["ROI Calculator","Profit Margin Calculator","Break-even Analyzer","Loan EMI Calculator","Tax / GST / VAT Calculator","Currency Converter","Expense Tracker","Cash Flow Analyzer","Salary / Payroll Sheet"] },
-  { name: "Business Management", icon: "📊", tools: ["Revenue Forecast Tool","Budget Planner","Employee Attendance Tracker","Invoice Generator","Business Proposal Template","Time Tracking Tool","Meeting Notes Template"] },
-  { name: "E-commerce & Marketing", icon: "🛒", tools: ["Product Pricing Calculator","Discount Finder","Inventory Tracker","Keyword Research Tool","Competitor Tracker","Profit & Fee Calculator","Product Launch Planner"] },
-  { name: "Data & Productivity", icon: "📈", tools: ["Google Sheets Templates","Excel Business Templates","CSV → Excel Converter","Sheet Merger Tool","Data Cleaner","Dashboard Template"] },
-  { name: "AI & Automation", icon: "🤖", tools: ["ChatGPT Assistant","Gemini UI","Auto Email Generator","Task Automation Templates","AI Name/Slogan Generator","Document Summarizer"] },
-  { name: "Design & Branding", icon: "🎨", tools: ["Logo Maker","Business Card Template","Brand Color Palette Generator","Social Media Post Caption Generator"] },
-  { name: "Website & SEO", icon: "🌐", tools: ["Meta Tag Generator","SEO Keyword Density Checker","Backlink Tracker","Sitemap XML Generator","Page Speed Tester"] },
-  { name: "Communication & Management", icon: "💬", tools: ["Project Task Manager","Team Chat UI","Client Feedback Form","Email Signature Generator"] },
-  { name: "Premium Tools", icon: "🚀", tools: ["MarketNest Pro Analyzer","Business Intelligence Dashboard","AI Data Visualizer","Multi-user Team Workspace"] }
-];
-
-const categoriesGrid = document.getElementById('categoriesGrid');
-
-function renderDashboard(){
-  categoriesGrid.innerHTML = "";
-  categories.forEach(cat => {
-    const catCard = document.createElement('div');
-    catCard.className = "bg-white/10 p-4 rounded-xl shadow hover:shadow-lg transition duration-300 space-y-3";
-
-    // Category Header
-    const catHeader = document.createElement('div');
-    catHeader.className = "flex items-center space-x-2 text-gray-700";
-    const icon = document.createElement('span'); icon.className="text-3xl"; icon.innerText = cat.icon;
-    const name = document.createElement('span'); name.className="font-semibold text-lg"; name.innerText = cat.name;
-    catHeader.append(icon,name);
-    catCard.appendChild(catHeader);
-
-    // Tools List
-    const toolsList = document.createElement('div'); toolsList.className="grid gap-2";
-    cat.tools.forEach(tool => {
-      const toolBox = document.createElement('div');
-      toolBox.className="bg-white/20 p-2 rounded cursor-pointer hover:bg-blue-500 transition duration-200";
-      toolBox.innerText = tool;
-
-      let isActive = false;
-      toolBox.addEventListener('click', ()=>{
-        if(!isActive){
-          toolBox.classList.add('bg-blue-400', 'font-semibold');
-          isActive = true;
-        } else {
-          alert(`Opening ${tool}...`); // Replace with real tool functionality
-        }
-      });
-
-      toolsList.appendChild(toolBox);
-    });
-
-    catCard.appendChild(toolsList);
-    categoriesGrid.appendChild(catCard);
-  });
-}
-
-// Back to Top
-const backToTopBtn = document.getElementById('backToTopBtn');
-window.addEventListener('scroll', ()=>{
-  if(window.scrollY > 300) backToTopBtn.classList.remove('hidden');
-  else backToTopBtn.classList.add('hidden');
-});
-backToTopBtn.addEventListener('click', ()=>window.scrollTo({top:0,behavior:'smooth'}));
-
-// Contact Form Submit
-document.getElementById('contactForm').addEventListener('submit', e=>{
-  e.preventDefault();
-  alert('Message sent!'); // Replace with actual email functionality
-});
-</script>
-
 <div id="toastContainer" class="fixed top-5 right-5 z-50"></div>
 
 <script type="module">
@@ -215,7 +144,7 @@ const otpInput = document.getElementById('otpCode');
 const googleSignIn = document.getElementById('googleSignIn');
 const facebookSignIn = document.getElementById('facebookSignIn');
 const dashboardContainer = document.getElementById('dashboardContainer');
-const categoriesContainer = document.getElementById('categoriesContainer');
+const categoriesGrid = document.getElementById('categoriesGrid');
 const toastContainer = document.getElementById('toastContainer');
 const togglePass = document.getElementById('togglePass');
 
@@ -231,7 +160,7 @@ function showToast(msg,type="success"){
 }
 
 // Show/hide password
-  togglePass.addEventListener('click', ()=>{
+togglePass.addEventListener('click', ()=>{
   if(passwordInput.type==="password"){ passwordInput.type="text"; togglePass.innerText="👁️"; } 
   else { passwordInput.type="password"; togglePass.innerText="🙈"; }
 });
@@ -262,13 +191,11 @@ continueBtn.addEventListener('click', async ()=>{
   const pass = passwordInput.value.trim();
   const otp = otpInput.value.trim();
 
-  // OTP verification
   if(otpInput.classList.contains('block') && otp){
     try{ await window.confirmationResult.confirm(otp); showToast("Phone login successful!"); otpInput.classList.add('hidden'); otpInput.classList.remove('block'); return; }
     catch(e){ showToast(e.message,"error"); return; }
   }
 
-  // Phone login
   if(input.startsWith("+") && !otpInput.classList.contains('block')){
     try{
       window.recaptchaVerifier = new RecaptchaVerifier(continueBtn, {size:'invisible'}, auth);
@@ -281,7 +208,6 @@ continueBtn.addEventListener('click', async ()=>{
     return;
   }
 
-  // Email login/signup
   if(input.includes("@")){
     passwordInput.classList.remove('hidden');
     if(!pass){ showToast("Enter password","error"); return; }
@@ -311,51 +237,65 @@ logoutBtn.innerText="Logout";
 document.body.appendChild(logoutBtn);
 logoutBtn.addEventListener('click', async ()=>{ await signOut(auth); showToast("Logged out successfully!"); });
 
-// Categories unchanged
+// Categories
 const categories = [
-{ name: "Finance & Accounting", icon: "💰", tools: ["ROI Calculator","Profit Margin Calculator","Break-even Analyzer","Loan EMI Calculator","Tax / GST / VAT Calculator","Currency Converter","Expense Tracker","Cash Flow Analyzer","Salary / Payroll Sheet"] },
-{ name: "Business Management", icon: "📊", tools: ["Revenue Forecast Tool","Budget Planner","Employee Attendance Tracker","Invoice Generator","Business Proposal Template","Time Tracking Tool","Meeting Notes Template"] },
-{ name: "E-commerce & Marketing", icon: "🛒", tools: ["Product Pricing Calculator","Discount Finder","Inventory Tracker","Keyword Research Tool","Competitor Tracker","Profit & Fee Calculator","Product Launch Planner"] },
-{ name: "Data & Productivity", icon: "📈", tools: ["Google Sheets Templates","Excel Business Templates","CSV → Excel Converter","Sheet Merger Tool","Data Cleaner","Dashboard Template"] },
-{ name: "AI & Automation", icon: "🤖", tools: ["ChatGPT Assistant","Gemini UI","Auto Email Generator","Task Automation Templates","AI Name/Slogan Generator","Document Summarizer"] },
-{ name: "Design & Branding", icon: "🎨", tools: ["Logo Maker","Business Card Template","Brand Color Palette Generator","Social Media Post Caption Generator"] },
-{ name: "Website & SEO", icon: "🌐", tools: ["Meta Tag Generator","SEO Keyword Density Checker","Backlink Tracker","Sitemap XML Generator","Page Speed Tester"] },
-{ name: "Communication & Management", icon: "💬", tools: ["Project Task Manager","Team Chat UI","Client Feedback Form","Email Signature Generator"] },
-{ name: "Premium Tools", icon: "🚀", tools: ["MarketNest Pro Analyzer","Business Intelligence Dashboard","AI Data Visualizer","Multi-user Team Workspace"] }
+  { name: "Finance & Accounting", icon: "💰", tools: ["ROI Calculator","Profit Margin Calculator","Break-even Analyzer","Loan EMI Calculator","Tax / GST / VAT Calculator","Currency Converter","Expense Tracker","Cash Flow Analyzer","Salary / Payroll Sheet"] },
+  { name: "Business Management", icon: "📊", tools: ["Revenue Forecast Tool","Budget Planner","Employee Attendance Tracker","Invoice Generator","Business Proposal Template","Time Tracking Tool","Meeting Notes Template"] },
+  { name: "E-commerce & Marketing", icon: "🛒", tools: ["Product Pricing Calculator","Discount Finder","Inventory Tracker","Keyword Research Tool","Competitor Tracker","Profit & Fee Calculator","Product Launch Planner"] },
+  { name: "Data & Productivity", icon: "📈", tools: ["Google Sheets Templates","Excel Business Templates","CSV → Excel Converter","Sheet Merger Tool","Data Cleaner","Dashboard Template"] },
+  { name: "AI & Automation", icon: "🤖", tools: ["ChatGPT Assistant","Gemini UI","Auto Email Generator","Task Automation Templates","AI Name/Slogan Generator","Document Summarizer"] },
+  { name: "Design & Branding", icon: "🎨", tools: ["Logo Maker","Business Card Template","Brand Color Palette Generator","Social Media Post Caption Generator"] },
+  { name: "Website & SEO", icon: "🌐", tools: ["Meta Tag Generator","SEO Keyword Density Checker","Backlink Tracker","Sitemap XML Generator","Page Speed Tester"] },
+  { name: "Communication & Management", icon: "💬", tools: ["Project Task Manager","Team Chat UI","Client Feedback Form","Email Signature Generator"] },
+  { name: "Premium Tools", icon: "🚀", tools: ["MarketNest Pro Analyzer","Business Intelligence Dashboard","AI Data Visualizer","Multi-user Team Workspace"] }
 ];
 
 function renderDashboard(){
-  categoriesContainer.innerHTML="";
+  categoriesGrid.innerHTML = "";
   categories.forEach(cat=>{
-    const catDiv=document.createElement('div');
-    catDiv.className="bg-white rounded-xl shadow p-4 hover:shadow-lg";
+    const catCard=document.createElement('div');
+    catCard.className="bg-white/10 p-4 rounded-xl shadow hover:shadow-lg transition duration-300 space-y-3";
+
     const catHeader=document.createElement('div');
-    catHeader.className="flex items-center mb-3";
-    const iconSpan=document.createElement('span');
-    iconSpan.className="text-3xl mr-3";
-    iconSpan.innerText=cat.icon;
-    const nameSpan=document.createElement('span');
-    nameSpan.className="font-semibold text-lg";
-    nameSpan.innerText=cat.name;
-    catHeader.append(iconSpan,nameSpan);
-    catDiv.appendChild(catHeader);
-    const toolsList=document.createElement('ul');
-    toolsList.className="list-disc list-inside text-gray-600 space-y-1";
+    catHeader.className="flex items-center space-x-2 text-gray-700";
+    const icon=document.createElement('span'); icon.className="text-3xl"; icon.innerText=cat.icon;
+    const name=document.createElement('span'); name.className="font-semibold text-lg"; name.innerText=cat.name;
+    catHeader.append(icon,name);
+    catCard.appendChild(catHeader);
+
+    const toolsList=document.createElement('div'); toolsList.className="grid gap-2";
     cat.tools.forEach(tool=>{
-      const li=document.createElement('li');
-      li.innerText=tool;
-      toolsList.appendChild(li);
+      const toolBox=document.createElement('div');
+      toolBox.className="bg-white/20 p-2 rounded cursor-pointer hover:bg-blue-500 transition duration-200";
+      toolBox.innerText=tool;
+
+      let isActive=false;
+      toolBox.addEventListener('click', ()=>{
+        if(!isActive){ toolBox.classList.add('bg-blue-400','font-semibold'); isActive=true; }
+        else { alert(`Opening ${tool}...`); }
+      });
+
+      toolsList.appendChild(toolBox);
     });
-    catDiv.appendChild(toolsList);
-    categoriesContainer.appendChild(catDiv);
+
+    catCard.appendChild(toolsList);
+    categoriesGrid.appendChild(catCard);
   });
 }
 
-// Auth state change
+// Auth state
 onAuthStateChanged(auth,user=>{
   if(user){ dashboardContainer.classList.remove('hidden'); authModal.classList.add('hidden'); logoutBtn.classList.remove('hidden'); renderDashboard(); }
   else{ dashboardContainer.classList.add('hidden'); logoutBtn.classList.add('hidden'); authModal.classList.remove('hidden'); toggleModal(false);}
 });
+
+// Back to Top
+const backToTopBtn=document.getElementById('backToTopBtn');
+window.addEventListener('scroll',()=>{ if(window.scrollY>300) backToTopBtn.classList.remove('hidden'); else backToTopBtn.classList.add('hidden'); });
+backToTopBtn.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+
+// Contact Form
+document.getElementById('contactForm').addEventListener('submit', e=>{ e.preventDefault(); alert('Message sent!'); });
 </script>
 </body>
 </html>
