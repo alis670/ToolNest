@@ -1,116 +1,206 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Revenue Forecast Tool</title>
-<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revenue Forecast Tool - Pro</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-  body { background: linear-gradient(to bottom right, #eef2ff, #fdf2f8); font-family: 'Inter', sans-serif; }
-  .card { background: white; border-radius: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.05); padding: 1.5rem; }
-  .btn { transition: all 0.2s ease; }
-  .btn:hover { transform: translateY(-2px); box-shadow: 0 3px 10px rgba(0,0,0,0.1); }
+  body { background: linear-gradient(135deg,#f3f4f6,#e5e7eb); font-family: sans-serif; }
+  .container { max-width: 1200px; margin: auto; padding: 2rem; }
+  table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+  th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+  th { background-color: #4f46e5; color: white; }
+  tr:hover { background-color: #eef2ff; }
+  .btn { padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer; }
+  .btn-primary { background-color: #4f46e5; color: white; }
+  .btn-secondary { background-color: #e5e7eb; color: #111827; }
+  .btn:hover { opacity: 0.9; }
 </style>
 </head>
-<body class="text-gray-900">
+<body>
+<div class="container bg-white p-6 rounded-xl shadow-lg">
+  <h1 class="text-2xl font-bold text-center text-indigo-700">Revenue Forecast Tool - Pro</h1>
 
-<div class="max-w-6xl mx-auto p-6 space-y-6">
-  <!-- Header -->
-  <div class="text-center">
-    <h1 class="text-4xl font-bold text-indigo-700">📊 Revenue Forecast Tool</h1>
-    <p class="text-gray-500">Predict your monthly revenue growth and visualize future performance.</p>
+  <!-- Add Product -->
+  <div class="mt-4 flex gap-2">
+    <input type="text" id="productName" placeholder="Product Name" class="p-2 border rounded flex-1">
+    <input type="number" id="baseRevenue" placeholder="Base Monthly Revenue" class="p-2 border rounded flex-1">
+    <input type="number" id="baseExpense" placeholder="Base Monthly Expense" class="p-2 border rounded flex-1">
+    <button id="addProduct" class="btn btn-primary">Add Product</button>
   </div>
 
-  <!-- Input Card -->
-  <div class="card">
-    <h2 class="text-lg font-semibold mb-4">Enter Forecast Details</h2>
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <input id="currentRevenue" type="number" placeholder="Current Revenue ($)" class="border p-2 rounded-md focus:ring-2 focus:ring-indigo-500">
-      <input id="growthRate" type="number" placeholder="Growth Rate (% per month)" class="border p-2 rounded-md focus:ring-2 focus:ring-indigo-500">
-      <input id="months" type="number" placeholder="Forecast Duration (months)" class="border p-2 rounded-md focus:ring-2 focus:ring-indigo-500">
-      <button onclick="generateForecast()" class="bg-indigo-600 text-white px-4 py-2 rounded-md btn">Generate</button>
-    </div>
-  </div>
+  <!-- Products Table -->
+  <table id="productsTable" class="mt-4">
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>Revenue</th>
+        <th>Expense</th>
+        <th>Seasonality (%)</th>
+        <th>Growth (%)</th>
+        <th>Capex</th>
+        <th>Net Profit</th>
+        <th>Include</th>
+        <th>Remove</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
-  <!-- Chart -->
-  <div class="card">
-    <h2 class="text-lg font-semibold mb-4 text-gray-700">📈 Forecast Chart</h2>
-    <canvas id="forecastChart" height="100"></canvas>
+  <!-- Controls -->
+  <div class="mt-4 flex gap-2">
+    <button id="resetBtn" class="btn btn-secondary">Reset</button>
+    <button id="exportExcel" class="btn btn-primary">Export to Excel</button>
+    <button id="exportPDF" class="btn btn-primary">Export to PDF</button>
   </div>
 
   <!-- Summary -->
-  <div id="summaryCard" class="card hidden">
-    <h2 class="text-lg font-semibold mb-4 text-gray-700">Summary</h2>
-    <p class="text-gray-700" id="summaryText"></p>
-    <div class="mt-4">
-      <button onclick="exportForecastPDF()" class="bg-red-600 text-white px-4 py-2 rounded-md btn">📄 Export as PDF</button>
-    </div>
+  <div class="mt-4">
+    <h2 class="text-xl font-semibold text-indigo-700">Forecast Summary</h2>
+    <p id="summary" class="mt-2"></p>
   </div>
 </div>
 
 <script>
-let chart;
+const products = [];
 
-function generateForecast() {
-  const currentRevenue = parseFloat(document.getElementById('currentRevenue').value);
-  const growthRate = parseFloat(document.getElementById('growthRate').value);
-  const months = parseInt(document.getElementById('months').value);
+const productNameInput = document.getElementById('productName');
+const baseRevenueInput = document.getElementById('baseRevenue');
+const baseExpenseInput = document.getElementById('baseExpense');
+const addProductBtn = document.getElementById('addProduct');
+const productsTableBody = document.querySelector('#productsTable tbody');
+const resetBtn = document.getElementById('resetBtn');
+const exportExcelBtn = document.getElementById('exportExcel');
+const exportPDFBtn = document.getElementById('exportPDF');
+const summary = document.getElementById('summary');
 
-  if (isNaN(currentRevenue) || isNaN(growthRate) || isNaN(months)) {
-    return alert('Please fill all fields correctly!');
-  }
+function renderTable() {
+  productsTableBody.innerHTML = '';
+  let totalRevenue = 0, totalExpense = 0, totalProfit = 0;
 
-  const labels = [];
-  const data = [];
-  let revenue = currentRevenue;
+  products.forEach((p, index) => {
+    const row = document.createElement('tr');
 
-  for (let i = 1; i <= months; i++) {
-    revenue *= (1 + growthRate / 100);
-    labels.push("Month " + i);
-    data.push(revenue.toFixed(2));
-  }
-
-  if (chart) chart.destroy();
-
-  const ctx = document.getElementById('forecastChart').getContext('2d');
-  chart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [{
-        label: 'Projected Revenue ($)',
-        data,
-        fill: true,
-        borderColor: '#4f46e5',
-        backgroundColor: 'rgba(99, 102, 241, 0.2)',
-        tension: 0.3,
-      }]
-    },
-    options: {
-      plugins: { legend: { display: true } },
-      scales: { y: { beginAtZero: false } }
+    const netProfit = ((p.revenue * (1 + p.seasonality/100) * (1 + p.growth/100) - p.expense) - p.capex);
+    if(p.include) {
+      totalRevenue += p.revenue * (1 + p.seasonality/100) * (1 + p.growth/100);
+      totalExpense += p.expense + p.capex;
+      totalProfit += netProfit;
     }
+
+    row.innerHTML = `
+      <td>${p.name}</td>
+      <td>$${p.revenue.toFixed(2)}</td>
+      <td>$${p.expense.toFixed(2)}</td>
+      <td><input type="number" value="${p.seasonality}" min="-100" max="100" data-index="${index}" class="seasonalityInput w-16 text-center"></td>
+      <td><input type="number" value="${p.growth}" min="-100" max="100" data-index="${index}" class="growthInput w-16 text-center"></td>
+      <td><input type="number" value="${p.capex}" min="0" data-index="${index}" class="capexInput w-16 text-center"></td>
+      <td>$${netProfit.toFixed(2)}</td>
+      <td><input type="checkbox" ${p.include ? 'checked' : ''} data-index="${index}" class="includeCheckbox"></td>
+      <td><button class="removeBtn btn btn-secondary" data-index="${index}">X</button></td>
+    `;
+    productsTableBody.appendChild(row);
   });
 
-  const totalGrowth = ((revenue - currentRevenue) / currentRevenue * 100).toFixed(2);
-  document.getElementById('summaryCard').classList.remove('hidden');
-  document.getElementById('summaryText').innerHTML = `
-    Starting Revenue: <b>$${currentRevenue.toFixed(2)}</b><br>
-    Final Forecasted Revenue after ${months} months: <b>$${revenue.toFixed(2)}</b><br>
-    Total Growth: <b>${totalGrowth}%</b>
+  summary.innerHTML = `
+    <strong>Total Revenue:</strong> $${totalRevenue.toFixed(2)}, 
+    <strong>Total Expense:</strong> $${totalExpense.toFixed(2)}, 
+    <strong>Total Net Profit:</strong> $${totalProfit.toFixed(2)}
   `;
+
+  addTableEventListeners();
 }
 
-async function exportForecastPDF() {
+function addTableEventListeners() {
+  document.querySelectorAll('.seasonalityInput').forEach(input => {
+    input.addEventListener('input', e => {
+      const i = e.target.dataset.index;
+      products[i].seasonality = parseFloat(e.target.value) || 0;
+      renderTable();
+    });
+  });
+  document.querySelectorAll('.growthInput').forEach(input => {
+    input.addEventListener('input', e => {
+      const i = e.target.dataset.index;
+      products[i].growth = parseFloat(e.target.value) || 0;
+      renderTable();
+    });
+  });
+  document.querySelectorAll('.capexInput').forEach(input => {
+    input.addEventListener('input', e => {
+      const i = e.target.dataset.index;
+      products[i].capex = parseFloat(e.target.value) || 0;
+      renderTable();
+    });
+  });
+  document.querySelectorAll('.includeCheckbox').forEach(input => {
+    input.addEventListener('change', e => {
+      const i = e.target.dataset.index;
+      products[i].include = e.target.checked;
+      renderTable();
+    });
+  });
+  document.querySelectorAll('.removeBtn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const i = e.target.dataset.index;
+      products.splice(i, 1);
+      renderTable();
+    });
+  });
+}
+
+addProductBtn.addEventListener('click', () => {
+  const name = productNameInput.value.trim();
+  const revenue = parseFloat(baseRevenueInput.value);
+  const expense = parseFloat(baseExpenseInput.value);
+  if(!name || isNaN(revenue) || isNaN(expense)) return alert('Enter valid product, revenue, and expense');
+  products.push({name, revenue, expense, seasonality:0, growth:0, capex:0, include:true});
+  productNameInput.value=''; baseRevenueInput.value=''; baseExpenseInput.value='';
+  renderTable();
+});
+
+resetBtn.addEventListener('click', () => {
+  products.length = 0;
+  renderTable();
+});
+
+exportExcelBtn.addEventListener('click', () => {
+  const wb = XLSX.utils.book_new();
+  const wsData = [['Product','Revenue','Expense','Seasonality','Growth','Capex','Net Profit','Include']];
+  products.forEach(p => {
+    wsData.push([
+      p.name,
+      p.revenue,
+      p.expense,
+      p.seasonality,
+      p.growth,
+      p.capex,
+      ((p.revenue*(1+p.seasonality/100)*(1+p.growth/100)-p.expense)-p.capex).toFixed(2),
+      p.include
+    ]);
+  });
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  XLSX.utils.book_append_sheet(wb, ws, 'Revenue Forecast');
+  XLSX.writeFile(wb, 'revenue_forecast.xlsx');
+});
+
+exportPDFBtn.addEventListener('click', () => {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
-  doc.text("Revenue Forecast Report", 14, 10);
-  const summary = document.getElementById('summaryText').innerText;
-  doc.text(summary, 14, 25);
-  doc.save("RevenueForecast.pdf");
-}
+  doc.setFontSize(14);
+  doc.text("Revenue Forecast Report", 10, 10);
+  let y = 20;
+  products.forEach(p => {
+    doc.text(`${p.name} | Revenue: $${p.revenue} | Expense: $${p.expense} | Net Profit: $${((p.revenue*(1+p.seasonality/100)*(1+p.growth/100)-p.expense)-p.capex).toFixed(2)}`, 10, y);
+    y += 10;
+  });
+  doc.save('revenue_forecast.pdf');
+});
+
+renderTable();
 </script>
 </body>
 </html>
