@@ -1,51 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ROI Calculator - ToolNest</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROI Calculator - ToolNest</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { background: #f3f4f6; font-family: Arial, sans-serif; }
+  .result-box { background: #e0f2fe; padding: 1rem; border-radius: 0.5rem; text-align: center; }
+</style>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
-  <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
-    <h1 class="text-2xl font-bold mb-6 text-center text-blue-600">ROI Calculator</h1>
+<body class="min-h-screen flex flex-col items-center p-6">
 
-    <div class="space-y-4">
-      <div>
-        <label class="block text-gray-700 font-medium mb-1">Initial Investment ($)</label>
-        <input id="investment" type="number" class="w-full p-2 border rounded" placeholder="Enter initial investment" />
-      </div>
+<header class="w-full max-w-3xl mb-8">
+  <h1 class="text-3xl font-bold text-center text-gray-700">ROI Calculator</h1>
+  <p class="text-center text-gray-500 mt-2">Calculate Return on Investment easily</p>
+</header>
 
-      <div>
-        <label class="block text-gray-700 font-medium mb-1">Final Return ($)</label>
-        <input id="return" type="number" class="w-full p-2 border rounded" placeholder="Enter final return" />
-      </div>
+<main class="w-full max-w-3xl bg-white p-6 rounded-xl shadow space-y-4">
 
-      <button onclick="calculateROI()" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700">
-        Calculate ROI
-      </button>
-
-      <div id="result" class="text-center mt-4 text-lg font-semibold text-green-600"></div>
-    </div>
+  <div>
+    <label class="block mb-1 font-semibold">Initial Investment ($):</label>
+    <input type="number" id="investment" class="w-full p-2 border rounded" placeholder="Enter your investment">
   </div>
 
-  <script>
-    function calculateROI() {
-      const investment = parseFloat(document.getElementById("investment").value);
-      const finalReturn = parseFloat(document.getElementById("return").value);
-      const resultDiv = document.getElementById("result");
+  <div>
+    <label class="block mb-1 font-semibold">Net Profit ($):</label>
+    <input type="number" id="profit" class="w-full p-2 border rounded" placeholder="Enter your profit">
+  </div>
 
-      if (isNaN(investment) || isNaN(finalReturn) || investment <= 0) {
-        resultDiv.innerHTML = "Please enter valid numbers!";
-        resultDiv.classList.add("text-red-500");
-        return;
-      }
+  <div>
+    <label class="block mb-1 font-semibold">Investment Period (years):</label>
+    <input type="number" id="period" class="w-full p-2 border rounded" placeholder="Enter period in years">
+  </div>
 
-      const roi = ((finalReturn - investment) / investment) * 100;
-      resultDiv.innerHTML = `ROI: ${roi.toFixed(2)}%`;
-      resultDiv.classList.remove("text-red-500");
-      resultDiv.classList.add("text-green-600");
-    }
-  </script>
+  <button id="calculateBtn" class="w-full bg-blue-600 text-white py-2 rounded font-semibold hover:bg-blue-700">Calculate ROI</button>
+
+  <div id="result" class="result-box hidden"></div>
+
+  <button id="backBtn" class="w-full bg-gray-400 text-white py-2 rounded font-semibold hover:bg-gray-500">Back to Dashboard</button>
+</main>
+
+<script>
+const calculateBtn = document.getElementById('calculateBtn');
+const resultDiv = document.getElementById('result');
+const backBtn = document.getElementById('backBtn');
+
+calculateBtn.addEventListener('click', () => {
+  const investment = parseFloat(document.getElementById('investment').value);
+  const profit = parseFloat(document.getElementById('profit').value);
+  const period = parseFloat(document.getElementById('period').value);
+
+  if(isNaN(investment) || isNaN(profit) || isNaN(period) || period <= 0) {
+    alert("Please enter valid numbers");
+    return;
+  }
+
+  // ROI formula: ROI = (Net Profit / Investment) * 100
+  const roi = ((profit / investment) * 100).toFixed(2);
+  // Annualized ROI = ROI / years
+  const annualROI = (roi / period).toFixed(2);
+
+  resultDiv.innerHTML = `
+    <p class="text-lg font-semibold">Total ROI: ${roi}%</p>
+    <p class="text-gray-700">Annualized ROI: ${annualROI}% per year</p>
+  `;
+  resultDiv.classList.remove('hidden');
+});
+
+// Back to dashboard
+backBtn.addEventListener('click', () => {
+  window.location.href = "index.html"; // redirect back to dashboard
+});
+</script>
+
 </body>
 </html>
