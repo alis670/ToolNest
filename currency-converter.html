@@ -14,22 +14,8 @@
 
   <div class="grid gap-2 mb-4 md:grid-cols-2">
     <input type="number" id="amount" placeholder="Amount" class="p-2 rounded bg-white/30 text-white placeholder-white">
-    <select id="fromCurrency" class="p-2 rounded bg-white/30 text-white">
-      <option value="USD">USD</option>
-      <option value="EUR">EUR</option>
-      <option value="GBP">GBP</option>
-      <option value="PKR">PKR</option>
-      <option value="JPY">JPY</option>
-      <option value="INR">INR</option>
-    </select>
-    <select id="toCurrency" class="p-2 rounded bg-white/30 text-white md:col-span-2">
-      <option value="USD">USD</option>
-      <option value="EUR">EUR</option>
-      <option value="GBP">GBP</option>
-      <option value="PKR">PKR</option>
-      <option value="JPY">JPY</option>
-      <option value="INR">INR</option>
-    </select>
+    <select id="fromCurrency" class="p-2 rounded bg-white/30 text-white"></select>
+    <select id="toCurrency" class="p-2 rounded bg-white/30 text-white md:col-span-2"></select>
   </div>
 
   <button id="convertBtn" class="w-full bg-indigo-600 py-2 rounded font-semibold hover:bg-indigo-700 mb-4">Convert</button>
@@ -46,6 +32,35 @@ const toEl = document.getElementById('toCurrency');
 const convertBtn = document.getElementById('convertBtn');
 const resultEl = document.getElementById('result');
 const backBtn = document.getElementById('backBtn');
+
+// Fetch all currencies from API
+async function loadCurrencies() {
+  try {
+    const res = await fetch('https://open.er-api.com/v6/latest/USD'); // Base currency for rates
+    if(!res.ok) throw new Error("Failed to fetch currencies");
+    const data = await res.json();
+    const currencies = Object.keys(data.rates).sort();
+
+    currencies.forEach(cur => {
+      const option1 = document.createElement('option');
+      option1.value = cur;
+      option1.innerText = cur;
+      fromEl.appendChild(option1);
+
+      const option2 = document.createElement('option');
+      option2.value = cur;
+      option2.innerText = cur;
+      toEl.appendChild(option2);
+    });
+
+    fromEl.value = "USD"; // default
+    toEl.value = "EUR"; // default
+  } catch(err) {
+    resultEl.innerText = "Error loading currencies: " + err.message;
+  }
+}
+
+loadCurrencies();
 
 convertBtn.addEventListener('click', async () => {
   const amount = parseFloat(amountEl.value);
