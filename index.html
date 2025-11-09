@@ -347,33 +347,40 @@ const categories = [
 ];
 
 function renderDashboard(){
-  categoriesGrid.innerHTML = "";
+  categoriesGrid.innerHTML = ""; // Clear previous content
+
   categories.forEach(cat => {
+    // Category Card
     const catCard = document.createElement('div');
     catCard.className = "bg-white/10 p-4 rounded-xl shadow hover:shadow-lg transition duration-300 space-y-3";
 
-    // Category Header
+    // Category Header (Icon + Name)
     const catHeader = document.createElement('div');
     catHeader.className = "flex items-center space-x-2 text-white";
-    const icon = document.createElement('span'); icon.className="text-3xl"; icon.innerText = cat.icon;
-    const name = document.createElement('span'); name.className="font-semibold text-lg"; name.innerText = cat.name;
-    catHeader.append(icon,name);
+    const icon = document.createElement('span'); 
+    icon.className = "text-3xl"; 
+    icon.innerText = cat.icon;
+    const name = document.createElement('span'); 
+    name.className = "font-semibold text-lg"; 
+    name.innerText = cat.name;
+    catHeader.append(icon, name);
     catCard.appendChild(catHeader);
 
     // Tools List
-    const toolsList = document.createElement('div'); toolsList.className="grid gap-2";
+    const toolsList = document.createElement('div'); 
+    toolsList.className = "grid gap-2";
+
     cat.tools.forEach(tool => {
       const toolBox = document.createElement('div');
-      toolBox.className="bg-white/20 p-2 rounded cursor-pointer hover:bg-indigo-500 transition duration-200 text-white";
-      toolBox.innerText = tool;
+      toolBox.className = "bg-white/20 p-2 rounded cursor-pointer hover:bg-indigo-500 transition duration-200 text-white";
+      toolBox.innerText = tool.name;
 
-      let isActive = false;
-      toolBox.addEventListener('click', ()=>{
-        if(!isActive){
-          toolBox.classList.add('bg-indigo-400', 'font-semibold');
-          isActive = true;
+      // Click Event to open tool page
+      toolBox.addEventListener('click', () => {
+        if(tool.page){
+          window.location.href = tool.page; // Open the tool page
         } else {
-          alert(`Opening ${tool}...`);
+          alert(`Page for ${tool.name} not found!`);
         }
       });
 
