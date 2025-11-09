@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tax / GST / VAT Calculator</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 min-h-screen flex items-center justify-center p-4">
+
+<div class="bg-white/10 backdrop-blur rounded-xl p-6 shadow-lg w-full max-w-lg text-white">
+  <h1 class="text-2xl font-bold mb-4 text-center">Tax / GST / VAT Calculator</h1>
+
+  <div class="space-y-3">
+    <input type="number" id="originalAmount" placeholder="Original Amount ($)" class="w-full p-2 rounded bg-white/30 text-white placeholder-white">
+    <select id="taxType" class="w-full p-2 rounded bg-white/30 text-white">
+      <option value="GST">GST</option>
+      <option value="VAT">VAT</option>
+      <option value="Custom">Custom</option>
+    </select>
+    <input type="number" id="taxRate" placeholder="Tax Rate (%)" class="w-full p-2 rounded bg-white/30 text-white placeholder-white">
+    <input type="number" id="discountRate" placeholder="Discount (%) (Optional)" class="w-full p-2 rounded bg-white/30 text-white placeholder-white">
+  </div>
+
+  <div class="flex space-x-2 mt-4">
+    <button id="calculateBtn" class="w-1/2 bg-indigo-600 py-2 rounded font-semibold hover:bg-indigo-700">Calculate</button>
+    <button id="resetBtn" class="w-1/2 bg-red-600 py-2 rounded font-semibold hover:bg-red-700">Reset</button>
+  </div>
+
+  <div class="mt-6 space-y-2" id="results" style="display:none;">
+    <p id="taxAmount"></p>
+    <p id="discountAmount"></p>
+    <p id="finalAmount"></p>
+    <canvas id="taxPieChart" class="mt-4 bg-white/20 rounded-lg p-2"></canvas>
+  </div>
+
+  <button id="backBtn" class="mt-4 w-full bg-purple-600 py-2 rounded font-semibold hover:bg-purple-700">Back to Dashboard</button>
+</div>
+
+<script>
+const originalAmountInput = document.getElementById('originalAmount');
+const taxTypeSelect = document.getElementById('taxType');
+const taxRateInput = document.getElementById('taxRate');
+const discountRateInput = document.getElementById('discountRate');
+const calculateBtn = document.getElementById('calculateBtn');
+const resetBtn = document.getElementById('resetBtn');
+const resultsDiv = document.getElementById('results');
+const taxAmountP = document.getElementById('taxAmount');
+const discountAmountP = document.getElementById('discountAmount');
+const finalAmountP = document.getElementById('finalAmount');
+const backBtn = document.getElementById('backBtn');
+
+let pieChart;
+
+calculateBtn.addEventListener('click', ()=>{
+  const original = parseFloat(originalAmountInput.value) || 0;
+  const taxRate = parseFloat(taxRateInput.value) || 0;
+  const discountRate = parseFloat(discountRateInput.value) || 0;
+
+  if(original<=0 || taxRate<0 || discountRate<0){
+    alert("Enter valid positive numbers");
+    return;
+  }
+
+  const taxAmount = original * (taxRate/100);
+  const discountAmount = original * (discountRate/100);
+  const finalAmount = original + taxAmount - discountAmount;
+
+  taxAmountP.innerText = `Tax Amount: $${taxAmount.toFixed(2)}`;
+  discountAmountP.innerText = `Discount Amount: $${discountAmount.toFixed(2)}`;
+  finalAmountP.innerText = `Final Amount: $${finalAmount.toFixed(2)}`;
+  resultsDiv.style.display='block';
+
+  if(pieChart) pieChart.destroy();
+  const ctxPie = document.getElementById('taxPieChart').getContext('2d');
+  pieChart = new Chart(ctxPie, {
+    type:'pie',
+    data:{
+      labels:['Original','Tax','Discount'],
+      datasets:[{
+        data:[original, taxAmount, discountAmount],
+        backgroundColor:['#4f46e5','#facc15','#f87171']
+      }]
+    },
+    options:{plugins:{legend:{labels:{color:'white'}}}}
+  });
+});
+
+resetBtn.addEventListener('click', ()=>{
+  originalAmountInput.value = taxRateInput.value = discountRateInput.value = '';
+  resultsDiv.style.display = 'none';
+  if(pieChart) pieChart.destroy();
+});
+
+backBtn.addEventListener('click', ()=>window.location.href='index.html');
+</script>
+
+</body>
+</html>
