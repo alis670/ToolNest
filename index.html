@@ -314,10 +314,6 @@ onAuthStateChanged(auth,user=>{
     logoutBtn.classList.add('hidden'); 
     authModal.classList.remove('hidden'); 
     toggleModal(false);
-    toolBox.addEventListener('click', ()=>{
-  const clickedTool = tools.find(t=>t.name === tool);
-  openTool(clickedTool);
-});
   }
 });
 </script>
