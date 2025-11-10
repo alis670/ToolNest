@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Budget Planner — ToolNest (Pro) with Multi-Currency</title>
+<title>Budget Planner — ToolNest (Pro)</title>
 
 <!-- Tailwind -->
 <script src="https://cdn.tailwindcss.com"></script>
@@ -16,62 +16,62 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
+  /* Clean business dashboard look */
   :root{
-    --card-bg: rgba(255,255,255,0.96);
+    --bg: #f7f8fb;
+    --panel: #ffffff;
     --muted: #6b7280;
+    --accent: #6366f1; /* indigo-500 */
   }
   body{
-    min-height:100vh;
-    background: linear-gradient(135deg,#eef2ff 0%, #ede9fe 45%, #fce7f3 100%);
+    background: var(--bg);
     font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
     -webkit-font-smoothing:antialiased;
     -moz-osx-font-smoothing:grayscale;
+    margin:0;
+    padding:0;
   }
-  .card{ background: var(--card-bg); border-radius: 12px; box-shadow: 0 10px 30px rgba(2,6,23,0.08); }
-  .sticky-header{ position: sticky; top:0; backdrop-filter: blur(6px); background: linear-gradient(90deg, rgba(255,255,255,0.9), rgba(255,255,255,0.85)); z-index: 10; }
+  .card{ background: var(--panel); border-radius: 10px; box-shadow: 0 6px 20px rgba(15,23,42,0.06); }
+  .sticky-header{ position: sticky; top:0; backdrop-filter: blur(4px); background: var(--panel); z-index: 10; border-bottom: 1px solid rgba(15,23,42,0.04); }
   .scroll-inner{ max-height:520px; overflow:auto; padding-right:8px;}
-  table thead th{ position: sticky; top:0; background: rgba(255,255,255,0.95); z-index:5; }
+  table thead th{ position: sticky; top:0; background: var(--panel); z-index:5; }
   input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
   .currency-select { min-width: 220px; }
-  @media (max-width:1024px){
-    .scroll-inner{ max-height:360px; }
-  }
-  @media (max-width:640px){
-    .scroll-inner{ max-height:300px; }
-  }
+  @media (max-width:1024px){ .scroll-inner{ max-height:360px; } }
+  @media (max-width:640px){ .scroll-inner{ max-height:300px; } }
+  .small-muted { font-size: 0.85rem; color:var(--muted); }
 </style>
 </head>
 <body class="p-6">
 
-<div class="max-w-6xl mx-auto">
+<!-- Main container: add id to preserve scroll -->
+<div id="budgetContainer" class="max-w-6xl mx-auto">
 
   <!-- Header -->
   <header class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
     <div class="flex items-center gap-3">
-      <div class="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-600 via-purple-500 to-pink-500 flex items-center justify-center text-white font-bold shadow-lg">TN</div>
+      <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-2xl font-semibold text-slate-800 shadow">TN</div>
       <div>
-        <h1 class="text-2xl md:text-3xl font-bold text-slate-800">Budget Planner — Pro+</h1>
-        <p class="text-sm text-slate-500">Advanced planner • Multi-currency • Monthly projections • PDF / Excel Export</p>
+        <h1 class="text-2xl md:text-3xl font-semibold text-slate-800">Budget Planner — Pro</h1>
+        <p class="text-sm text-slate-500">Business dashboard style • Multi-currency • Export PDF/Excel</p>
       </div>
     </div>
 
     <div class="flex gap-2 items-center">
-      <!-- Currency controls -->
-      <div class="flex items-center gap-2">
-        <label class="text-sm text-slate-600">Currency</label>
-        <select id="currencySelect" class="currency-select p-2 border rounded"></select>
-        <button id="convertBtn" class="px-3 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700">Convert</button>
-      </div>
+      <label class="small-muted">Currency</label>
+      <select id="currencySelect" class="currency-select p-2 border rounded bg-white"></select>
 
-      <label class="flex items-center gap-2 text-sm text-slate-600">
-        <input id="autoConvert" type="checkbox" /> Auto-convert on change
+      <button id="convertBtn" type="button" class="px-3 py-2 rounded bg-indigo-600 text-white">Convert</button>
+
+      <label class="flex items-center gap-2 text-sm text-slate-600 ml-2">
+        <input id="autoConvert" type="checkbox" /> Auto-convert
       </label>
 
-      <button id="backBtn" class="px-3 py-2 rounded bg-white/80 hover:bg-white text-slate-800 shadow">← Dashboard</button>
-      <button id="saveBtn" class="px-3 py-2 rounded bg-green-600 text-white hover:bg-green-700">Save</button>
-      <button id="resetAllBtn" class="px-3 py-2 rounded bg-red-500 text-white hover:bg-red-600">Reset</button>
-      <button id="exportXls" class="px-3 py-2 rounded bg-white text-indigo-700 hover:bg-white/90 border">Excel</button>
-      <button id="exportPdf" class="px-3 py-2 rounded bg-white text-indigo-700 hover:bg-white/90 border">PDF</button>
+      <button id="backBtn" type="button" class="px-3 py-2 rounded bg-white border text-slate-700">← Dashboard</button>
+      <button id="saveBtn" type="button" class="px-3 py-2 rounded bg-green-600 text-white">Save</button>
+      <button id="resetAllBtn" type="button" class="px-3 py-2 rounded bg-red-500 text-white">Reset</button>
+      <button id="exportXls" type="button" class="px-3 py-2 rounded bg-white border text-indigo-700">Excel</button>
+      <button id="exportPdf" type="button" class="px-3 py-2 rounded bg-white border text-indigo-700">PDF</button>
     </div>
   </header>
 
@@ -81,22 +81,22 @@
     <section class="lg:col-span-2 card p-4">
       <div class="sticky-header p-2 rounded mb-3">
         <div class="flex items-center justify-between">
-          <h2 class="text-lg font-semibold text-slate-700">Income & Items</h2>
-          <div class="text-sm text-slate-500">Interactive | Add/remove rows | Validate</div>
+          <h2 class="text-lg font-medium text-slate-800">Income & Items</h2>
+          <div class="text-sm text-slate-500">Add items, quick-add, edit costs</div>
         </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
         <div>
-          <label class="text-sm text-slate-600">Monthly Income (<span id="currencyLabelHeader">USD</span>)</label>
+          <label class="small-muted">Monthly Income (<span id="currencyLabelHeader">USD</span>)</label>
           <input id="income" type="number" min="0" step="0.01" placeholder="5000" class="w-full p-2 mt-1 border rounded" />
         </div>
         <div>
-          <label class="text-sm text-slate-600">Months to project</label>
+          <label class="small-muted">Months to project</label>
           <input id="months" type="number" min="1" value="12" class="w-full p-2 mt-1 border rounded" />
         </div>
         <div>
-          <label class="text-sm text-slate-600">Start month</label>
+          <label class="small-muted">Start month</label>
           <input id="startMonth" type="month" class="w-full p-2 mt-1 border rounded" />
         </div>
       </div>
@@ -104,8 +104,8 @@
       <!-- Items table -->
       <div class="scroll-inner card p-3">
         <div class="flex items-center justify-between mb-2">
-          <h3 class="font-semibold text-slate-700">Items (description, qty, cost/unit)</h3>
-          <button id="addItemBtn" class="text-indigo-600 hover:underline text-sm">+ Add item</button>
+          <h3 class="font-medium text-slate-800">Items</h3>
+          <button id="addItemBtn" type="button" class="text-indigo-600 hover:underline text-sm">+ Add item</button>
         </div>
 
         <div class="overflow-x-auto">
@@ -122,41 +122,40 @@
             <tbody id="itemsTbody"></tbody>
           </table>
         </div>
-
       </div>
 
       <!-- Quick add -->
       <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
-        <input id="quickDesc" placeholder="New item description" class="p-2 border rounded md:col-span-1" />
+        <input id="quickDesc" placeholder="Item description" class="p-2 border rounded" />
         <input id="quickQty" type="number" min="1" value="1" class="p-2 border rounded" />
         <div class="flex gap-2">
           <input id="quickCost" type="number" min="0" step="0.01" placeholder="Cost" class="p-2 border rounded" />
-          <button id="quickAddBtn" class="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700">Add</button>
+          <button id="quickAddBtn" type="button" class="px-4 py-2 rounded bg-indigo-600 text-white">Add</button>
         </div>
       </div>
 
       <!-- Summary boxes -->
       <div class="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div class="p-3 bg-indigo-50 rounded">
+        <div class="p-3 bg-white rounded shadow-sm">
           <div class="text-sm text-slate-500">Total Items Cost</div>
-          <div id="totalItems" class="text-xl font-semibold text-indigo-700">$0.00</div>
+          <div id="totalItems" class="text-xl font-semibold text-slate-800">$0.00</div>
         </div>
-        <div class="p-3 bg-green-50 rounded">
+        <div class="p-3 bg-white rounded shadow-sm">
           <div class="text-sm text-slate-500">Monthly Income</div>
-          <div id="monthlyIncome" class="text-xl font-semibold text-green-700">$0.00</div>
+          <div id="monthlyIncome" class="text-xl font-semibold text-slate-800">$0.00</div>
         </div>
-        <div class="p-3 bg-yellow-50 rounded">
-          <div class="text-sm text-slate-500">Projected Savings (monthly)</div>
-          <div id="projSavings" class="text-xl font-semibold text-yellow-700">$0.00</div>
+        <div class="p-3 bg-white rounded shadow-sm">
+          <div class="text-sm text-slate-500">Projected Savings</div>
+          <div id="projSavings" class="text-xl font-semibold text-slate-800">$0.00</div>
         </div>
       </div>
 
     </section>
 
-    <!-- Right: Monthly plan, charts -->
+    <!-- Right: Monthly plan & charts -->
     <aside class="card p-4 flex flex-col gap-4">
       <div class="sticky-header p-2 rounded">
-        <h3 class="font-semibold text-slate-700">Monthly Plan</h3>
+        <h3 class="font-medium text-slate-800">Monthly Plan</h3>
       </div>
 
       <div class="scroll-inner">
@@ -171,21 +170,19 @@
         </table>
       </div>
 
-      <div class="grid grid-cols-1 gap-3">
-        <div class="card p-3">
-          <div class="flex items-center justify-between mb-2">
-            <h4 class="text-sm font-semibold text-slate-700">Category distribution (by first word)</h4>
-            <div class="text-xs text-slate-500">Quick grouping</div>
-          </div>
-          <canvas id="pieChart" height="160"></canvas>
+      <div class="card p-3">
+        <div class="flex items-center justify-between mb-2">
+          <h4 class="text-sm font-medium text-slate-800">Category distribution (by first word)</h4>
+          <div class="text-xs text-slate-500">Quick grouping</div>
         </div>
+        <canvas id="pieChart" height="160"></canvas>
+      </div>
 
-        <div class="card p-3">
-          <div class="flex items-center justify-between mb-2">
-            <h4 class="text-sm font-semibold text-slate-700">Monthly totals (bar)</h4>
-          </div>
-          <canvas id="barChart" height="160"></canvas>
+      <div class="card p-3">
+        <div class="flex items-center justify-between mb-2">
+          <h4 class="text-sm font-medium text-slate-800">Monthly totals (bar)</h4>
         </div>
+        <canvas id="barChart" height="160"></canvas>
       </div>
 
     </aside>
@@ -194,26 +191,27 @@
 
   <!-- Footer actions -->
   <div class="mt-6 flex items-center justify-between">
-    <div class="text-sm text-slate-500">Tip: Add items, choose currency, optionally convert using live rates, then export PDF/Excel.</div>
+    <div class="text-sm text-slate-500">Tip: Use live conversion when changing currency for convenience.</div>
     <div class="flex gap-2">
-      <button id="resetVisibleBtn" class="px-4 py-2 rounded border bg-white">Reset Items</button>
-      <button id="exportQuick" class="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700">Export Summary</button>
+      <button id="resetVisibleBtn" type="button" class="px-4 py-2 rounded border bg-white">Reset Items</button>
+      <button id="exportQuick" type="button" class="px-4 py-2 rounded bg-indigo-600 text-white">Export Summary</button>
     </div>
   </div>
 
 </div>
 
 <script>
-/* Multi-currency Budget Planner Pro+ (client-side)
-   - Currency dropdown with flags + code + name
-   - Optional live conversion via exchangerate.host
-   - Items and monthly projection, charts, export
-   - localStorage persistence
+/* Budget Planner Pro — Clean Business Dashboard
+   - Keeps scroll stable
+   - Explicit button types
+   - Multi-currency + optional live convert
+   - Charts + export
 */
 
-const STORAGE = 'tn_budget_pro_currency_v1';
+const STORAGE = 'tn_budget_pro_clean_v1';
 
 // DOM refs
+const budgetContainer = document.getElementById('budgetContainer');
 const currencySelect = document.getElementById('currencySelect');
 const convertBtn = document.getElementById('convertBtn');
 const autoConvert = document.getElementById('autoConvert');
@@ -234,13 +232,12 @@ const exportXlsBtn = document.getElementById('exportXls'), exportPdfBtn = docume
 const saveBtn = document.getElementById('saveBtn'), resetAllBtn = document.getElementById('resetAllBtn'), resetVisibleBtn = document.getElementById('resetVisibleBtn');
 const exportQuick = document.getElementById('exportQuick'), backBtn = document.getElementById('backBtn');
 
-let items = []; // {id, desc, qty, cost}
-let barChart=null, pieChart=null;
-let currentCurrency = 'USD'; // base stored currency
-let lastRates = { base: 'USD', rates: {} }; // cached rates
+let items = [];
+let barChart = null, pieChart = null;
+let currentCurrency = 'USD';
+let lastRates = { base: 'USD', rates: {} };
 
-// === Currency list (flag emoji + code + name) ===
-// Wide list of commonly used currency codes. Add/remove as you like.
+// Currency list
 const currencyList = [
   { code:'USD', flag:'🇺🇸', name:'US Dollar', symbol:'$' },
   { code:'EUR', flag:'🇪🇺', name:'Euro', symbol:'€' },
@@ -249,56 +246,44 @@ const currencyList = [
   { code:'INR', flag:'🇮🇳', name:'Indian Rupee', symbol:'₹' },
   { code:'AUD', flag:'🇦🇺', name:'Australian Dollar', symbol:'A$' },
   { code:'CAD', flag:'🇨🇦', name:'Canadian Dollar', symbol:'C$' },
-  { code:'SGD', flag:'🇸🇬', name:'Singapore Dollar', symbol:'S$' },
   { code:'JPY', flag:'🇯🇵', name:'Japanese Yen', symbol:'¥' },
   { code:'CNY', flag:'🇨🇳', name:'Chinese Yuan', symbol:'¥' },
   { code:'AED', flag:'🇦🇪', name:'UAE Dirham', symbol:'د.إ' },
   { code:'SAR', flag:'🇸🇦', name:'Saudi Riyal', symbol:'﷼' },
   { code:'CHF', flag:'🇨🇭', name:'Swiss Franc', symbol:'CHF' },
-  { code:'TRY', flag:'🇹🇷', name:'Turkish Lira', symbol:'₺' },
-  { code:'ZAR', flag:'🇿🇦', name:'South African Rand', symbol:'R' },
   { code:'BRL', flag:'🇧🇷', name:'Brazilian Real', symbol:'R$' },
-  { code:'RUB', flag:'🇷🇺', name:'Russian Ruble', symbol:'₽' },
+  { code:'ZAR', flag:'🇿🇦', name:'South African Rand', symbol:'R' },
   { code:'KRW', flag:'🇰🇷', name:'South Korean Won', symbol:'₩' },
-  { code:'MYR', flag:'🇲🇾', name:'Malaysian Ringgit', symbol:'RM' },
-  { code:'IDR', flag:'🇮🇩', name:'Indonesian Rupiah', symbol:'Rp' },
+  { code:'SGD', flag:'🇸🇬', name:'Singapore Dollar', symbol:'S$' },
   { code:'MXN', flag:'🇲🇽', name:'Mexican Peso', symbol:'$' },
-  { code:'NPR', flag:'🇳🇵', name:'Nepalese Rupee', symbol:'₨' },
-  { code:'BDT', flag:'🇧🇩', name:'Bangladeshi Taka', symbol:'৳' },
-  { code:'ILS', flag:'🇮🇱', name:'Israeli New Shekel', symbol:'₪' },
-  { code:'PLN', flag:'🇵🇱', name:'Polish Zloty', symbol:'zł' },
-  { code:'DKK', flag:'🇩🇰', name:'Danish Krone', symbol:'kr' },
-  { code:'SEK', flag:'🇸🇪', name:'Swedish Krona', symbol:'kr' },
-  { code:'NOK', flag:'🇳🇴', name:'Norwegian Krone', symbol:'kr' },
-  { code:'CZK', flag:'🇨🇿', name:'Czech Koruna', symbol:'Kč' },
-  { code:'HUF', flag:'🇭🇺', name:'Hungarian Forint', symbol:'Ft' },
-  { code:'VND', flag:'🇻🇳', name:'Vietnamese Dong', symbol:'₫' },
   { code:'PHP', flag:'🇵🇭', name:'Philippine Peso', symbol:'₱' },
-  { code:'CLP', flag:'🇨🇱', name:'Chilean Peso', symbol:'$' },
-  { code:'EGP', flag:'🇪🇬', name:'Egyptian Pound', symbol:'£' },
-  // add more as needed...
+  { code:'BDT', flag:'🇧🇩', name:'Bangladeshi Taka', symbol:'৳' },
+  // add more if you need
 ];
 
 // populate currency select
-function populateCurrencySelect(){
+function initCurrencyUI(){
+  currencySelect.innerHTML = '';
   currencyList.forEach(c=>{
     const opt = document.createElement('option');
     opt.value = c.code;
     opt.text = `${c.flag}  ${c.code} — ${c.name}`;
     currencySelect.appendChild(opt);
   });
-  // set defaults
   currencySelect.value = currentCurrency;
   updateCurrencyLabels(currentCurrency);
 }
-populateCurrencySelect();
+initCurrencyUI();
 
-// === helpers ===
+// helpers
 const uid = ()=> Math.random().toString(36).slice(2,9);
 const fmt = (n, code) => {
-  const c = currencyList.find(x=>x.code===code) || currencyList.find(x=>x.code==='USD');
+  const c = currencyList.find(x=>x.code===code) || currencyList[0];
   return (c && c.symbol ? c.symbol + ' ' : '') + Number(n || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
 };
+function roundToTwo(n){ return Math.round((Number(n)||0) * 100) / 100; }
+function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function showToast(msg, ms=1300){ const t = document.createElement('div'); t.innerText = msg; t.className='fixed right-5 bottom-6 bg-slate-800 text-white px-3 py-2 rounded shadow'; document.body.appendChild(t); setTimeout(()=>t.remove(), ms); }
 
 // load/save
 function load(){
@@ -318,103 +303,74 @@ function load(){
   }
   render();
 }
-function save(){
-  const obj = { items, currency: currentCurrency, income: incomeInput.value, months: monthsInput.value, startMonth: startMonthInput.value, lastRates };
-  localStorage.setItem(STORAGE, JSON.stringify(obj));
-  showToast('Saved locally');
-}
+function save(){ const obj = { items, currency: currentCurrency, income: incomeInput.value, months: monthsInput.value, startMonth: startMonthInput.value, lastRates }; localStorage.setItem(STORAGE, JSON.stringify(obj)); showToast('Saved'); }
 
-// toast
-function showToast(msg, ms=1400){
-  const t = document.createElement('div');
-  t.innerText = msg;
-  t.className = 'fixed right-5 bottom-6 bg-slate-800 text-white px-3 py-2 rounded shadow';
-  document.body.appendChild(t);
-  setTimeout(()=>t.remove(), ms);
-}
-
-// render items table
+// UI logic
 function renderItems(){
   itemsTbody.innerHTML = '';
-  items.forEach((it, idx)=>{
+  items.forEach(it=>{
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="p-2"><input data-id="${it.id}" data-field="desc" class="w-full p-1 border rounded" value="${escapeHtml(it.desc)}" /></td>
       <td class="p-2"><input data-id="${it.id}" data-field="qty" type="number" min="0" class="w-24 p-1 border rounded" value="${it.qty}" /></td>
       <td class="p-2"><input data-id="${it.id}" data-field="cost" type="number" min="0" step="0.01" class="w-28 p-1 border rounded" value="${it.cost}" /></td>
       <td class="p-2">${fmt(it.qty * it.cost, currentCurrency)}</td>
-      <td class="p-2"><button data-id="${it.id}" class="del-row text-sm text-red-600">Del</button></td>
+      <td class="p-2"><button data-id="${it.id}" class="del-row text-sm text-red-600" type="button">Del</button></td>
     `;
     itemsTbody.appendChild(tr);
   });
 
-  // attach listeners
+  // listeners
   itemsTbody.querySelectorAll('input').forEach(inp=>{
-    inp.addEventListener('input', (e)=>{
+    inp.addEventListener('input', ()=>{
       const id = inp.dataset.id; const f = inp.dataset.field;
       const item = items.find(x=>x.id===id); if(!item) return;
       if(f==='desc') item.desc = inp.value;
       if(f==='qty') item.qty = Number(inp.value)||0;
       if(f==='cost') item.cost = Number(inp.value)||0;
-      render(); // update totals & charts
+      render(); // update totals
     });
   });
   itemsTbody.querySelectorAll('.del-row').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const id = btn.dataset.id;
       items = items.filter(x=>x.id!==id);
-      render();
-      save();
+      render(); save();
     });
   });
 }
 
-// add quick
 quickAddBtn.addEventListener('click', ()=>{
   const d = quickDesc.value.trim(); const q = Number(quickQty.value)||0; const c = Number(quickCost.value)||0;
-  if(!d || q<=0 || c<0) return alert('Enter valid description, qty (>0) and cost (>=0).');
+  if(!d || q<=0 || c<0) return alert('Enter description, qty (>0) and cost (>=0).');
   items.push({ id: uid(), desc:d, qty:q, cost:c });
   quickDesc.value=''; quickQty.value=1; quickCost.value='';
   render(); save();
 });
 
-addItemBtn.addEventListener('click', ()=>{
-  items.push({ id: uid(), desc:'New item', qty:1, cost:0 });
-  render(); save();
-});
+addItemBtn.addEventListener('click', ()=>{ items.push({ id: uid(), desc:'New item', qty:1, cost:0 }); render(); save(); });
 
-// reset
-resetAllBtn.addEventListener('click', ()=>{ if(confirm('Reset everything (clear all data)?')){ items=[]; incomeInput.value=''; monthsInput.value=12; startMonthInput.value=''; lastRates = { base: currentCurrency, rates: {} }; render(); save(); }});
+resetAllBtn.addEventListener('click', ()=>{ if(confirm('Reset everything?')){ items=[]; incomeInput.value=''; monthsInput.value=12; startMonthInput.value=''; lastRates={base:currentCurrency,rates:{}}; render(); save(); }});
 resetVisibleBtn.addEventListener('click', ()=>{ if(confirm('Clear items only?')){ items=[]; render(); save(); }});
+backBtn.addEventListener('click', ()=>{ window.location.href='index.html'; });
+saveBtn.addEventListener('click', save);
 
-// back
-backBtn.addEventListener('click', ()=>{ window.location.href = 'index.html'; });
-
-// === Rendering & Charts ===
+// render main
 function render(){
   renderItems();
-  // totals
   const totalItems = items.reduce((s,i)=> s + (i.qty * i.cost), 0);
   totalItemsEl.innerText = fmt(totalItems, currentCurrency);
   monthlyIncomeEl.innerText = fmt(Number(incomeInput.value)||0, currentCurrency);
   projSavingsEl.innerText = fmt((Number(incomeInput.value)||0) - totalItems, currentCurrency);
 
-  // monthly projection
   const months = Math.max(1, Number(monthsInput.value) || 12);
   const start = startMonthInput.value ? new Date(startMonthInput.value + '-01') : new Date();
   const labels = [];
-  for(let i=0;i<months;i++){
-    const d = new Date(start.getFullYear(), start.getMonth()+i, 1);
-    labels.push(d.toLocaleString(undefined, { month:'short', year:'2-digit' }));
-  }
+  for(let i=0;i<months;i++){ const d = new Date(start.getFullYear(), start.getMonth()+i, 1); labels.push(d.toLocaleString(undefined, { month:'short', year:'2-digit' })); }
 
-  // for simplicity treat items as monthly recurring; you can extend recurrence later
   const monthlyTotals = Array.from({length:months}, ()=>0);
-  for(let m=0;m<months;m++){
-    monthlyTotals[m] = items.reduce((s,i)=> s + (i.qty * i.cost), 0);
-  }
+  for(let m=0;m<months;m++){ monthlyTotals[m] = items.reduce((s,i)=> s + (i.qty * i.cost), 0); }
 
-  // fill monthly tbody
   monthlyTbody.innerHTML = '';
   monthlyTotals.forEach((val, idx)=>{
     const tr = document.createElement('tr');
@@ -422,29 +378,18 @@ function render(){
     monthlyTbody.appendChild(tr);
   });
 
-  // charts
   updateBarChart(labels, monthlyTotals);
   updatePieChart(items);
 }
 
-// Chart helpers
+// charts
 function updateBarChart(labels, data){
   const ctx = document.getElementById('barChart').getContext('2d');
   if(barChart) barChart.destroy();
   barChart = new Chart(ctx, {
     type:'bar',
-    data:{
-      labels,
-      datasets:[{
-        label:`Monthly total (${currentCurrency})`,
-        data,
-        backgroundColor: '#60a5fa'
-      }]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      scales:{ y:{ ticks:{ callback: v => fmt(v, currentCurrency) } } }
-    }
+    data:{ labels, datasets:[{ label:`Monthly total (${currentCurrency})`, data, backgroundColor:'#60a5fa' }] },
+    options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ ticks:{ callback: v => fmt(v, currentCurrency) } } } }
   });
 }
 
@@ -456,18 +401,13 @@ function updatePieChart(itemsList){
   });
   const labels = Object.keys(categoryTotals);
   const data = labels.map(l=>categoryTotals[l]);
-  const colors = ['#7dd3fc','#fca5a5','#fbbf24','#a78bfa','#34d399','#fb7185'];
-
+  const colors = ['#60a5fa','#fda4af','#fbbf24','#a78bfa','#34d399','#fb7185'];
   const ctx = document.getElementById('pieChart').getContext('2d');
   if(pieChart) pieChart.destroy();
-  pieChart = new Chart(ctx, {
-    type:'pie',
-    data:{ labels, datasets:[{ data, backgroundColor: colors }] },
-    options:{ responsive:true, maintainAspectRatio:false }
-  });
+  pieChart = new Chart(ctx, { type:'pie', data:{ labels, datasets:[{ data, backgroundColor: colors }] }, options:{ responsive:true, maintainAspectRatio:false } });
 }
 
-// === Export ===
+// export excel
 exportXlsBtn.addEventListener('click', ()=>{
   if(items.length===0) return alert('No items to export');
   const rows = items.map(it=> ({ Description: it.desc, Quantity: it.qty, 'Cost per unit': it.cost, Total: it.qty * it.cost }));
@@ -479,18 +419,13 @@ exportXlsBtn.addEventListener('click', ()=>{
   XLSX.writeFile(wb, 'budget_plan.xlsx');
 });
 
+// export PDF
 exportPdfBtn.addEventListener('click', async ()=>{
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation:'landscape', unit:'pt', format:'a4' });
   doc.setFontSize(16); doc.text('Budget Plan — ToolNest', 40, 40);
-  if(barChart){
-    const img = barChart.toBase64Image();
-    doc.addImage(img, 'PNG', 40, 70, 520, 220);
-  }
-  if(pieChart){
-    const img2 = pieChart.toBase64Image();
-    doc.addImage(img2, 'PNG', 580, 70, 220, 220);
-  }
+  if(barChart){ const img = barChart.toBase64Image(); doc.addImage(img, 'PNG', 40, 70, 520, 220); }
+  if(pieChart){ const img2 = pieChart.toBase64Image(); doc.addImage(img2, 'PNG', 580, 70, 220, 220); }
   doc.setFontSize(10);
   let y = 310;
   items.forEach(it=>{
@@ -511,43 +446,28 @@ exportQuick.addEventListener('click', ()=>{
   alert(`Total Items: ${fmt(total,currentCurrency)}\nMonthly Income: ${fmt(income,currentCurrency)}\nProjected Monthly Savings: ${fmt(savings,currentCurrency)}\nCurrency: ${currentCurrency}`);
 });
 
-// === Currency conversion logic ===
-// Convert all stored numeric values from currentCurrency -> targetCurrency using rates
+// Currency convert using exchangerate.host
 async function convertAllValues(targetCurrency){
   if(targetCurrency === currentCurrency) return showToast('Already in ' + targetCurrency);
   showToast(`Converting ${currentCurrency} → ${targetCurrency} ...`, 2000);
   try{
-    // Try cached rates if present
-    let rate = null;
-    // use exchangerate.host free endpoint: https://api.exchangerate.host/convert?from=USD&to=EUR
     const url = `https://api.exchangerate.host/convert?from=${encodeURIComponent(currentCurrency)}&to=${encodeURIComponent(targetCurrency)}&amount=1`;
     const res = await fetch(url);
     if(!res.ok) throw new Error('Rate fetch failed');
     const j = await res.json();
     if(j && j.info && typeof j.info.rate === 'number'){
-      rate = Number(j.info.rate);
-      // apply conversion
+      const rate = Number(j.info.rate);
       items = items.map(it => ({ ...it, cost: roundToTwo(it.cost * rate) }));
       incomeInput.value = roundToTwo((Number(incomeInput.value)||0) * rate);
       currentCurrency = targetCurrency;
-      lastRates = { base: currentCurrency, rates: lastRates.rates || {} }; // we don't store many rates here
       updateCurrencyLabels(currentCurrency);
-      render();
-      save();
+      render(); save();
       showToast('Conversion applied');
-    } else {
-      throw new Error('Invalid rate response');
-    }
-  }catch(e){
-    console.error(e);
-    alert('Could not fetch conversion rate. Try again later or check your network.');
-  }
+    } else throw new Error('Invalid rate response');
+  }catch(e){ console.error(e); alert('Could not fetch conversion rate.'); }
 }
 
-// utility rounding
-function roundToTwo(n){ return Math.round((Number(n)||0) * 100) / 100; }
-
-// populate initial currency labels
+// update labels
 function updateCurrencyLabels(code){
   currencyLabel.innerText = code;
   currencyLabel2.innerText = code;
@@ -555,60 +475,36 @@ function updateCurrencyLabels(code){
   currencyLabelHeader.innerText = code;
 }
 
-// convert button
-convertBtn.addEventListener('click', async ()=>{
-  const target = currencySelect.value;
-  await convertAllValues(target);
+// currency UI events
+convertBtn.addEventListener('click', async ()=>{ await convertAllValues(currencySelect.value); });
+currencySelect.addEventListener('change', async ()=>{
+  const sel = currencySelect.value;
+  if(autoConvert.checked){ await convertAllValues(sel); }
+  else { currentCurrency = sel; updateCurrencyLabels(currentCurrency); render(); save(); }
 });
 
-// auto-convert behaviour
-currencySelect.addEventListener('change', async ()=>{
-  const selected = currencySelect.value;
-  if(autoConvert.checked){
-    await convertAllValues(selected);
-  } else {
-    // only change display labels, keep numeric values (no conversion)
-    currentCurrency = selected;
-    updateCurrencyLabels(currentCurrency);
-    render(); save();
+// init/load
+function loadInit(){ const raw = localStorage.getItem(STORAGE); if(raw){ try{ const o = JSON.parse(raw); items = o.items || []; currentCurrency = o.currency || 'USD'; lastRates = o.lastRates || lastRates; incomeInput.value = o.income || ''; monthsInput.value = o.months || 12; startMonthInput.value = o.startMonth || ''; }catch(e){} } initCurrencyUI(); updateCurrencyLabels(currentCurrency); render(); }
+loadInit();
+
+// Autosave every 12s
+setInterval(save, 12000);
+
+// preserve scroll fix: store and restore scrollTop on updates
+let savedScroll = 0;
+budgetContainer.addEventListener('scroll', ()=> savedScroll = budgetContainer.scrollTop);
+function preserveScroll(){ budgetContainer.scrollTop = savedScroll; }
+window.addEventListener('resize', preserveScroll);
+
+// prevent accidental form submissions on Enter for inputs inside this container
+budgetContainer.addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter' && e.target && (e.target.tagName === 'INPUT' || e.target.tagName==='TEXTAREA')) {
+    // allow Enter on textareas? we don't have big textareas here; prevent default to avoid accidental navigation
+    e.preventDefault();
+    // if user focused quickDesc and pressed Enter, add quick item
+    if(e.target.id === 'quickDesc'){ quickAddBtn.click(); }
   }
 });
-
-// auto-save button
-saveBtn.addEventListener('click', save);
-
-// init currency select from storage / defaults
-load();
-updateCurrencyLabels(currentCurrency);
-
-// === small utils & init ===
-function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-// load currency select after defining list and initial currentCurrency
-function initCurrencyUI(){
-  currencySelect.innerHTML = '';
-  currencyList.forEach(c=>{
-    const opt = document.createElement('option');
-    opt.value = c.code;
-    opt.text = `${c.flag}  ${c.code} — ${c.name}`;
-    currencySelect.appendChild(opt);
-  });
-  currencySelect.value = currentCurrency;
-  updateCurrencyLabels(currentCurrency);
-}
-initCurrencyUI();
-
-// Autosave
-setInterval(save, 10000);
-
-// render on load
-render();
-
-// recalc when inputs change
-[incomeInput, monthsInput, startMonthInput].forEach(el=> el.addEventListener('input', ()=>{ render(); }));
-
-// simple UI: Enter on quickDesc adds
-quickDesc.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); quickAddBtn.click(); } });
 
 </script>
 </body>
