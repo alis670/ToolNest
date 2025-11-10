@@ -1,222 +1,442 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Revenue Forecast Tool - Advanced Pro</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Revenue Forecast — ToolNest (Pro)</title>
+
+<!-- Tailwind -->
 <script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<!-- XLSX (Excel export) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<!-- jsPDF (PDF export) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
-  body {
-    background: linear-gradient(135deg, #a5b4fc, #c7d2fe, #e0e7ff);
-    font-family: 'Inter', sans-serif;
-    min-height: 100vh;
+  /* page background & card */
+  body { min-height:100vh; background: linear-gradient(135deg,#7c3aed 0%, #2563eb 45%, #ec4899 100%); font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
+  .card { background: rgba(255,255,255,0.95); border-radius: 12px; box-shadow: 0 10px 40px rgba(2,6,23,0.35); }
+  .muted { color: #374151; }
+  /* responsive tweaks */
+  @media (max-width:640px) {
+    table th, table td { font-size: 13px; }
   }
-  .container {
-    max-width: 1200px;
-    margin: auto;
-    background: white;
-    padding: 2rem;
-    border-radius: 1rem;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    margin-top: 3rem;
-  }
-  th {
-    background-color: #6366f1;
-    color: white;
-    font-weight: 600;
-  }
-  tr:hover {
-    background-color: #f3f4f6;
-  }
-  .btn {
-    padding: 0.6rem 1.2rem;
-    border-radius: 0.5rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.3s;
-  }
-  .btn-primary { background: #4f46e5; color: white; }
-  .btn-primary:hover { background: #4338ca; }
-  .btn-secondary { background: #e5e7eb; color: #111827; }
-  .btn-secondary:hover { background: #d1d5db; }
-  .btn-danger { background: #ef4444; color: white; }
-  .btn-danger:hover { background: #dc2626; }
 </style>
 </head>
+<body class="p-4">
 
-<body>
-<div class="container">
-  <h1 class="text-3xl font-bold text-center text-indigo-700 mb-6">Revenue Forecast Tool - Advanced Pro</h1>
+<div class="max-w-6xl mx-auto space-y-6">
 
-  <!-- Add Product Section -->
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-    <input type="text" id="productName" placeholder="Product Name" class="p-2 border rounded-md">
-    <input type="number" id="baseRevenue" placeholder="Monthly Revenue ($)" class="p-2 border rounded-md">
-    <input type="number" id="baseExpense" placeholder="Monthly Expense ($)" class="p-2 border rounded-md">
-    <button id="addProduct" class="btn btn-primary">Add Product</button>
-  </div>
+  <!-- Header -->
+  <header class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg shadow">TN</div>
+        <div>
+          <h1 class="text-2xl md:text-3xl font-bold">Revenue Forecast — Pro</h1>
+          <p class="muted text-sm">Advanced per-product forecasting • exports • responsive</p>
+        </div>
+      </div>
+    </div>
 
-  <!-- Table -->
-  <div class="overflow-x-auto mt-6">
-    <table id="productsTable" class="w-full border border-gray-300 rounded-lg">
-      <thead>
-        <tr>
-          <th>Product</th>
-          <th>Revenue</th>
-          <th>Expense</th>
-          <th>Seasonality (%)</th>
-          <th>Growth (%)</th>
-          <th>CapEx</th>
-          <th>Net Profit</th>
-          <th>Include</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+    <div class="flex gap-2">
+      <button id="backBtn" class="px-3 py-2 rounded bg-white/10 text-white hover:bg-white/20">← Dashboard</button>
+      <button id="resetBtn" class="px-3 py-2 rounded bg-red-500 text-white hover:bg-red-600">Reset</button>
+      <button id="exportExcelBtn" class="px-3 py-2 rounded bg-green-600 text-white hover:bg-green-700">Export XLSX</button>
+      <button id="exportPdfBtn" class="px-3 py-2 rounded bg-white text-indigo-700 hover:bg-white/90">Export PDF</button>
+    </div>
+  </header>
 
-  <!-- Controls -->
-  <div class="flex flex-wrap gap-3 mt-6">
-    <button id="resetBtn" class="btn btn-danger">Reset Data</button>
-    <button id="exportExcel" class="btn btn-primary">Export to Excel</button>
-    <button id="exportPDF" class="btn btn-primary">Export to PDF</button>
-  </div>
+  <!-- Add Product (Enhanced) -->
+  <section class="card p-4">
+    <h2 class="text-lg font-semibold text-gray-800 mb-3">➕ Add / Edit Product</h2>
 
-  <!-- Summary -->
-  <div class="mt-6 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
-    <h2 class="text-xl font-semibold text-indigo-700">Forecast Summary</h2>
-    <p id="summary" class="mt-2 text-gray-700"></p>
-  </div>
+    <div class="grid grid-cols-1 md:grid-cols-6 gap-3">
+      <input id="productName" placeholder="Product name (e.g., Premium Plan)" class="md:col-span-2 p-2 border rounded" />
+      <input id="monthlyRevenue" type="number" placeholder="Monthly revenue ($)" class="p-2 border rounded" />
+      <input id="monthlyExpense" type="number" placeholder="Monthly expense ($)" class="p-2 border rounded" />
+      <input id="growthRate" type="number" placeholder="Growth % / month" class="p-2 border rounded" />
+      <input id="seasonality" type="text" placeholder="Seasonality (e.g., +10,-5) optional" class="p-2 border rounded" />
+    </div>
+
+    <div class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <input id="capex" type="number" placeholder="One-time CapEx ($) optional" class="p-2 border rounded" />
+      <input id="revenueCap" type="number" placeholder="Revenue cap (max) optional" class="p-2 border rounded" />
+      <input id="productNotes" placeholder="Notes (optional)" class="p-2 border rounded" />
+    </div>
+
+    <div class="mt-3 flex gap-3">
+      <button id="addBtn" class="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700">Add Product</button>
+      <button id="addAndGenerate" class="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600">Add & Generate</button>
+      <div class="ml-auto text-sm muted self-center">
+        <strong>Total products:</strong> <span id="productCount">0</span> &nbsp;|&nbsp;
+        <strong>Total (start rev):</strong> $<span id="startTotal">0.00</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Table + Chart -->
+  <section class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+    <!-- Products list / table -->
+    <div class="card p-3 lg:col-span-1 overflow-auto" style="max-height:560px;">
+      <h3 class="font-semibold text-gray-800 mb-2">Products</h3>
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-xs text-gray-600"><th class="p-2">#</th><th>Product</th><th>Rev</th><th>Exp</th><th>Include</th></tr>
+        </thead>
+        <tbody id="productsList"></tbody>
+      </table>
+    </div>
+
+    <!-- Forecast table -->
+    <div class="card p-3 lg:col-span-2 overflow-auto">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-semibold text-gray-800">Forecast Table</h3>
+        <div class="flex gap-2 items-center">
+          <label class="text-sm muted">Months</label>
+          <input id="forecastMonths" type="number" value="12" min="1" class="w-20 p-1 border rounded" />
+          <button id="generateBtn" class="px-3 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700">Generate</button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm" id="forecastTable">
+          <thead class="text-left text-xs text-gray-600">
+            <tr>
+              <th class="p-2">Product</th><th>Start Rev</th><th>Growth%</th><th>Seasonality</th><th>CapEx</th><th>Month</th><th>Forecast Rev</th><th>Net</th>
+            </tr>
+          </thead>
+          <tbody id="forecastBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="card p-4 lg:col-span-0">
+      <h3 class="font-semibold mb-2 text-gray-800">Forecast Chart</h3>
+      <div class="h-64">
+        <canvas id="forecastChart"></canvas>
+      </div>
+      <div class="mt-3 text-sm muted">
+        Tip: Click a product in list to toggle inclusion on chart.
+      </div>
+    </div>
+  </section>
+
+  <!-- Summary & footer -->
+  <section class="card p-4">
+    <h3 class="text-lg font-semibold text-gray-800">Summary</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
+      <div class="p-3 bg-indigo-50 rounded">
+        <div class="text-sm muted">Projected last-month total</div>
+        <div id="projectedLast" class="text-xl font-semibold text-indigo-700">$0.00</div>
+      </div>
+      <div class="p-3 bg-green-50 rounded">
+        <div class="text-sm muted">Total Net Profit (last month)</div>
+        <div id="projectedNet" class="text-xl font-semibold text-green-700">$0.00</div>
+      </div>
+      <div class="p-3 bg-yellow-50 rounded">
+        <div class="text-sm muted">Avg monthly growth %</div>
+        <div id="avgGrowth" class="text-xl font-semibold text-yellow-700">0%</div>
+      </div>
+    </div>
+  </section>
+
 </div>
 
 <script>
+/* Revenue Forecast Pro — single-file implementation
+   - products[] contains product objects:
+     {id, name, startRevenue, expense, growthRate, seasonality (array or string), capex, revenueCap, notes, include}
+   - Chart.js used to draw one line per product for forecast months
+   - XLSX + jsPDF used for exports
+*/
+
 const products = [];
-const productNameInput = document.getElementById('productName');
-const baseRevenueInput = document.getElementById('baseRevenue');
-const baseExpenseInput = document.getElementById('baseExpense');
-const addProductBtn = document.getElementById('addProduct');
-const productsTableBody = document.querySelector('#productsTable tbody');
+let chart = null;
+
+// DOM refs
+const productName = document.getElementById('productName');
+const monthlyRevenue = document.getElementById('monthlyRevenue');
+const monthlyExpense = document.getElementById('monthlyExpense');
+const growthRate = document.getElementById('growthRate');
+const seasonalityInput = document.getElementById('seasonality');
+const capexInput = document.getElementById('capex');
+const revenueCapInput = document.getElementById('revenueCap');
+const productNotes = document.getElementById('productNotes');
+const addBtn = document.getElementById('addBtn');
+const addAndGenerate = document.getElementById('addAndGenerate');
+const productCount = document.getElementById('productCount');
+const startTotal = document.getElementById('startTotal');
+const productsList = document.getElementById('productsList');
+const forecastMonths = document.getElementById('forecastMonths');
+const generateBtn = document.getElementById('generateBtn');
+const forecastBody = document.getElementById('forecastBody');
+const projectedLast = document.getElementById('projectedLast');
+const projectedNet = document.getElementById('projectedNet');
+const avgGrowth = document.getElementById('avgGrowth');
+
 const resetBtn = document.getElementById('resetBtn');
-const exportExcelBtn = document.getElementById('exportExcel');
-const exportPDFBtn = document.getElementById('exportPDF');
-const summary = document.getElementById('summary');
+const backBtn = document.getElementById('backBtn');
+const exportExcelBtn = document.getElementById('exportExcelBtn');
+const exportPdfBtn = document.getElementById('exportPdfBtn');
 
-function renderTable() {
-  productsTableBody.innerHTML = '';
-  let totalRevenue = 0, totalExpense = 0, totalProfit = 0;
+// Helpers
+function uid(){ return Math.random().toString(36).slice(2,9); }
+function parseSeasonality(str){
+  // Accept either comma list like "10,-5,0,5" or single number applied to every month
+  if(!str) return null;
+  const parts = str.split(',').map(s=>s.trim()).filter(Boolean);
+  if(parts.length === 1) return parseFloat(parts[0]) || 0;
+  return parts.map(p => parseFloat(p) || 0);
+}
+function clamp(v, min, max){ if(min!=null && v<min) return min; if(max!=null && v>max) return max; return v; }
 
-  products.forEach((p, index) => {
-    const row = document.createElement('tr');
-    const netProfit = ((p.revenue * (1 + p.seasonality/100) * (1 + p.growth/100) - p.expense) - p.capex);
-    
-    if (p.include) {
-      totalRevenue += p.revenue * (1 + p.seasonality/100) * (1 + p.growth/100);
-      totalExpense += p.expense + p.capex;
-      totalProfit += netProfit;
+// Render product list (left)
+function renderProductsList(){
+  productsList.innerHTML = '';
+  products.forEach((p, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="p-2">${i+1}</td>
+      <td class="p-2 font-medium">${p.name}</td>
+      <td class="p-2">$${p.startRevenue.toLocaleString()}</td>
+      <td class="p-2">$${p.expense.toLocaleString()}</td>
+      <td class="p-2"><input type="checkbox" data-index="${i}" ${p.include ? 'checked' : ''} class="includeToggle" /></td>
+    `;
+    productsList.appendChild(tr);
+  });
+  productCount.innerText = products.length;
+  startTotal.innerText = products.reduce((s,p)=>s+p.startRevenue,0).toFixed(2);
+
+  // add toggle listeners
+  document.querySelectorAll('.includeToggle').forEach(chk=>{
+    chk.addEventListener('change', e=>{
+      const idx = e.target.dataset.index;
+      products[idx].include = e.target.checked;
+      // regenerate chart if already generated
+      if(chart) generateForecast();
+    });
+  });
+
+  // add click-to-edit (double-click product row)
+  productsList.querySelectorAll('tr').forEach((row, idx)=>{
+    row.addEventListener('dblclick', ()=>{
+      const p = products[idx];
+      productName.value = p.name;
+      monthlyRevenue.value = p.startRevenue;
+      monthlyExpense.value = p.expense;
+      growthRate.value = p.growthRate;
+      seasonalityInput.value = Array.isArray(p.seasonality) ? p.seasonality.join(',') : (p.seasonality || '');
+      capexInput.value = p.capex || '';
+      revenueCapInput.value = p.revenueCap || '';
+      productNotes.value = p.notes || '';
+      // remove old to permit edit re-add
+      products.splice(idx,1);
+      renderProductsList();
+    });
+  });
+}
+
+// Add product
+addBtn.addEventListener('click', ()=>{
+  const name = productName.value.trim();
+  const rev = parseFloat(monthlyRevenue.value);
+  const exp = parseFloat(monthlyExpense.value);
+  const growth = parseFloat(growthRate.value) || 0;
+  const season = parseSeasonality(seasonalityInput.value);
+  const capex = parseFloat(capexInput.value) || 0;
+  const revenueCap = parseFloat(revenueCapInput.value) || null;
+  const notes = productNotes.value.trim();
+
+  if(!name || isNaN(rev) || isNaN(exp)){
+    return alert('Please enter product name, monthly revenue and monthly expense.');
+  }
+
+  products.push({
+    id: uid(),
+    name,
+    startRevenue: rev,
+    startRevenueRaw: rev,
+    expense: exp,
+    growthRate: growth,
+    seasonality: season,
+    capex,
+    revenueCap,
+    notes,
+    include: true
+  });
+
+  // clear inputs
+  [productName, monthlyRevenue, monthlyExpense, growthRate, seasonalityInput, capexInput, revenueCapInput, productNotes].forEach(i => i.value = '');
+  renderProductsList();
+});
+
+// Add & generate
+addAndGenerate.addEventListener('click', ()=>{
+  addBtn.click();
+  generateBtn.click();
+});
+
+// Generate forecast and render table & chart
+generateBtn.addEventListener('click', generateForecast);
+
+function generateForecast(){
+  const months = parseInt(forecastMonths.value) || 12;
+  // build labels (Month 1..N)
+  const labels = Array.from({length: months}, (_,i)=>`M${i+1}`);
+
+  // table rows
+  let tableHtml = '';
+  const datasets = [];
+  const colors = ['#34d399','#60a5fa','#f97316','#ef4444','#a78bfa','#f472b6','#f59e0b','#06b6d4','#10b981','#fb7185'];
+  let projectedLastTotal = 0, projectedNetTotal = 0, growthSum = 0, growthCount = 0;
+
+  products.forEach((p, idx) => {
+    // compute series
+    let rev = p.startRevenue;
+    const series = [];
+    const seasonArr = Array.isArray(p.seasonality) ? p.seasonality : null;
+    for(let m=1;m<=months;m++){
+      // apply growth
+      rev = rev * (1 + (p.growthRate||0)/100);
+      // apply seasonality if per-month array
+      if(seasonArr && seasonArr[m-1] != null){
+        rev = rev * (1 + seasonArr[m-1]/100);
+      } else if(!seasonArr && p.seasonality != null && p.seasonality !== ''){
+        // single seasonality number applies as multiplier each month
+        const s = parseFloat(p.seasonality) || 0;
+        rev = rev * (1 + s/100);
+      }
+      // enforce cap
+      if(p.revenueCap) rev = Math.min(rev, p.revenueCap);
+      const net = rev - (p.expense || 0) - ((p.capex || 0) / months); // simple capex amortization across months
+      series.push(parseFloat(net.toFixed(2)));
+      // append table row
+      tableHtml += `<tr class="border-b"><td class="p-2">${p.name}</td><td class="p-2">$${p.startRevenue.toLocaleString()}</td><td class="p-2">${p.growthRate}%</td><td class="p-2">${Array.isArray(p.seasonality)? p.seasonality.join(',') : (p.seasonality||0)}</td><td class="p-2">$${(p.capex||0).toFixed(2)}</td><td class="p-2">M${m}</td><td class="p-2">$${rev.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td><td class="p-2">$${net.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>`;
     }
 
-    row.innerHTML = `
-      <td>${p.name}</td>
-      <td>$${p.revenue.toFixed(2)}</td>
-      <td>$${p.expense.toFixed(2)}</td>
-      <td><input type="number" value="${p.seasonality}" data-index="${index}" class="seasonalityInput w-16 text-center border rounded-md p-1"></td>
-      <td><input type="number" value="${p.growth}" data-index="${index}" class="growthInput w-16 text-center border rounded-md p-1"></td>
-      <td><input type="number" value="${p.capex}" data-index="${index}" class="capexInput w-16 text-center border rounded-md p-1"></td>
-      <td>$${netProfit.toFixed(2)}</td>
-      <td><input type="checkbox" ${p.include ? 'checked' : ''} data-index="${index}" class="includeCheckbox"></td>
-      <td><button class="removeBtn btn btn-secondary" data-index="${index}">Remove</button></td>
-    `;
-    productsTableBody.appendChild(row);
+    // collect projected totals and net for last month
+    const lastNet = series[series.length-1] || 0;
+    projectedLastTotal += (series[series.length-1] || 0) + (p.expense || 0); // approximate revenue (we used net previously) add back expense to get revenue
+    projectedNetTotal += lastNet;
+
+    // average growth
+    if(!isNaN(p.growthRate)) { growthSum += p.growthRate; growthCount++; }
+
+    // chart dataset only if product included
+    if(p.include){
+      datasets.push({
+        label: p.name,
+        data: series,
+        borderColor: colors[idx % colors.length],
+        backgroundColor: colors[idx % colors.length],
+        tension: 0.3,
+        fill: false,
+        pointRadius: 2
+      });
+    }
   });
 
-  summary.innerHTML = `
-    <strong>Total Revenue:</strong> $${totalRevenue.toFixed(2)} |
-    <strong>Total Expense:</strong> $${totalExpense.toFixed(2)} |
-    <strong>Net Profit:</strong> $${totalProfit.toFixed(2)}
-  `;
+  // update table
+  forecastBody.innerHTML = tableHtml || `<tr><td class="p-2" colspan="8">No forecast rows — add product & generate.</td></tr>`;
 
-  addTableListeners();
+  // chart render
+  const ctx = document.getElementById('forecastChart').getContext('2d');
+  if(chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      plugins: { legend: { position: 'bottom' }, tooltip: { mode: 'index', intersect:false } },
+      scales: { y: { ticks: { callback: v => '$' + v.toLocaleString() } } },
+      responsive: true, maintainAspectRatio:false
+    }
+  });
+
+  // update summary
+  projectedLast.innerText = '$' + (projectedLastTotal.toFixed(2));
+  projectedNet.innerText = '$' + (projectedNetTotal.toFixed(2));
+  avgGrowth.innerText = (growthCount ? (growthSum / growthCount).toFixed(2) : 0) + '%';
 }
 
-function addTableListeners() {
-  document.querySelectorAll('.seasonalityInput').forEach(el => el.addEventListener('input', e => updateValue(e, 'seasonality')));
-  document.querySelectorAll('.growthInput').forEach(el => el.addEventListener('input', e => updateValue(e, 'growth')));
-  document.querySelectorAll('.capexInput').forEach(el => el.addEventListener('input', e => updateValue(e, 'capex')));
-  document.querySelectorAll('.includeCheckbox').forEach(el => el.addEventListener('change', e => toggleInclude(e)));
-  document.querySelectorAll('.removeBtn').forEach(el => el.addEventListener('click', e => removeProduct(e)));
-}
-
-function updateValue(e, field) {
-  const index = e.target.dataset.index;
-  products[index][field] = parseFloat(e.target.value) || 0;
-  renderTable();
-}
-
-function toggleInclude(e) {
-  const index = e.target.dataset.index;
-  products[index].include = e.target.checked;
-  renderTable();
-}
-
-function removeProduct(e) {
-  const index = e.target.dataset.index;
-  products.splice(index, 1);
-  renderTable();
-}
-
-addProductBtn.addEventListener('click', () => {
-  const name = productNameInput.value.trim();
-  const revenue = parseFloat(baseRevenueInput.value);
-  const expense = parseFloat(baseExpenseInput.value);
-  if (!name || isNaN(revenue) || isNaN(expense)) return alert('Please fill all fields correctly.');
-  
-  products.push({ name, revenue, expense, seasonality: 0, growth: 0, capex: 0, include: true });
-  productNameInput.value = '';
-  baseRevenueInput.value = '';
-  baseExpenseInput.value = '';
-  renderTable();
+// Remove all data
+resetBtn.addEventListener('click', ()=>{
+  if(!confirm('Reset all products and forecasts?')) return;
+  products.length = 0;
+  renderProductsList();
+  forecastBody.innerHTML = '';
+  if(chart){ chart.destroy(); chart = null; }
+  projectedLast.innerText = '$0.00';
+  projectedNet.innerText = '$0.00';
+  avgGrowth.innerText = '0%';
 });
 
-resetBtn.addEventListener('click', () => {
-  if (confirm('Are you sure you want to reset all data?')) {
-    products.length = 0;
-    renderTable();
-    summary.innerHTML = '';
-  }
-});
+// Back to dashboard (change path if your dashboard filename differs)
+backBtn.addEventListener('click', ()=>{ window.location.href = 'index.html'; });
 
-exportExcelBtn.addEventListener('click', () => {
+// Export Excel
+exportExcelBtn.addEventListener('click', ()=>{
+  if(!forecastBody.innerHTML.trim()) return alert('Generate forecast before exporting.');
+  // Build array of rows from table
+  const rows = [];
+  const trs = forecastBody.querySelectorAll('tr');
+  trs.forEach(tr=>{
+    const tds = tr.querySelectorAll('td');
+    rows.push({
+      product: tds[0]?.innerText || '',
+      startRevenue: tds[1]?.innerText || '',
+      growth: tds[2]?.innerText || '',
+      seasonality: tds[3]?.innerText || '',
+      capex: tds[4]?.innerText || '',
+      month: tds[5]?.innerText || '',
+      forecastRevenue: tds[6]?.innerText || '',
+      net: tds[7]?.innerText || ''
+    });
+  });
+  const ws = XLSX.utils.json_to_sheet(rows);
   const wb = XLSX.utils.book_new();
-  const wsData = [['Product', 'Revenue', 'Expense', 'Seasonality', 'Growth', 'Capex', 'Net Profit', 'Include']];
-  products.forEach(p => {
-    wsData.push([
-      p.name, p.revenue, p.expense, p.seasonality, p.growth, p.capex,
-      ((p.revenue*(1+p.seasonality/100)*(1+p.growth/100)-p.expense)-p.capex).toFixed(2),
-      p.include
-    ]);
-  });
-  const ws = XLSX.utils.aoa_to_sheet(wsData);
   XLSX.utils.book_append_sheet(wb, ws, 'Forecast');
-  XLSX.writeFile(wb, 'revenue_forecast.xlsx');
+  XLSX.writeFile(wb, 'RevenueForecast.xlsx');
 });
 
-exportPDFBtn.addEventListener('click', () => {
+// Export PDF (chart + summary + top rows)
+exportPdfBtn.addEventListener('click', async ()=>{
+  if(!forecastBody.innerHTML.trim()) return alert('Generate forecast before exporting.');
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  doc.text('Revenue Forecast Report', 10, 10);
-  let y = 20;
-  products.forEach(p => {
-    doc.text(`${p.name} | Profit: $${((p.revenue*(1+p.seasonality/100)*(1+p.growth/100)-p.expense)-p.capex).toFixed(2)}`, 10, y);
-    y += 10;
-  });
-  doc.save('revenue_forecast.pdf');
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+  doc.setFontSize(18); doc.text('Revenue Forecast Report', 40, 40);
+  doc.setFontSize(11); doc.text(`Products: ${products.length} • Months: ${forecastMonths.value}`, 40, 62);
+  // chart
+  if(chart){
+    const dataUrl = chart.toBase64Image();
+    doc.addImage(dataUrl, 'PNG', 40, 80, 700, 240);
+  }
+  // table rows
+  let y = 340;
+  doc.setFontSize(9);
+  const trs = forecastBody.querySelectorAll('tr');
+  for(let i=0;i<trs.length;i++){
+    const cols = trs[i].querySelectorAll('td');
+    const line = `${i+1}. ${cols[0]?.innerText || ''} | ${cols[5]?.innerText || ''} | ${cols[6]?.innerText || ''} | ${cols[7]?.innerText || ''}`;
+    doc.text(line, 40, y);
+    y += 12;
+    if(y > 520){ doc.addPage(); y = 40; }
+  }
+  doc.setFontSize(11);
+  doc.text(`Projected last-month total: ${projectedLast.innerText}`, 40, y + 20);
+  doc.save('RevenueForecast.pdf');
 });
 
-renderTable();
+// Initialize: just render empty list
+renderProductsList();
+
 </script>
 </body>
 </html>
