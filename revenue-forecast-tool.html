@@ -3,70 +3,98 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Revenue Forecast Tool - Pro</title>
+<title>Revenue Forecast Tool - Advanced Pro</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 <style>
-  body { background: linear-gradient(135deg,#f3f4f6,#e5e7eb); font-family: sans-serif; }
-  .container { max-width: 1200px; margin: auto; padding: 2rem; }
-  table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-  th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-  th { background-color: #4f46e5; color: white; }
-  tr:hover { background-color: #eef2ff; }
-  .btn { padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer; }
-  .btn-primary { background-color: #4f46e5; color: white; }
-  .btn-secondary { background-color: #e5e7eb; color: #111827; }
-  .btn:hover { opacity: 0.9; }
+  body {
+    background: linear-gradient(135deg, #a5b4fc, #c7d2fe, #e0e7ff);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+  }
+  .container {
+    max-width: 1200px;
+    margin: auto;
+    background: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    margin-top: 3rem;
+  }
+  th {
+    background-color: #6366f1;
+    color: white;
+    font-weight: 600;
+  }
+  tr:hover {
+    background-color: #f3f4f6;
+  }
+  .btn {
+    padding: 0.6rem 1.2rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  .btn-primary { background: #4f46e5; color: white; }
+  .btn-primary:hover { background: #4338ca; }
+  .btn-secondary { background: #e5e7eb; color: #111827; }
+  .btn-secondary:hover { background: #d1d5db; }
+  .btn-danger { background: #ef4444; color: white; }
+  .btn-danger:hover { background: #dc2626; }
 </style>
 </head>
-<body>
-<div class="container bg-white p-6 rounded-xl shadow-lg">
-  <h1 class="text-2xl font-bold text-center text-indigo-700">Revenue Forecast Tool - Pro</h1>
 
-  <!-- Add Product -->
-  <div class="mt-4 flex gap-2">
-    <input type="text" id="productName" placeholder="Product Name" class="p-2 border rounded flex-1">
-    <input type="number" id="baseRevenue" placeholder="Base Monthly Revenue" class="p-2 border rounded flex-1">
-    <input type="number" id="baseExpense" placeholder="Base Monthly Expense" class="p-2 border rounded flex-1">
+<body>
+<div class="container">
+  <h1 class="text-3xl font-bold text-center text-indigo-700 mb-6">Revenue Forecast Tool - Advanced Pro</h1>
+
+  <!-- Add Product Section -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+    <input type="text" id="productName" placeholder="Product Name" class="p-2 border rounded-md">
+    <input type="number" id="baseRevenue" placeholder="Monthly Revenue ($)" class="p-2 border rounded-md">
+    <input type="number" id="baseExpense" placeholder="Monthly Expense ($)" class="p-2 border rounded-md">
     <button id="addProduct" class="btn btn-primary">Add Product</button>
   </div>
 
-  <!-- Products Table -->
-  <table id="productsTable" class="mt-4">
-    <thead>
-      <tr>
-        <th>Product</th>
-        <th>Revenue</th>
-        <th>Expense</th>
-        <th>Seasonality (%)</th>
-        <th>Growth (%)</th>
-        <th>Capex</th>
-        <th>Net Profit</th>
-        <th>Include</th>
-        <th>Remove</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <!-- Table -->
+  <div class="overflow-x-auto mt-6">
+    <table id="productsTable" class="w-full border border-gray-300 rounded-lg">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Revenue</th>
+          <th>Expense</th>
+          <th>Seasonality (%)</th>
+          <th>Growth (%)</th>
+          <th>CapEx</th>
+          <th>Net Profit</th>
+          <th>Include</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
   <!-- Controls -->
-  <div class="mt-4 flex gap-2">
-    <button id="resetBtn" class="btn btn-secondary">Reset</button>
+  <div class="flex flex-wrap gap-3 mt-6">
+    <button id="resetBtn" class="btn btn-danger">Reset Data</button>
     <button id="exportExcel" class="btn btn-primary">Export to Excel</button>
     <button id="exportPDF" class="btn btn-primary">Export to PDF</button>
   </div>
 
   <!-- Summary -->
-  <div class="mt-4">
+  <div class="mt-6 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
     <h2 class="text-xl font-semibold text-indigo-700">Forecast Summary</h2>
-    <p id="summary" class="mt-2"></p>
+    <p id="summary" class="mt-2 text-gray-700"></p>
   </div>
 </div>
 
 <script>
 const products = [];
-
 const productNameInput = document.getElementById('productName');
 const baseRevenueInput = document.getElementById('baseRevenue');
 const baseExpenseInput = document.getElementById('baseExpense');
@@ -83,9 +111,9 @@ function renderTable() {
 
   products.forEach((p, index) => {
     const row = document.createElement('tr');
-
     const netProfit = ((p.revenue * (1 + p.seasonality/100) * (1 + p.growth/100) - p.expense) - p.capex);
-    if(p.include) {
+    
+    if (p.include) {
       totalRevenue += p.revenue * (1 + p.seasonality/100) * (1 + p.growth/100);
       totalExpense += p.expense + p.capex;
       totalProfit += netProfit;
@@ -95,106 +123,94 @@ function renderTable() {
       <td>${p.name}</td>
       <td>$${p.revenue.toFixed(2)}</td>
       <td>$${p.expense.toFixed(2)}</td>
-      <td><input type="number" value="${p.seasonality}" min="-100" max="100" data-index="${index}" class="seasonalityInput w-16 text-center"></td>
-      <td><input type="number" value="${p.growth}" min="-100" max="100" data-index="${index}" class="growthInput w-16 text-center"></td>
-      <td><input type="number" value="${p.capex}" min="0" data-index="${index}" class="capexInput w-16 text-center"></td>
+      <td><input type="number" value="${p.seasonality}" data-index="${index}" class="seasonalityInput w-16 text-center border rounded-md p-1"></td>
+      <td><input type="number" value="${p.growth}" data-index="${index}" class="growthInput w-16 text-center border rounded-md p-1"></td>
+      <td><input type="number" value="${p.capex}" data-index="${index}" class="capexInput w-16 text-center border rounded-md p-1"></td>
       <td>$${netProfit.toFixed(2)}</td>
       <td><input type="checkbox" ${p.include ? 'checked' : ''} data-index="${index}" class="includeCheckbox"></td>
-      <td><button class="removeBtn btn btn-secondary" data-index="${index}">X</button></td>
+      <td><button class="removeBtn btn btn-secondary" data-index="${index}">Remove</button></td>
     `;
     productsTableBody.appendChild(row);
   });
 
   summary.innerHTML = `
-    <strong>Total Revenue:</strong> $${totalRevenue.toFixed(2)}, 
-    <strong>Total Expense:</strong> $${totalExpense.toFixed(2)}, 
-    <strong>Total Net Profit:</strong> $${totalProfit.toFixed(2)}
+    <strong>Total Revenue:</strong> $${totalRevenue.toFixed(2)} |
+    <strong>Total Expense:</strong> $${totalExpense.toFixed(2)} |
+    <strong>Net Profit:</strong> $${totalProfit.toFixed(2)}
   `;
 
-  addTableEventListeners();
+  addTableListeners();
 }
 
-function addTableEventListeners() {
-  document.querySelectorAll('.seasonalityInput').forEach(input => {
-    input.addEventListener('input', e => {
-      const i = e.target.dataset.index;
-      products[i].seasonality = parseFloat(e.target.value) || 0;
-      renderTable();
-    });
-  });
-  document.querySelectorAll('.growthInput').forEach(input => {
-    input.addEventListener('input', e => {
-      const i = e.target.dataset.index;
-      products[i].growth = parseFloat(e.target.value) || 0;
-      renderTable();
-    });
-  });
-  document.querySelectorAll('.capexInput').forEach(input => {
-    input.addEventListener('input', e => {
-      const i = e.target.dataset.index;
-      products[i].capex = parseFloat(e.target.value) || 0;
-      renderTable();
-    });
-  });
-  document.querySelectorAll('.includeCheckbox').forEach(input => {
-    input.addEventListener('change', e => {
-      const i = e.target.dataset.index;
-      products[i].include = e.target.checked;
-      renderTable();
-    });
-  });
-  document.querySelectorAll('.removeBtn').forEach(btn => {
-    btn.addEventListener('click', e => {
-      const i = e.target.dataset.index;
-      products.splice(i, 1);
-      renderTable();
-    });
-  });
+function addTableListeners() {
+  document.querySelectorAll('.seasonalityInput').forEach(el => el.addEventListener('input', e => updateValue(e, 'seasonality')));
+  document.querySelectorAll('.growthInput').forEach(el => el.addEventListener('input', e => updateValue(e, 'growth')));
+  document.querySelectorAll('.capexInput').forEach(el => el.addEventListener('input', e => updateValue(e, 'capex')));
+  document.querySelectorAll('.includeCheckbox').forEach(el => el.addEventListener('change', e => toggleInclude(e)));
+  document.querySelectorAll('.removeBtn').forEach(el => el.addEventListener('click', e => removeProduct(e)));
+}
+
+function updateValue(e, field) {
+  const index = e.target.dataset.index;
+  products[index][field] = parseFloat(e.target.value) || 0;
+  renderTable();
+}
+
+function toggleInclude(e) {
+  const index = e.target.dataset.index;
+  products[index].include = e.target.checked;
+  renderTable();
+}
+
+function removeProduct(e) {
+  const index = e.target.dataset.index;
+  products.splice(index, 1);
+  renderTable();
 }
 
 addProductBtn.addEventListener('click', () => {
   const name = productNameInput.value.trim();
   const revenue = parseFloat(baseRevenueInput.value);
   const expense = parseFloat(baseExpenseInput.value);
-  if(!name || isNaN(revenue) || isNaN(expense)) return alert('Enter valid product, revenue, and expense');
-  products.push({name, revenue, expense, seasonality:0, growth:0, capex:0, include:true});
-  productNameInput.value=''; baseRevenueInput.value=''; baseExpenseInput.value='';
+  if (!name || isNaN(revenue) || isNaN(expense)) return alert('Please fill all fields correctly.');
+  
+  products.push({ name, revenue, expense, seasonality: 0, growth: 0, capex: 0, include: true });
+  productNameInput.value = '';
+  baseRevenueInput.value = '';
+  baseExpenseInput.value = '';
   renderTable();
 });
 
 resetBtn.addEventListener('click', () => {
-  products.length = 0;
-  renderTable();
+  if (confirm('Are you sure you want to reset all data?')) {
+    products.length = 0;
+    renderTable();
+    summary.innerHTML = '';
+  }
 });
 
 exportExcelBtn.addEventListener('click', () => {
   const wb = XLSX.utils.book_new();
-  const wsData = [['Product','Revenue','Expense','Seasonality','Growth','Capex','Net Profit','Include']];
+  const wsData = [['Product', 'Revenue', 'Expense', 'Seasonality', 'Growth', 'Capex', 'Net Profit', 'Include']];
   products.forEach(p => {
     wsData.push([
-      p.name,
-      p.revenue,
-      p.expense,
-      p.seasonality,
-      p.growth,
-      p.capex,
+      p.name, p.revenue, p.expense, p.seasonality, p.growth, p.capex,
       ((p.revenue*(1+p.seasonality/100)*(1+p.growth/100)-p.expense)-p.capex).toFixed(2),
       p.include
     ]);
   });
   const ws = XLSX.utils.aoa_to_sheet(wsData);
-  XLSX.utils.book_append_sheet(wb, ws, 'Revenue Forecast');
+  XLSX.utils.book_append_sheet(wb, ws, 'Forecast');
   XLSX.writeFile(wb, 'revenue_forecast.xlsx');
 });
 
 exportPDFBtn.addEventListener('click', () => {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
-  doc.setFontSize(14);
-  doc.text("Revenue Forecast Report", 10, 10);
+  doc.text('Revenue Forecast Report', 10, 10);
   let y = 20;
   products.forEach(p => {
-    doc.text(`${p.name} | Revenue: $${p.revenue} | Expense: $${p.expense} | Net Profit: $${((p.revenue*(1+p.seasonality/100)*(1+p.growth/100)-p.expense)-p.capex).toFixed(2)}`, 10, y);
+    doc.text(`${p.name} | Profit: $${((p.revenue*(1+p.seasonality/100)*(1+p.growth/100)-p.expense)-p.capex).toFixed(2)}`, 10, y);
     y += 10;
   });
   doc.save('revenue_forecast.pdf');
