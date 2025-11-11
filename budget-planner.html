@@ -505,7 +505,22 @@ budgetContainer.addEventListener('keydown', (e)=>{
     if(e.target.id === 'quickDesc'){ quickAddBtn.click(); }
   }
 });
+<!-- Monthly Total Bar -->
+<div id="monthlyTotalBar" class="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white p-4 shadow-lg flex justify-between items-center z-50">
+  <h2 class="text-lg font-semibold">Monthly Total</h2>
+  <span id="monthlyTotal" class="text-xl font-bold">$0.00</span>
+</div>
 
+<style>
+  /* Ensures main content never hides behind fixed footer */
+  body { padding-bottom: 80px; }
+
+  #monthlyTotalBar {
+    transition: all 0.3s ease-in-out;
+    backdrop-filter: blur(10px);
+  }
+</style>
+  
 </script>
 </body>
 </html>
