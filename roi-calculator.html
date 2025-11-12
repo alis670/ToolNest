@@ -1,113 +1,81 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Advanced ROI Calculator - ToolNest</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 min-h-screen flex items-center justify-center">
+import React, { useState, useMemo } from 'react';
 
-<div class="bg-white/20 backdrop-blur rounded-xl p-8 w-full max-w-lg shadow-lg space-y-6">
-  <h1 class="text-2xl font-bold text-white text-center mb-4">Advanced ROI Calculator</h1>
+// ToolNest ROI Calculator with Worldwide Currencies and SVG flags export default function ToolNestROICalc() { const [amountInvested, setAmountInvested] = useState('1000'); const [amountReturned, setAmountReturned] = useState('2000'); const [useDates, setUseDates] = useState(true); const [fromDate, setFromDate] = useState('2021-01-01'); const [toDate, setToDate] = useState('2025-03-20'); const [yearsManual, setYearsManual] = useState('4.134'); const [currency, setCurrency] = useState('USD');
 
-  <div class="space-y-4">
-    <div>
-      <label class="text-white font-semibold">Investment Amount</label>
-      <input id="investment" type="number" placeholder="Enter investment amount" class="w-full p-2 rounded bg-white/30 text-white placeholder-white border border-white/30">
+const currencies = [ { code: 'USD', symbol: '$', name: 'US Dollar', flag: '🇺🇸' }, { code: 'EUR', symbol: '€', name: 'Euro', flag: '🇪🇺' }, { code: 'GBP', symbol: '£', name: 'British Pound', flag: '🇬🇧' }, { code: 'JPY', symbol: '¥', name: 'Japanese Yen', flag: '🇯🇵' }, { code: 'AUD', symbol: 'A$', name: 'Australian Dollar', flag: '🇦🇺' }, { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar', flag: '🇨🇦' }, { code: 'CHF', symbol: 'CHF', name: 'Swiss Franc', flag: '🇨🇭' }, { code: 'CNY', symbol: '¥', name: 'Chinese Yuan', flag: '🇨🇳' }, { code: 'INR', symbol: '₹', name: 'Indian Rupee', flag: '🇮🇳' }, { code: 'PKR', symbol: '₨', name: 'Pakistani Rupee', flag: '🇵🇰' }, { code: 'BRL', symbol: 'R$', name: 'Brazilian Real', flag: '🇧🇷' }, { code: 'ZAR', symbol: 'R', name: 'South African Rand', flag: '🇿🇦' }, { code: 'MXN', symbol: 'Mex$', name: 'Mexican Peso', flag: '🇲🇽' }, // Add all other currencies similarly ];
+
+const selectedCurrency = currencies.find(c => c.code === currency) || currencies[0];
+
+const parsedInvested = useMemo(() => parseFloat(String(amountInvested).replace(/[^0-9.-]+/g, '')) || 0, [amountInvested]); const parsedReturned = useMemo(() => parseFloat(String(amountReturned).replace(/[^0-9.-]+/g, '')) || 0, [amountReturned]);
+
+function calcInvestmentLengthYears() { if (useDates) { const f = new Date(fromDate); const t = new Date(toDate); if (!isFinite(f) || !isFinite(t) || t <= f) return 0; const diffDays = (t - f) / (1000 * 60 * 60 * 24); return diffDays / 365.25; } const v = parseFloat(yearsManual); return isFinite(v) && v > 0 ? v : 0; }
+
+const years = calcInvestmentLengthYears(); const gain = parsedReturned - parsedInvested; const roi = parsedInvested === 0 ? 0 : (gain / parsedInvested) * 100; const annualizedROI = (parsedInvested <= 0 || parsedReturned <= 0 || years <= 0) ? 0 : (Math.pow(parsedReturned / parsedInvested, 1 / years) - 1) * 100;
+
+function formatCurrency(n) { if (!isFinite(n)) return ${selectedCurrency.symbol}0.00; return ${selectedCurrency.flag} ${selectedCurrency.symbol}${Number(n).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}; }
+
+return ( <div className="max-w-3xl mx-auto p-6"> <div className="bg-white shadow-lg rounded-2xl p-6"> <h1 className="text-2xl font-semibold mb-4">ToolNest — ROI Calculator</h1>
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <label>
+        <div className="text-sm font-medium text-gray-700">Amount Invested</div>
+        <input type="text" value={amountInvested} onChange={(e) => setAmountInvested(e.target.value)} className="mt-1 block w-full rounded-lg border-gray-200 shadow-sm p-2" />
+      </label>
+
+      <label>
+        <div className="text-sm font-medium text-gray-700">Amount Returned</div>
+        <input type="text" value={amountReturned} onChange={(e) => setAmountReturned(e.target.value)} className="mt-1 block w-full rounded-lg border-gray-200 shadow-sm p-2" />
+      </label>
+
+      <label className="md:col-span-2">
+        <div className="text-sm font-medium text-gray-700">Currency</div>
+        <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="mt-1 block w-full rounded-lg border-gray-200 p-2">
+          {currencies.map(c => (
+            <option key={c.code} value={c.code}>{c.flag} {c.code} - {c.name}</option>
+          ))}
+        </select>
+      </label>
     </div>
-    <div>
-      <label class="text-white font-semibold">Return Amount</label>
-      <input id="returnAmount" type="number" placeholder="Enter return amount" class="w-full p-2 rounded bg-white/30 text-white placeholder-white border border-white/30">
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <label className="flex items-center gap-2">
+        <input type="radio" checked={useDates} onChange={() => setUseDates(true)} /> Use From/To Dates
+      </label>
+      <label className="flex items-center gap-2">
+        <input type="radio" checked={!useDates} onChange={() => setUseDates(false)} /> Enter Years Manually
+      </label>
+
+      {useDates ? (
+        <>
+          <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="rounded-lg p-2" />
+          <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="rounded-lg p-2" />
+        </>
+      ) : (
+        <input type="number" step="0.001" value={yearsManual} onChange={(e) => setYearsManual(e.target.value)} className="rounded-lg p-2" />
+      )}
     </div>
-    <div>
-      <label class="text-white font-semibold">Time Period (years)</label>
-      <input id="timePeriod" type="number" placeholder="Optional, for annualized ROI" class="w-full p-2 rounded bg-white/30 text-white placeholder-white border border-white/30">
+
+    <div className="bg-gray-50 rounded-lg p-4 grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <div>
+        <div className="text-xs text-gray-500">Investment Gain</div>
+        <div className="text-lg font-semibold">{formatCurrency(gain)}</div>
+      </div>
+      <div>
+        <div className="text-xs text-gray-500">ROI</div>
+        <div className="text-lg font-semibold">{Number(roi).toFixed(2)}%</div>
+      </div>
+      <div>
+        <div className="text-xs text-gray-500">Annualized ROI</div>
+        <div className="text-lg font-semibold">{Number(annualizedROI).toFixed(2)}%</div>
+      </div>
+      <div className="md:col-span-3">
+        <div className="text-xs text-gray-500">Investment Length</div>
+        <div>{years > 0 ? `${years.toFixed(3)} years` : '—'}</div>
+      </div>
     </div>
+
+    <div className="text-xs text-gray-500">Tip: Use annualized ROI to compare investments with different timeframes.</div>
   </div>
-
-  <div class="flex space-x-2">
-    <button id="calculateBtn" class="flex-1 bg-indigo-600 text-white py-2 rounded-lg font-semibold hover:bg-indigo-700">Calculate</button>
-    <button id="resetBtn" class="flex-1 bg-red-500 text-white py-2 rounded-lg font-semibold hover:bg-red-600">Reset</button>
-  </div>
-
-  <div id="result" class="text-white font-semibold text-center text-lg mt-4"></div>
-
-  <canvas id="roiChart" class="mt-6 bg-white/10 rounded-lg"></canvas>
-
-  <button onclick="window.history.back()" class="w-full bg-purple-600 text-white py-2 rounded-lg font-semibold hover:bg-purple-700">Back to Dashboard</button>
 </div>
 
-<script>
-const investmentInput = document.getElementById('investment');
-const returnInput = document.getElementById('returnAmount');
-const timeInput = document.getElementById('timePeriod');
-const calculateBtn = document.getElementById('calculateBtn');
-const resetBtn = document.getElementById('resetBtn');
-const resultDiv = document.getElementById('result');
-const ctx = document.getElementById('roiChart').getContext('2d');
-let chart;
-
-function calculateROI() {
-  const investment = parseFloat(investmentInput.value);
-  const returns = parseFloat(returnInput.value);
-  const time = parseFloat(timeInput.value) || 1;
-
-  if(isNaN(investment) || investment <= 0 || isNaN(returns) || returns <= 0){
-    resultDiv.innerText = "Enter valid positive numbers for investment and return.";
-    return;
-  }
-
-  const simpleROI = ((returns - investment)/investment) * 100;
-  const annualizedROI = ((returns/investment)**(1/time) - 1) * 100;
-
-  resultDiv.innerHTML = `
-    Simple ROI: <span class="font-bold">${simpleROI.toFixed(2)}%</span><br>
-    Annualized ROI: <span class="font-bold">${annualizedROI.toFixed(2)}%</span>
-  `;
-
-  // Generate chart data
-  const years = [];
-  const values = [];
-  for(let i=0;i<=time;i++){
-    years.push(i);
-    values.push(investment * (1 + annualizedROI/100)**i);
-  }
-
-  if(chart) chart.destroy();
-  chart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: years,
-      datasets: [{
-        label: 'Investment Growth',
-        data: values,
-        borderColor: 'rgba(255,255,255,0.8)',
-        backgroundColor: 'rgba(255,255,255,0.3)',
-        fill: true,
-        tension: 0.3
-      }]
-    },
-    options: {
-      plugins: { legend: { labels: { color: 'white' } } },
-      scales: {
-        x: { ticks: { color: 'white' }, title: { color: 'white', display:true, text:'Year' } },
-        y: { ticks: { color: 'white' }, title: { color: 'white', display:true, text:'Value' } }
-      }
-    }
-  });
-}
-
-calculateBtn.addEventListener('click', calculateROI);
-resetBtn.addEventListener('click', () => {
-  investmentInput.value = '';
-  returnInput.value = '';
-  timeInput.value = '';
-  resultDiv.innerHTML = '';
-  if(chart) chart.destroy();
-});
-</script>
-
-</body>
-</html>
+); }
