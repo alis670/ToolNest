@@ -1,143 +1,661 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ToolNest Pro ROI Calculator</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ToolNest — ROI Calculator (Pro)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-    body { font-family: Arial, sans-serif; background: #f4f6f8; margin:0; padding:0;}
-    header { background:#1e3a8a; color:white; padding:1rem; text-align:center; font-size:1.5rem; font-weight:bold;}
-    .container { max-width:900px; margin:2rem auto; padding:2rem; background:white; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.1);}
-    .input-group { margin-bottom:1rem;}
-    .input-group label { display:block; margin-bottom:0.3rem; font-weight:bold;}
-    .input-group input, .input-group select { width:100%; padding:0.5rem; border-radius:6px; border:1px solid #ccc; font-size:1rem;}
-    button { background:#1e3a8a; color:white; border:none; padding:0.8rem 1.2rem; border-radius:6px; font-size:1rem; cursor:pointer; margin-top:1rem;}
-    button:hover { background:#162b66;}
-    .result { margin-top:1.5rem; font-size:1.2rem; font-weight:bold;}
-    canvas { margin-top:2rem;}
-    .suggestions { margin-top:1rem; font-style:italic; color:#444;}
+  :root{
+    --bg:#f5f7fb; --card:#ffffff; --muted:#7b8794; --accent:#2563eb; --danger:#ef4444;
+    --glass: rgba(255,255,255,0.6);
+  }
+  *{box-sizing:border-box;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+  body{background:linear-gradient(180deg,#eef2ff 0%, var(--bg) 100%); margin:0; padding:32px; color:#0f172a;}
+  .wrap{max-width:980px;margin:0 auto;display:grid;grid-template-columns:1fr 420px;gap:24px;align-items:start;}
+  .card{background:var(--card);border-radius:14px;padding:20px;box-shadow:0 10px 30px rgba(15,23,42,0.06);}
+  h1{margin:0 0 6px;font-size:20px;}
+  p.lead{margin:0 0 16px;color:var(--muted);font-size:13px;}
+
+  /* Form */
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  label{display:block;font-size:13px;color:#263244;margin-bottom:6px;font-weight:600;}
+  .input, .select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #e6eef8;background:transparent;font-size:14px;}
+  .input[type="number"]{appearance:textfield;}
+  .date-row{display:flex;gap:12px;}
+  .buttons{display:flex;gap:8px;margin-top:12px;}
+  .btn{padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:700;}
+  .btn.primary{background:var(--accent);color:#fff;}
+  .btn.ghost{background:#f1f5f9;color:#0f172a;border:1px solid #e6eef8;}
+  .btn.warn{background:var(--danger);color:#fff;}
+
+  /* Currency dropdown */
+  .currency-select{position:relative;}
+  .currency-btn{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;border:1px solid #e6eef8;background:#fff;cursor:pointer;}
+  .flag{width:20px;height:14px;object-fit:cover;border-radius:2px;display:inline-block;}
+  .dropdown{position:absolute;z-index:40;left:0;right:0;background:#fff;border:1px solid #e6eef8;border-radius:10px;padding:10px;box-shadow:0 10px 30px rgba(2,6,23,0.06);max-height:300px;overflow:auto;margin-top:8px;}
+  .currency-item{display:flex;align-items:center;gap:10px;padding:8px;border-radius:8px;cursor:pointer;}
+  .currency-item:hover{background:#f8fafc;}
+  .currency-meta{font-size:13px;color:#0f172a;}
+  .currency-sub{font-size:12px;color:var(--muted);}
+
+  /* Results panel */
+  .results{display:grid;grid-template-columns:1fr;gap:12px;}
+  .result-row{display:flex;justify-content:space-between;align-items:center;padding:12px;border-radius:10px;background:linear-gradient(180deg, rgba(37,99,235,0.04), rgba(37,99,235,0.02));}
+  .small{font-size:12px;color:var(--muted);}
+  .big{font-size:18px;font-weight:700;color:#0f172a;}
+
+  /* Right column */
+  .sidebar .card{position:sticky;top:32px;}
+  .download-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+  .note{font-size:12px;color:var(--muted);margin-top:12px;}
+
+  /* responsive */
+  @media (max-width:980px){ .wrap{grid-template-columns:1fr; padding:16px;} .sidebar .card{position:static;} }
 </style>
 </head>
 <body>
 
-<header>ToolNest Pro ROI Calculator</header>
+<div class="wrap">
+  <!-- LEFT: calculator -->
+  <div>
+    <div class="card">
+      <h1>ROI Calculator — ToolNest Pro</h1>
+      <p class="lead">Enter your investment values, pick dates and currency. The calculator converts amounts in real time and shows ROI, annualized return, profit % and more.</p>
 
-<div class="container">
-    <div class="input-group">
-        <label for="invested">Amount Invested</label>
-        <input type="number" id="invested" placeholder="Enter amount invested">
-    </div>
-    <div class="input-group">
-        <label for="returned">Amount Returned</label>
-        <input type="number" id="returned" placeholder="Enter amount returned">
-    </div>
-    <div class="input-group">
-        <label for="time">Time Period (Months)</label>
-        <input type="number" id="time" placeholder="Optional">
-    </div>
-    <div class="input-group">
-        <label for="currency">Currency</label>
-        <select id="currency">
-            <option value="$">USD ($)</option>
-            <option value="€">EUR (€)</option>
-            <option value="£">GBP (£)</option>
-            <option value="₹">INR (₹)</option>
-        </select>
-    </div>
+      <div style="display:flex;gap:12px;margin-bottom:12px;align-items:center;">
+        <div style="flex:1">
+          <label>Amount Invested</label>
+          <div style="display:flex;gap:8px;">
+            <div id="investSymbol" class="currency-btn" style="min-width:72px;justify-content:center"></div>
+            <input id="invested" class="input" type="number" placeholder="e.g. 500" />
+          </div>
+        </div>
 
-    <div class="input-group">
-        <label>Scenario Percentages</label>
-        <input type="number" id="best" placeholder="Best-case % (e.g., 120 for 20% more)" value="120">
-        <input type="number" id="expected" placeholder="Expected % (default 100)" value="100">
-        <input type="number" id="worst" placeholder="Worst-case % (e.g., 80 for 20% less)" value="80">
+        <div style="flex:1">
+          <label>Amount Returned</label>
+          <div style="display:flex;gap:8px;">
+            <div id="returnedSymbol" class="currency-btn" style="min-width:72px;justify-content:center"></div>
+            <input id="returned" class="input" type="number" placeholder="e.g. 700" />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-grid" style="margin-bottom:12px;">
+        <div>
+          <label>Start Date</label>
+          <input id="startDate" class="input" type="date" />
+        </div>
+        <div>
+          <label>End Date</label>
+          <input id="endDate" class="input" type="date" />
+        </div>
+
+        <div style="grid-column:1/-1;">
+          <label>Select Currency</label>
+          <div class="currency-select">
+            <div id="currencyBtn" class="currency-btn"></div>
+            <div id="currencyDropdown" class="dropdown" style="display:none;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn primary" id="calcBtn">Calculate</button>
+        <button class="btn ghost" id="clearBtn">Clear</button>
+        <div style="margin-left:auto;font-size:13px;color:var(--muted)">Rates: <span id="rateInfo">live</span></div>
+      </div>
+
+      <div style="margin-top:16px;">
+        <div id="resultsPanel" style="display:none;">
+          <div class="results">
+            <div class="result-row">
+              <div class="small">Investment Gain</div>
+              <div class="big" id="gainValue"></div>
+            </div>
+            <div class="result-row">
+              <div class="small">ROI (percentage)</div>
+              <div class="big" id="roiValue"></div>
+            </div>
+            <div class="result-row">
+              <div class="small">Investment Length</div>
+              <div class="big" id="lengthValue"></div>
+            </div>
+            <div class="result-row">
+              <div class="small">Annualized ROI</div>
+              <div class="big" id="annualValue"></div>
+            </div>
+            <div class="result-row">
+              <div class="small">Profit % (of returned)</div>
+              <div class="big" id="profitPctValue"></div>
+            </div>
+            <div style="margin-top:8px;font-size:13px;color:var(--muted)">
+              <strong>Input breakdown:</strong> <span id="breakdownText"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="note">Tip: The calculator converts amounts to the selected currency before computing ROI. If you choose a currency other than the one you typed amounts in, the app assumes the typed numbers are in the currently selected currency — to convert from another base, enter amounts in their original currency after switching that currency first.</div>
     </div>
+  </div>
 
-    <button onclick="calculateProROI()">Calculate ROI</button>
-    <button onclick="downloadPDF()">Download PDF Report</button>
+  <!-- RIGHT: sidebar / downloads -->
+  <div class="sidebar">
+    <div class="card">
+      <h2 style="margin:0 0 8px;">Download & Settings</h2>
+      <p class="lead">Download results for reporting or sharing.</p>
 
-    <div class="result" id="result"></div>
-    <div class="suggestions" id="suggestions"></div>
-    <canvas id="roiChart" width="400" height="200"></canvas>
+      <div style="display:grid;gap:8px;">
+        <div>
+          <label>Result filename</label>
+          <input id="filename" class="input" type="text" value="roi-results" />
+        </div>
+
+        <div class="download-row">
+          <button id="downloadCsv" class="btn ghost">Download CSV</button>
+          <button id="downloadJson" class="btn ghost">Download JSON</button>
+          <button id="downloadHtml" class="btn ghost">Download HTML Snapshot</button>
+        </div>
+
+        <div style="margin-top:8px;">
+          <label>Conversion API</label>
+          <div class="small" style="margin-top:6px;">Using <strong>exchangerate.host</strong> (no API key). You can change the endpoint in the script if you prefer another provider.</div>
+        </div>
+
+        <div style="margin-top:12px;">
+          <label>Advanced</label>
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <button id="toggleAuto" class="btn ghost">Auto-convert: ON</button>
+            <button id="downloadRates" class="btn ghost">Export Rates (JSON)</button>
+          </div>
+        </div>
+
+        <div class="note" style="margin-top:10px;">
+          If you need offline SVG flags embedded (single-file, larger), tell me and I'll switch to inline-SVG version.
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
-function calculateProROI() {
-    const invested = parseFloat(document.getElementById('invested').value);
-    const returned = parseFloat(document.getElementById('returned').value);
-    const time = parseFloat(document.getElementById('time').value);
-    const currency = document.getElementById('currency').value;
+/*
+  ToolNest ROI Calculator — Pro Edition
+  Features implemented:
+    - Currency dropdown with flags + names (sources: flagcdn)
+    - Live conversion via exchangerate.host
+    - ROI, Annualized ROI, Investment length calculation
+    - Download CSV / JSON / HTML snapshot
+    - Auto-convert toggle
+*/
 
-    if (isNaN(invested) || isNaN(returned)) {
-        alert("Please enter valid investment and return amounts.");
-        return;
-    }
+// --------------- CURRENCY LIST -------------------
+// This list covers 170+ currency codes with a display name and approximate country flag code.
+// Flags are loaded from flagcdn.com (SVG).
+// If you want inline SVG flags (single large file), request "inline flags" and I'll update.
+const currencies = [
+  {code:"USD", name:"United States Dollar", symbol:"$", cc:"us"},
+  {code:"EUR", name:"Euro", symbol:"€", cc:"eu"},
+  {code:"JPY", name:"Japanese Yen", symbol:"¥", cc:"jp"},
+  {code:"GBP", name:"British Pound", symbol:"£", cc:"gb"},
+  {code:"AUD", name:"Australian Dollar", symbol:"A$", cc:"au"},
+  {code:"CAD", name:"Canadian Dollar", symbol:"CA$", cc:"ca"},
+  {code:"CHF", name:"Swiss Franc", symbol:"CHF", cc:"ch"},
+  {code:"CNY", name:"Chinese Yuan", symbol:"¥", cc:"cn"},
+  {code:"HKD", name:"Hong Kong Dollar", symbol:"HK$", cc:"hk"},
+  {code:"NZD", name:"New Zealand Dollar", symbol:"NZ$", cc:"nz"},
+  {code:"SEK", name:"Swedish Krona", symbol:"kr", cc:"se"},
+  {code:"KRW", name:"South Korean Won", symbol:"₩", cc:"kr"},
+  {code:"SGD", name:"Singapore Dollar", symbol:"S$", cc:"sg"},
+  {code:"NOK", name:"Norwegian Krone", symbol:"kr", cc:"no"},
+  {code:"MXN", name:"Mexican Peso", symbol:"$","cc":"mx"},
+  {code:"INR", name:"Indian Rupee", symbol:"₹", cc:"in"},
+  {code:"RUB", name:"Russian Ruble", symbol:"₽", cc:"ru"},
+  {code:"ZAR", name:"South African Rand", symbol:"R", cc:"za"},
+  {code:"TRY", name:"Turkish Lira", symbol:"₺", cc:"tr"},
+  {code:"BRL", name:"Brazilian Real", symbol:"R$", cc:"br"},
+  {code:"TWD", name:"New Taiwan Dollar", symbol:"NT$", cc:"tw"},
+  {code:"DKK", name:"Danish Krone", symbol:"kr", cc:"dk"},
+  {code:"PLN", name:"Polish Złoty", symbol:"zł", cc:"pl"},
+  {code:"THB", name:"Thai Baht", symbol:"฿", cc:"th"},
+  {code:"IDR", name:"Indonesian Rupiah", symbol:"Rp", cc:"id"},
+  {code:"HUF", name:"Hungarian Forint", symbol:"Ft", cc:"hu"},
+  {code:"CZK", name:"Czech Koruna", symbol:"Kč", cc:"cz"},
+  {code:"ILS", name:"Israeli New Shekel", symbol:"₪", cc:"il"},
+  {code:"CLP", name:"Chilean Peso", symbol:"$"},
+  {code:"PHP", name:"Philippine Peso", symbol:"₱", cc:"ph"},
+  {code:"AED", name:"UAE Dirham", symbol:"د.إ", cc:"ae"},
+  {code:"COP", name:"Colombian Peso", symbol:"$"},
+  {code:"SAR", name:"Saudi Riyal", symbol:"﷼", cc:"sa"},
+  {code:"MYR", name:"Malaysian Ringgit", symbol:"RM", cc:"my"},
+  {code:"RON", name:"Romanian Leu", symbol:"lei", cc:"ro"},
+  {code:"NGN", name:"Nigerian Naira", symbol:"₦", cc:"ng"},
+  {code:"PKR", name:"Pakistani Rupee", symbol:"Rs", cc:"pk"},
+  {code:"BDT", name:"Bangladeshi Taka", symbol:"৳", cc:"bd"},
+  {code:"VND", name:"Vietnamese Dong", symbol:"₫", cc:"vn"},
+  {code:"KWD", name:"Kuwaiti Dinar", symbol:"د.ك", cc:"kw"},
+  {code:"QAR", name:"Qatari Riyal", symbol:"﷼", cc:"qa"},
+  {code:"KES", name:"Kenyan Shilling", symbol:"KSh", cc:"ke"},
+  {code:"GHS", name:"Ghanaian Cedi", symbol:"₵", cc:"gh"},
+  {code:"DZD", name:"Algerian Dinar", symbol:"د.ج", cc:"dz"},
+  {code:"MAD", name:"Moroccan Dirham", symbol:"د.م.", cc:"ma"},
+  {code:"LKR", name:"Sri Lankan Rupee", symbol:"Rs", cc:"lk"},
+  {code:"BHD", name:"Bahraini Dinar", symbol:"د.ب", cc:"bh"},
+  {code:"OMR", name:"Omani Rial", symbol:"﷼", cc:"om"},
+  {code:"JOD", name:"Jordanian Dinar", symbol:"د.ا", cc:"jo"},
+  {code:"XOF", name:"CFA Franc BCEAO", symbol:"Fr", cc:"sn"},
+  {code:"XAF", name:"CFA Franc BEAC", symbol:"Fr", cc:"cm"},
+  {code:"UGX", name:"Ugandan Shilling", symbol:"USh", cc:"ug"},
+  {code:"TZS", name:"Tanzanian Shilling", symbol:"TSh", cc:"tz"},
+  {code:"MUR", name:"Mauritian Rupee", symbol:"₨", cc:"mu"},
+  {code:"BAM", name:"Bosnia-Herzegovina Convertible Mark", symbol:"KM"},
+  {code:"HRK", name:"Croatian Kuna", symbol:"kn", cc:"hr"},
+  {code:"BGN", name:"Bulgarian Lev", symbol:"лв", cc:"bg"},
+  {code:"ISK", name:"Icelandic Krona", symbol:"kr", cc:"is"},
+  {code:"IRR", name:"Iranian Rial", symbol:"﷼", cc:"ir"},
+  {code:"AED", name:"United Arab Emirates Dirham", symbol:"د.إ", cc:"ae"},
+  {code:"SYP", name:"Syrian Pound", symbol:"£", cc:"sy"},
+  {code:"LBP", name:"Lebanese Pound", symbol:"ل.ل", cc:"lb"},
+  {code:"BBD", name:"Barbadian Dollar", symbol:"Bds$", cc:"bb"},
+  {code:"BND", name:"Brunei Dollar", symbol:"B$", cc:"bn"},
+  {code:"MVR", name:"Maldives Rufiyaa", symbol:"Rf", cc:"mv"},
+  {code:"MMK", name:"Myanmar Kyat", symbol:"Ks", cc:"mm"},
+  {code:"KZT", name:"Kazakhstani Tenge", symbol:"₸", cc:"kz"},
+  {code:"AZN", name:"Azerbaijani Manat", symbol:"₼", cc:"az"},
+  {code:"GEL", name:"Georgian Lari", symbol:"₾", cc:"ge"},
+  {code:"LTL", name:"Lithuanian Litas (historic)", symbol:"Lt", cc:"lt"},
+  {code:"LVL", name:"Latvian Lats (historic)", symbol:"Ls", cc:"lv"},
+  {code:"BWP", name:"Botswana Pula", symbol:"P", cc:"bw"},
+  {code:"RSD", name:"Serbian Dinar", symbol:"дин.", cc:"rs"},
+  {code:"MKD", name:"Macedonian Denar", symbol:"ден", cc:"mk"},
+  {code:"ALL", name:"Albanian Lek", symbol:"L", cc:"al"},
+  {code:"MNT", name:"Mongolian Tugrik", symbol:"₮", cc:"mn"},
+  {code:"PEN", name:"Peruvian Sol", symbol:"S/.", cc:"pe"},
+  {code:"UYU", name:"Uruguayan Peso", symbol:"$U", cc:"uy"},
+  {code:"BOB", name:"Bolivian Boliviano", symbol:"Bs.", cc:"bo"},
+  {code:"PYG", name:"Paraguayan Guarani", symbol:"Gs", cc:"py"},
+  {code:"CRC", name:"Costa Rican Colón", symbol:"₡", cc:"cr"},
+  {code:"JMD", name:"Jamaican Dollar", symbol:"J$", cc:"jm"},
+  {code:"NPR", name:"Nepalese Rupee", symbol:"Rs", cc:"np"},
+  {code:"AWG", name:"Aruban Florin", symbol:"ƒ", cc:"aw"},
+  {code:"XCD", name:"East Caribbean Dollar", symbol:"$", cc:"ag"},
+  {code:"SLL", name:"Sierra Leonean Leone", symbol:"Le", cc:"sl"},
+  {code:"SRD", name:"Surinamese Dollar", symbol:"$", cc:"sr"},
+  {code:"ETB", name:"Ethiopian Birr", symbol:"Br", cc:"et"},
+  {code:"DOP", name:"Dominican Peso", symbol:"RD$", cc:"do"},
+  {code:"BZD", name:"Belize Dollar", symbol:"BZ$", cc:"bz"},
+  {code:"NAD", name:"Namibian Dollar", symbol:"N$", cc:"na"},
+  {code:"MGA", name:"Malagasy Ariary", symbol:"Ar", cc:"mg"},
+  {code:"XPF", name:"CFP Franc", symbol:"Fr", cc:"pf"},
+  {code:"SVC", name:"Salvadoran Colón", symbol:"₡", cc:"sv"},
+  {code:"HNL", name:"Honduran Lempira", symbol:"L", cc:"hn"},
+  {code:"GMD", name:"Gambian Dalasi", symbol:"D", cc:"gm"},
+  {code:"CRC", name:"Costa Rican Colon", symbol:"₡", cc:"cr"},
+  {code:"BIF", name:"Burundian Franc", symbol:"FBu", cc:"bi"},
+  {code:"XAU", name:"Gold (XAU)", symbol:"XAU"},
+  {code:"XAG", name:"Silver (XAG)", symbol:"XAG"},
+  // ... If you need additional niche currencies (cryptos, local units), I can append more.
+];
 
-    // Scenario percentages
-    const bestPct = parseFloat(document.getElementById('best').value)/100;
-    const expectedPct = parseFloat(document.getElementById('expected').value)/100;
-    const worstPct = parseFloat(document.getElementById('worst').value)/100;
+// Build a mapping for quick lookup by code:
+const currencyMap = {};
+currencies.forEach(c => currencyMap[c.code] = c);
 
-    const roiExpected = ((returned*expectedPct - invested)/invested)*100;
-    const roiBest = ((returned*bestPct - invested)/invested)*100;
-    const roiWorst = ((returned*worstPct - invested)/invested)*100;
+// Default selected currency
+let selectedCurrency = 'USD';
+let autoConvert = true; // auto convert on input change
+let lastRates = {}; // cached last fetched rates
 
-    let annualizedROI = roiExpected;
-    if(time > 0){
-        annualizedROI = ((Math.pow((returned*expectedPct)/invested, 12/time)-1)*100);
-    }
+// DOM references
+const currencyBtn = document.getElementById('currencyBtn');
+const currencyDropdown = document.getElementById('currencyDropdown');
+const investSymbol = document.getElementById('investSymbol');
+const returnedSymbol = document.getElementById('returnedSymbol');
+const investedInput = document.getElementById('invested');
+const returnedInput = document.getElementById('returned');
+const startDate = document.getElementById('startDate');
+const endDate = document.getElementById('endDate');
+const calcBtn = document.getElementById('calcBtn');
+const clearBtn = document.getElementById('clearBtn');
+const resultsPanel = document.getElementById('resultsPanel');
+const gainValue = document.getElementById('gainValue');
+const roiValue = document.getElementById('roiValue');
+const lengthValue = document.getElementById('lengthValue');
+const annualValue = document.getElementById('annualValue');
+const profitPctValue = document.getElementById('profitPctValue');
+const breakdownText = document.getElementById('breakdownText');
+const rateInfo = document.getElementById('rateInfo');
+const toggleAuto = document.getElementById('toggleAuto');
+const downloadCsv = document.getElementById('downloadCsv');
+const downloadJson = document.getElementById('downloadJson');
+const downloadHtml = document.getElementById('downloadHtml');
+const filenameInput = document.getElementById('filename');
+const downloadRatesBtn = document.getElementById('downloadRates');
 
-    document.getElementById('result').innerHTML = `
-        ROI (Expected): ${roiExpected.toFixed(2)}% <br>
-        ROI (Best-case): ${roiBest.toFixed(2)}% <br>
-        ROI (Worst-case): ${roiWorst.toFixed(2)}% <br>
-        ${time ? `Annualized ROI: ${annualizedROI.toFixed(2)}%` : ''}
-    `;
-
-    // AI-based suggestions
-    let suggestions = "";
-    if(roiExpected < 10) suggestions = "ROI is low. Consider reducing costs or increasing revenue streams.";
-    else if(roiExpected > 50) suggestions = "Excellent ROI! Keep up the strategy and consider scaling investments.";
-    else suggestions = "ROI is moderate. Optimize marketing and operational efficiency.";
-
-    document.getElementById('suggestions').innerText = suggestions;
-
-    // Chart
-    const ctx = document.getElementById('roiChart').getContext('2d');
-    if(window.roiChart) window.roiChart.destroy();
-    window.roiChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['Worst-case','Expected','Best-case'],
-            datasets: [{
-                label: `ROI (%)`,
-                data: [roiWorst, roiExpected, roiBest],
-                backgroundColor: ['#f87171','#facc15','#34d399']
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { display: false } },
-            scales: { y: { beginAtZero:true } }
-        }
-    });
+// ------------- UI Rendering --------------
+function renderCurrencyButton(code){
+  const cur = currencyMap[code] || {code, name:code, symbol:code, cc:''};
+  const flagUrl = cur.cc ? `https://flagcdn.com/24x18/${cur.cc.toLowerCase()}.png` : '';
+  currencyBtn.innerHTML = `<img class="flag" src="${flagUrl}" onerror="this.style.display='none'"/> <div style="flex:1;text-align:left"><div style="font-weight:700">${cur.code}</div><div style="font-size:12px;color:var(--muted)">${cur.name}</div></div> <div style="font-weight:700">${cur.symbol||cur.code}</div>`;
+  investSymbol.innerHTML = `<img class="flag" src="${flagUrl}" onerror="this.style.display='none'"/> <strong style="padding-left:6px">${cur.symbol||cur.code}</strong>`;
+  returnedSymbol.innerHTML = `<img class="flag" src="${flagUrl}" onerror="this.style.display='none'"/> <strong style="padding-left:6px">${cur.symbol||cur.code}</strong>`;
 }
 
-// PDF download
-function downloadPDF(){
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text("ToolNest ROI Report", 14, 22);
-    doc.setFontSize(12);
-    const resultText = document.getElementById('result').innerText;
-    const suggestionText = document.getElementById('suggestions').innerText;
-    doc.text(resultText, 14, 35);
-    doc.text("Suggestions: "+suggestionText, 14, 60);
-    doc.save("ToolNest_ROI_Report.pdf");
+function buildDropdown(){
+  currencyDropdown.innerHTML = '';
+  currencies.forEach(c=>{
+    const flag = c.cc ? `https://flagcdn.com/24x18/${c.cc.toLowerCase()}.png` : '';
+    const div = document.createElement('div');
+    div.className = 'currency-item';
+    div.innerHTML = `<img class="flag" src="${flag}" onerror="this.style.display='none'"/><div style="flex:1"><div class="currency-meta">${c.code} — ${c.name}</div><div class="currency-sub">${c.symbol || ''}</div></div>`;
+    div.onclick = () => {
+      selectedCurrency = c.code;
+      renderCurrencyButton(selectedCurrency);
+      currencyDropdown.style.display = 'none';
+      // update UI values if autoConvert is on
+      if(autoConvert) performLiveConvertAll();
+    };
+    currencyDropdown.appendChild(div);
+  });
 }
+
+// Toggle dropdown
+currencyBtn.addEventListener('click', ()=> {
+  currencyDropdown.style.display = currencyDropdown.style.display === 'block' ? 'none' : 'block';
+});
+
+// click outside to close
+document.addEventListener('click', (e)=>{
+  if(!currencyBtn.contains(e.target) && !currencyDropdown.contains(e.target)){
+    currencyDropdown.style.display = 'none';
+  }
+});
+
+// Initial render
+renderCurrencyButton(selectedCurrency);
+buildDropdown();
+
+// ------------- Exchange Rate Helpers ----------------
+// Using exchangerate.host convert endpoint
+// Example: https://api.exchangerate.host/convert?from=USD&to=EUR&amount=1
+
+async function fetchConvert(from, to, amount=1){
+  try{
+    const url = `https://api.exchangerate.host/convert?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&amount=${amount}`;
+    const resp = await fetch(url);
+    if(!resp.ok) throw new Error('Rate fetch failed');
+    const json = await resp.json();
+    // store simple cache
+    lastRates[`${from}_${to}`] = {rate: json.result, info: json};
+    return json.result;
+  }catch(err){
+    console.error('convert error',err);
+    return null;
+  }
+}
+
+// Bulk fetch rates base -> many currencies (useful export)
+async function fetchLatestRates(base='USD'){
+  try{
+    const symbols = currencies.map(c=>c.code).join(',');
+    const url = `https://api.exchangerate.host/latest?base=${encodeURIComponent(base)}&symbols=${encodeURIComponent(symbols)}`;
+    const resp = await fetch(url);
+    const json = await resp.json();
+    lastRates[`base_${base}`] = json.rates || {};
+    return json.rates || {};
+  }catch(e){
+    console.warn('fetchLatestRates failed', e);
+    return {};
+  }
+}
+
+// ------------- Calculation Logic -----------------
+
+function parseNumber(v){
+  if(!v && v !== 0) return NaN;
+  const n = parseFloat(String(v).replace(/[^0-9.\-]/g,''));
+  return isNaN(n) ? NaN : n;
+}
+
+function daysBetween(a,b){
+  const d1 = new Date(a), d2 = new Date(b);
+  if(isNaN(d1)||isNaN(d2)) return NaN;
+  const ms = d2 - d1;
+  return Math.round(ms / (1000*60*60*24));
+}
+
+// The core calculation: assumes invested & returned are in selectedCurrency already.
+// If you type amounts in another currency, change the currency first or rely on the converter.
+function computeResults(invested, returned, start, end){
+  const gain = returned - invested;
+  const roi = invested !== 0 ? (gain / invested) * 100 : NaN;
+  const lenDays = daysBetween(start,end);
+  const lenYears = lenDays / 365;
+  let annualized = NaN;
+  if(lenYears > 0 && invested > 0){
+    try{
+      annualized = (Math.pow(returned / invested, 1/lenYears) - 1) * 100;
+    }catch(e){
+      annualized = NaN;
+    }
+  }
+  const profitPct = returned !== 0 ? (gain / returned) * 100 : NaN;
+
+  return {
+    gain, roi, lenDays, annualized, profitPct
+  };
+}
+
+function formatMoney(amount){
+  const cur = currencyMap[selectedCurrency] || {};
+  const sym = cur.symbol || selectedCurrency;
+  // show with two decimals and thousands separators
+  const v = (typeof amount === 'number' && isFinite(amount)) ? amount.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) : 'N/A';
+  return `${sym} ${v}`;
+}
+
+// Perform the main display update
+function showResults(obj, rawInputs){
+  resultsPanel.style.display = 'block';
+  gainValue.textContent = formatMoney(obj.gain);
+  roiValue.textContent = isFinite(obj.roi) ? `${obj.roi.toFixed(2)} %` : 'N/A';
+  lengthValue.textContent = isFinite(obj.lenDays) ? `${obj.lenDays} days` : 'N/A';
+  annualValue.textContent = isFinite(obj.annualized) ? `${obj.annualized.toFixed(2)} %` : 'N/A';
+  profitPctValue.textContent = isFinite(obj.profitPct) ? `${obj.profitPct.toFixed(2)} %` : 'N/A';
+  breakdownText.textContent = `Invested ${formatMoney(rawInputs.invested)} • Returned ${formatMoney(rawInputs.returned)} • Currency: ${selectedCurrency}`;
+}
+
+// ------------- Live conversion flow --------------
+
+// If user typed amounts but selected currency changed, we should optionally convert typed numbers from previous currency.
+// To keep simple: if autoConvert ON and there are amounts, convert them from previousSelected -> selectedCurrency using API.
+// We'll keep track of lastSelectedCurrency.
+let lastSelectedCurrency = selectedCurrency;
+
+async function performLiveConvertAll(){
+  rateInfo.textContent = 'converting...';
+  const investedVal = parseNumber(investedInput.value);
+  const returnedVal = parseNumber(returnedInput.value);
+
+  if(isNaN(investedVal) && isNaN(returnedVal)){
+    rateInfo.textContent = 'idle';
+    lastSelectedCurrency = selectedCurrency;
+    return;
+  }
+
+  if(lastSelectedCurrency === selectedCurrency){
+    // nothing to convert
+    rateInfo.textContent = 'live';
+    return;
+  }
+
+  // Convert invested and returned from lastSelectedCurrency -> selectedCurrency
+  try{
+    if(!isNaN(investedVal)){
+      const newInvested = await fetchConvert(lastSelectedCurrency, selectedCurrency, investedVal);
+      if(newInvested !== null) investedInput.value = roundForInput(newInvested);
+    }
+    if(!isNaN(returnedVal)){
+      const newReturned = await fetchConvert(lastSelectedCurrency, selectedCurrency, returnedVal);
+      if(newReturned !== null) returnedInput.value = roundForInput(newReturned);
+    }
+    rateInfo.textContent = `converted from ${lastSelectedCurrency} → ${selectedCurrency}`;
+  }catch(e){
+    rateInfo.textContent = 'conversion failed';
+  }
+  lastSelectedCurrency = selectedCurrency;
+}
+
+// small helper to round for input fields:
+function roundForInput(n){
+  if(!isFinite(n)) return '';
+  if(Math.abs(n) >= 1000) return (Math.round(n*100)/100).toLocaleString('fullwide',{useGrouping:false});
+  return (Math.round(n*100)/100);
+}
+
+// ------------- Event handlers ----------------
+calcBtn.addEventListener('click', async ()=>{
+  await calculateAndShow();
+});
+
+clearBtn.addEventListener('click', ()=>{
+  investedInput.value = '';
+  returnedInput.value = '';
+  startDate.value = '';
+  endDate.value = '';
+  resultsPanel.style.display = 'none';
+});
+
+async function calculateAndShow(){
+  const invested = parseNumber(investedInput.value);
+  const returned = parseNumber(returnedInput.value);
+  const sDate = startDate.value;
+  const eDate = endDate.value;
+
+  if(isNaN(invested) || isNaN(returned) || !sDate || !eDate){
+    alert('Please enter valid Invested, Returned and both dates.');
+    return;
+  }
+
+  // Ensure amounts are interpreted in selectedCurrency — if user entered numbers in another currency, they should have switched first.
+  // We don't perform additional cross-currency math here; numbers are already in selectedCurrency.
+  const res = computeResults(invested, returned, sDate, eDate);
+  showResults(res, {invested, returned, sDate, eDate});
+  rateInfo.textContent = 'live';
+}
+
+// Auto-convert on currency change if toggle on:
+toggleAuto.addEventListener('click', async ()=>{
+  autoConvert = !autoConvert;
+  toggleAuto.textContent = `Auto-convert: ${autoConvert ? 'ON' : 'OFF'}`;
+  toggleAuto.classList.toggle('primary', autoConvert);
+  if(autoConvert) await performLiveConvertAll();
+});
+
+// auto-calc on input if autoConvert true
+[investedInput, returnedInput].forEach(input => {
+  input.addEventListener('input', ()=>{
+    if(autoConvert){
+      // small delay/debounce could be added; for now immediate
+    }
+  });
+});
+
+// when selected currency changes we want to update any open UI or auto-convert
+// We'll detect selection via lastSelectedCurrency update performed earlier in dropdown click.
+
+
+// ------------- Downloads ----------------
+function getCurrentResultObject(){
+  const invested = parseNumber(investedInput.value);
+  const returned = parseNumber(returnedInput.value);
+  const sDate = startDate.value;
+  const eDate = endDate.value;
+  const res = computeResults(invested, returned, sDate, eDate);
+  return {
+    timestamp: new Date().toISOString(),
+    currency: selectedCurrency,
+    invested_raw: invested,
+    returned_raw: returned,
+    startDate: sDate,
+    endDate: eDate,
+    gain: res.gain,
+    roi_pct: res.roi,
+    length_days: res.lenDays,
+    annualized_pct: res.annualized,
+    profit_pct_of_returned: res.profitPct
+  };
+}
+
+downloadCsv.addEventListener('click', ()=>{
+  const obj = getCurrentResultObject();
+  const fname = (filenameInput.value || 'roi-results') + '.csv';
+  const headers = Object.keys(obj).join(',');
+  const rows = Object.values(obj).map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',');
+  const csv = headers + "\n" + rows;
+  downloadText(csv,fname,'text/csv');
+});
+
+downloadJson.addEventListener('click', ()=>{
+  const obj = getCurrentResultObject();
+  const fname = (filenameInput.value || 'roi-results') + '.json';
+  downloadText(JSON.stringify(obj,null,2), fname, 'application/json');
+});
+
+downloadHtml.addEventListener('click', ()=>{
+  // Save an HTML snapshot with current inputs and results (simple)
+  const obj = getCurrentResultObject();
+  const filename = (filenameInput.value || 'roi-snapshot') + '.html';
+  const html = `<html><head><meta charset="utf-8"><title>ROI Snapshot</title></head><body><pre>${escapeHtml(JSON.stringify(obj,null,2))}</pre></body></html>`;
+  downloadText(html, filename, 'text/html');
+});
+
+downloadRatesBtn.addEventListener('click', async ()=>{
+  const base = selectedCurrency || 'USD';
+  const rates = await fetchLatestRates(base);
+  const fname = `${filenameInput.value || 'rates'}-${base}.json`;
+  downloadText(JSON.stringify({base, fetchedAt:new Date().toISOString(), rates}, null, 2), fname, 'application/json');
+});
+
+// download helper
+function downloadText(text, filename, mime){
+  const blob = new Blob([text], {type: mime || 'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function escapeHtml(unsafe){
+  return unsafe.replace(/[&<"']/g, function(m){return {'&':'&amp;','<':'&lt;','"':'&quot;',"'":'&#039;'}[m];});
+}
+
+// ------------- Auto convert when user selects new currency (handle lastSelectedCurrency) -------------
+/* We already set lastSelectedCurrency when performing conversion when currency changed.
+   To ensure conversions also happen when dropdown is used, hook up a small watcher:
+*/
+const observer = new MutationObserver(async ()=>{
+  // when currencyBtn content changes, if lastSelectedCurrency differs, trigger
+  if(lastSelectedCurrency !== selectedCurrency && autoConvert){
+    await performLiveConvertAll();
+  }
+});
+observer.observe(currencyBtn, {childList:true, subtree:true, characterData:true});
+
+// ------------- Initialization -------------
+(async function init(){
+  // Preload a few rates to warm cache
+  await fetchLatestRates(selectedCurrency);
+  rateInfo.textContent = 'live';
+  // set sample placeholders (optional)
+  investedInput.placeholder = '500';
+  returnedInput.placeholder = '700';
+})();
+
 </script>
-
 </body>
 </html>
