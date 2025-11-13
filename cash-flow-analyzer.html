@@ -7,62 +7,90 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 body {
-  font-family: 'Segoe UI', Arial, sans-serif;
-  background-color: #f8f9fa;
+  font-family: 'Poppins', sans-serif;
+  background: #f4f6f8;
+  padding: 15px;
   margin: 0;
-  padding: 20px;
 }
 .container {
-  max-width: 800px;
-  margin: 0 auto;
+  max-width: 600px;
+  margin: auto;
   background: white;
   padding: 25px;
   border-radius: 16px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
 h1 {
   text-align: center;
-  margin-bottom: 25px;
+  margin-bottom: 15px;
+  color: #222;
+}
+.section-title {
+  margin-top: 15px;
+  font-weight: 600;
+  color: #333;
+}
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+input, select {
+  flex: 1 1 45%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 15px;
+}
+button {
+  padding: 10px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  width: 100%;
+}
+button:hover {
+  background: #0056b3;
 }
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 20px;
+  margin-top: 10px;
 }
 th, td {
-  padding: 10px;
-  border-bottom: 1px solid #ddd;
-}
-th {
-  text-align: left;
-}
-button {
-  padding: 10px 15px;
-  margin: 5px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  background-color: #007bff;
-  color: white;
-}
-button:hover {
-  background-color: #0056b3;
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+  text-align: center;
+  font-size: 14px;
 }
 .summary {
   background: #f1f3f5;
-  padding: 15px;
+  padding: 12px;
   border-radius: 10px;
-  margin-top: 20px;
+  margin-top: 15px;
   text-align: center;
   font-size: 18px;
+  font-weight: 600;
 }
-.positive { color: green; }
-.negative { color: red; }
+canvas {
+  margin-top: 20px;
+  width: 100%;
+  height: 250px;
+}
 .back-btn {
-  background-color: #6c757d;
+  background: #6c757d;
+  margin-top: 20px;
 }
 .back-btn:hover {
-  background-color: #565e64;
+  background: #565e64;
+}
+@media (max-width: 480px) {
+  input, select {
+    flex: 1 1 100%;
+  }
 }
 </style>
 </head>
@@ -71,148 +99,157 @@ button:hover {
 <div class="container">
   <h1>💰 Cash Flow Analyzer</h1>
 
+  <div class="section-title">Add Transaction</div>
+  <div class="form-row">
+    <input type="text" id="desc" placeholder="Description">
+    <input type="number" id="amount" placeholder="Amount">
+  </div>
+  <div class="form-row">
+    <select id="type">
+      <option value="income">Income</option>
+      <option value="expense">Expense</option>
+    </select>
+    <select id="currency"></select>
+  </div>
+  <div class="form-row">
+    <input type="month" id="month">
+    <button onclick="addTransaction()">Add</button>
+  </div>
+
   <table id="cashFlowTable">
     <thead>
       <tr>
-        <th>Type</th>
         <th>Description</th>
-        <th>Amount ($)</th>
-        <th>Date</th>
+        <th>Amount</th>
+        <th>Type</th>
+        <th>Currency</th>
+        <th>Month</th>
         <th>Action</th>
       </tr>
     </thead>
     <tbody></tbody>
   </table>
 
-  <div style="margin-bottom:15px;">
-    <select id="type">
-      <option value="Income">Income</option>
-      <option value="Expense">Expense</option>
-    </select>
-    <input type="text" id="desc" placeholder="Description">
-    <input type="number" id="amount" placeholder="Amount">
-    <input type="date" id="date">
-    <button onclick="addEntry()">Add</button>
-  </div>
-
   <div class="summary">
-    <div>Total Inflows: $<span id="inflows">0.00</span></div>
-    <div>Total Outflows: $<span id="outflows">0.00</span></div>
-    <div>Net Cash Flow: <span id="netFlow" class="positive">$0.00</span></div>
+    Net Cash Flow: <span id="netFlow">0.00</span>
   </div>
 
-  <canvas id="cashFlowChart" style="margin-top:20px; height:300px;"></canvas>
+  <canvas id="cashChart"></canvas>
 
-  <div style="text-align:center; margin-top:20px;">
-    <button onclick="downloadData()">Download CSV</button>
+  <div style="text-align:center; margin-top:10px;">
+    <button onclick="downloadCSV()">Download CSV</button>
     <button onclick="clearAll()">Clear All</button>
     <button class="back-btn" onclick="goToDashboard()">⬅ Back to Dashboard</button>
   </div>
 </div>
 
+<script src="loadCurrencies.js"></script>
 <script>
-let data = [];
+populateCurrencyDropdown('currency');
+
+let transactions = [];
 let chart;
 
-function addEntry() {
-  const type = document.getElementById('type').value;
-  const desc = document.getElementById('desc').value;
+function addTransaction() {
+  const desc = document.getElementById('desc').value.trim();
   const amount = parseFloat(document.getElementById('amount').value);
-  const date = document.getElementById('date').value;
+  const type = document.getElementById('type').value;
+  const currency = document.getElementById('currency').value;
+  const month = document.getElementById('month').value;
 
-  if (!desc || !amount || !date) {
-    alert('Please fill all fields.');
+  if (!desc || !amount || !currency || !month) {
+    alert("Please fill all fields correctly.");
     return;
   }
 
-  const entry = { type, desc, amount, date };
-  data.push(entry);
+  transactions.push({ desc, amount, type, currency, month });
   renderTable();
   updateSummary();
   updateChart();
+
+  document.getElementById('desc').value = '';
+  document.getElementById('amount').value = '';
 }
 
 function renderTable() {
-  const tbody = document.querySelector('#cashFlowTable tbody');
+  const tbody = document.querySelector("#cashFlowTable tbody");
   tbody.innerHTML = '';
-  data.forEach((entry, index) => {
+  transactions.forEach((t, i) => {
     const row = `<tr>
-      <td>${entry.type}</td>
-      <td>${entry.desc}</td>
-      <td>${entry.amount.toFixed(2)}</td>
-      <td>${entry.date}</td>
-      <td><button onclick="deleteEntry(${index})" style="background:#dc3545;">Delete</button></td>
+      <td>${t.desc}</td>
+      <td>${t.amount.toFixed(2)}</td>
+      <td>${t.type}</td>
+      <td>${t.currency}</td>
+      <td>${t.month}</td>
+      <td><button onclick="deleteTransaction(${i})" style="background:#dc3545;">X</button></td>
     </tr>`;
     tbody.insertAdjacentHTML('beforeend', row);
   });
 }
 
-function deleteEntry(index) {
-  data.splice(index, 1);
+function deleteTransaction(i) {
+  transactions.splice(i, 1);
   renderTable();
   updateSummary();
   updateChart();
 }
 
 function updateSummary() {
-  let inflows = 0, outflows = 0;
-  data.forEach(entry => {
-    if (entry.type === 'Income') inflows += entry.amount;
-    else outflows += entry.amount;
-  });
-
-  const net = inflows - outflows;
-
-  document.getElementById('inflows').innerText = inflows.toFixed(2);
-  document.getElementById('outflows').innerText = outflows.toFixed(2);
-  const netFlowEl = document.getElementById('netFlow');
-  netFlowEl.innerText = `$${net.toFixed(2)}`;
-  netFlowEl.className = net >= 0 ? 'positive' : 'negative';
+  const income = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+  const expense = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+  const net = income - expense;
+  const netFlow = document.getElementById('netFlow');
+  netFlow.textContent = net.toFixed(2);
+  netFlow.style.color = net >= 0 ? 'green' : 'red';
 }
 
 function updateChart() {
-  const months = {};
-  data.forEach(entry => {
-    const month = entry.date.slice(0, 7);
-    if (!months[month]) months[month] = { income: 0, expense: 0 };
-    if (entry.type === 'Income') months[month].income += entry.amount;
-    else months[month].expense += entry.amount;
-  });
+  const months = [...new Set(transactions.map(t => t.month))];
+  const incomeData = months.map(m => transactions.filter(t => t.type === 'income' && t.month === m).reduce((sum, t) => sum + t.amount, 0));
+  const expenseData = months.map(m => transactions.filter(t => t.type === 'expense' && t.month === m).reduce((sum, t) => sum + t.amount, 0));
 
-  const labels = Object.keys(months).sort();
-  const incomeData = labels.map(m => months[m].income);
-  const expenseData = labels.map(m => months[m].expense);
-
+  const ctx = document.getElementById('cashChart').getContext('2d');
   if (chart) chart.destroy();
-  const ctx = document.getElementById('cashFlowChart').getContext('2d');
   chart = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels,
+      labels: months,
       datasets: [
-        { label: 'Income', data: incomeData, backgroundColor: 'rgba(40,167,69,0.6)' },
-        { label: 'Expense', data: expenseData, backgroundColor: 'rgba(220,53,69,0.6)' }
+        { label: 'Income', data: incomeData, backgroundColor: '#28a745' },
+        { label: 'Expenses', data: expenseData, backgroundColor: '#dc3545' }
       ]
     },
-    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'top' } },
+      scales: { y: { beginAtZero: true } }
+    }
   });
 }
 
-function downloadData() {
-  let csv = "Type,Description,Amount,Date\n";
-  data.forEach(e => csv += `${e.type},${e.desc},${e.amount},${e.date}\n`);
+function downloadCSV() {
+  if (transactions.length === 0) {
+    alert("No data to download.");
+    return;
+  }
+
+  let csv = "Description,Amount,Type,Currency,Month\n";
+  transactions.forEach(t => {
+    csv += `${t.desc},${t.amount},${t.type},${t.currency},${t.month}\n`;
+  });
+
   const blob = new Blob([csv], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = "Cash_Flow_Data.csv";
+  a.download = "CashFlow_Analyzer.csv";
   a.click();
   URL.revokeObjectURL(url);
 }
 
 function clearAll() {
-  if (confirm("Are you sure you want to clear all entries?")) {
-    data = [];
+  if (confirm("Clear all transactions?")) {
+    transactions = [];
     renderTable();
     updateSummary();
     updateChart();
