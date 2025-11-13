@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Expense Tracker Pro + Charts</title>
+<title>Expense Tracker Pro</title>
 <style>
 :root{
   --bg:#f6f8fb; --card:#fff; --accent:#2b6cb0; --success:#10b981; --danger:#ef4444; --radius:10px; --muted:#6b7280;
@@ -21,13 +21,12 @@ th{background:#fbfdff;position:sticky;top:0;}
 .kpi{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;}
 .kpi div{background:#fbfdff;padding:12px;border-radius:6px;flex:1;text-align:center;}
 .alert{padding:8px;background:#fff3f2;border:1px solid #fdecea;border-radius:6px;margin-top:6px;color:#b91c1c;}
-canvas{background:#fff; border-radius:10px; margin-top:16px;}
 </style>
 </head>
 <body>
 
 <div class="card">
-<h2>Expense Tracker Pro + Charts</h2>
+<h2>Expense Tracker Pro</h2>
 <div style="display:flex;gap:8px;flex-wrap:wrap">
   <div style="flex:2"><input type="text" id="desc" placeholder="Description"></div>
   <div style="flex:1"><input type="number" id="amount" placeholder="Amount"></div>
@@ -57,7 +56,7 @@ canvas{background:#fff; border-radius:10px; margin-top:16px;}
 <tbody id="entriesTbody"></tbody>
 </table>
 
-<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+<div style="margin-top:12px;display:flex;gap:8px">
 <button class="ghost" id="exportCsv">Export CSV</button>
 <button class="ghost" id="exportJson">Export JSON</button>
 <button class="ghost" id="importBtn">Import JSON</button>
@@ -66,14 +65,6 @@ canvas{background:#fff; border-radius:10px; margin-top:16px;}
 </div>
 </div>
 
-<div class="card">
-<h3>Charts</h3>
-<canvas id="monthlyChart" height="150"></canvas>
-<canvas id="categoryChart" height="150"></canvas>
-<canvas id="budgetChart" height="80"></canvas>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="loadCurrencies.js"></script>
 <script>
 let entries = [];
@@ -83,9 +74,6 @@ const budgetThreshold = 1000; // alert if monthly expense > threshold
 // populate currencies
 populateCurrencyDropdown('currency');
 populateCurrencyDropdown('displayCurrency');
-
-// chart instances
-let monthlyChart, categoryChart, budgetChart;
 
 // load saved
 loadEntries();
@@ -101,7 +89,7 @@ document.getElementById('addBtn').addEventListener('click', async ()=>{
   const id = 'id_'+Math.random().toString(36).slice(2,9);
   entries.unshift({id,desc,amount,currency,type,date});
   saveEntries();
-  await renderEntries();
+  renderEntries();
   document.getElementById('desc').value=''; document.getElementById('amount').value=''; document.getElementById('date').value='';
 });
 
@@ -112,13 +100,10 @@ async function renderEntries(){
   const rates = await fetchRates(displayCurrency);
 
   let totalIncome=0, totalExpense=0;
-  const categoryMap = {};
-
   for(const e of entries){
     const amtDisplay = e.amount / (rates[e.currency]||1);
     if(e.type==='income') totalIncome+=amtDisplay;
-    else { totalExpense+=amtDisplay; categoryMap[e.desc]=(categoryMap[e.desc]||0)+amtDisplay; }
-
+    else totalExpense+=amtDisplay;
     const tr = document.createElement('tr');
     tr.innerHTML = `<td>${e.date}</td><td>${e.desc}</td><td>${e.type}</td>
     <td>${amtDisplay.toFixed(2)}</td><td>${displayCurrency}</td>
@@ -135,8 +120,6 @@ async function renderEntries(){
   const budgetAlert = document.getElementById('budgetAlert');
   if(totalExpense>budgetThreshold) { budgetAlert.style.display='block'; budgetAlert.innerText=`Warning! Monthly expenses exceed ${displayCurrency} ${budgetThreshold}`; }
   else budgetAlert.style.display='none';
-
-  renderCharts(totalIncome, totalExpense, categoryMap, budgetThreshold, totalBalance);
 }
 
 // delete
@@ -171,61 +154,6 @@ async function fetchRates(base='USD'){
 
 // dashboard link
 function goToDashboard(){ window.location.href="index.html"; }
-
-// render charts
-function renderCharts(totalIncome, totalExpense, categoryMap, budgetThreshold, totalBalance){
-  const months = {};
-  entries.forEach(e=>{
-    const m = e.date.slice(0,7);
-    const amt = e.amount;
-    if(!months[m]) months[m]={income:0,expense:0};
-    months[m][e.type]+=amt;
-  });
-
-  // monthly chart
-  const labelsM = Object.keys(months).sort();
-  const dataIncome = labelsM.map(m=>months[m].income);
-  const dataExpense = labelsM.map(m=>months[m].expense);
-
-  if(monthlyChart) monthlyChart.destroy();
-  monthlyChart = new Chart(document.getElementById('monthlyChart'),{
-    type:'bar',
-    data:{
-      labels:labelsM,
-      datasets:[
-        {label:'Income',data:dataIncome,backgroundColor:'#10b981'},
-        {label:'Expense',data:dataExpense,backgroundColor:'#ef4444'}
-      ]
-    },
-    options:{responsive:true,plugins:{legend:{position:'top'}}}
-  });
-
-  // category chart
-  if(categoryChart) categoryChart.destroy();
-  categoryChart = new Chart(document.getElementById('categoryChart'),{
-    type:'pie',
-    data:{
-      labels:Object.keys(categoryMap),
-      datasets:[{data:Object.values(categoryMap),backgroundColor:['#f87171','#60a5fa','#34d399','#fbbf24','#a78bfa','#f472b6','#38bdf8']}]
-    },
-    options:{responsive:true,plugins:{legend:{position:'right'}}}
-  });
-
-  // budget progress chart
-  if(budgetChart) budgetChart.destroy();
-  budgetChart = new Chart(document.getElementById('budgetChart'),{
-    type:'doughnut',
-    data:{
-      labels:['Spent','Remaining'],
-      datasets:[{data:[totalExpense,Math.max(budgetThreshold-totalExpense,0)],backgroundColor:['#ef4444','#10b981'] }]
-    },
-    options:{
-      responsive:true,
-      cutout:'70%',
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.raw.toFixed(2)}`}}}
-    }
-  });
-}
 </script>
 </body>
 </html>
