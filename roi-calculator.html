@@ -161,16 +161,17 @@ function downloadResults() {
     a.href = url;
     a.download = 'ROI_Calculator_Results.csv';
     a.click();
-    URL.revokeObjectURL(url);
-}
-    <div style="margin-top:20px;">
+    URL.revokeObjectURL(url);<div style="margin-top:20px;">
     <button onclick="goToDashboard()" style="padding:8px 16px; cursor:pointer;">⬅ Back to Dashboard</button>
 </div>
+
 <script>
 function goToDashboard() {
     // Replace the URL below with your actual dashboard URL
     window.location.href = "dashboard.html";
-}.
+}
+</script>
+}
 </script>
 </body>
 </html>
