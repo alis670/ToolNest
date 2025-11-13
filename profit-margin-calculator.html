@@ -3,104 +3,180 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Profit Margin Calculator</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<title>Professional Profit Margin Calculator</title>
+<style>
+body { font-family: Arial, sans-serif; padding: 20px; }
+input, select { padding: 8px; margin: 5px 0; width: 200px; }
+button { padding: 8px 16px; margin: 10px 5px 0 0; cursor: pointer; }
+.results { margin-top: 20px; }
+.circle-wrapper {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin-top: 10px;
+    display: inline-block;
+    margin-right: 20px;
+}
+.roi-ring { transform: rotate(-90deg); }
+.circle-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+}
+</style>
 </head>
-<body class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 min-h-screen flex items-center justify-center p-4">
+<body>
 
-<div class="bg-white/10 backdrop-blur rounded-xl p-6 shadow-lg w-full max-w-lg text-white">
-  <h1 class="text-2xl font-bold mb-4 text-center">Profit Margin Calculator</h1>
+<h1>Professional Profit Margin Calculator</h1>
 
-  <div class="space-y-3">
-    <input type="number" id="revenue" placeholder="Revenue" class="w-full p-2 rounded bg-white/30 text-white placeholder-white">
-    <input type="number" id="cogs" placeholder="Cost of Goods Sold (COGS)" class="w-full p-2 rounded bg-white/30 text-white placeholder-white">
-    <input type="number" id="operatingExpenses" placeholder="Operating Expenses" class="w-full p-2 rounded bg-white/30 text-white placeholder-white">
-    <input type="number" id="taxes" placeholder="Taxes" class="w-full p-2 rounded bg-white/30 text-white placeholder-white">
-    <input type="number" id="otherExpenses" placeholder="Other Expenses" class="w-full p-2 rounded bg-white/30 text-white placeholder-white">
-  </div>
-
-  <div class="flex space-x-2 mt-4">
-    <button id="calculateBtn" class="w-1/2 bg-indigo-600 py-2 rounded font-semibold hover:bg-indigo-700">Calculate</button>
-    <button id="resetBtn" class="w-1/2 bg-red-600 py-2 rounded font-semibold hover:bg-red-700">Reset</button>
-  </div>
-
-  <div class="mt-6 space-y-2" id="results" style="display:none;">
-    <p id="grossProfit"></p>
-    <p id="operatingProfit"></p>
-    <p id="netProfit"></p>
-    <canvas id="profitChart" class="mt-4 bg-white/20 rounded-lg p-2"></canvas>
-  </div>
-
-  <button id="backBtn" class="mt-4 w-full bg-purple-600 py-2 rounded font-semibold hover:bg-purple-700">Back to Dashboard</button>
+<div>
+    <label>Revenue / Sales Amount:</label>
+    <input type="number" id="revenue" placeholder="1000">
+    <select id="currencyRevenue"></select>
 </div>
 
+<div>
+    <label>Cost of Goods Sold (COGS):</label>
+    <input type="number" id="cogs" placeholder="600">
+</div>
+
+<div>
+    <label>Operating Expenses:</label>
+    <input type="number" id="expenses" placeholder="200">
+</div>
+
+<div>
+    <label>Taxes / Fees:</label>
+    <input type="number" id="taxes" placeholder="50">
+</div>
+
+<div>
+    <button onclick="calculateProfitMargin()">Calculate</button>
+    <button onclick="clearFields()">Clear</button>
+    <button onclick="downloadResults()">Download Results</button>
+</div>
+
+<div class="results">
+    <div>Gross Profit: <span id="grossProfit">0</span></div>
+    <div>Gross Profit Margin: <span id="grossMargin">0%</span></div>
+    <div>Net Profit: <span id="netProfit">0</span></div>
+    <div>Net Profit Margin: <span id="netMargin">0%</span></div>
+
+    <div class="circle-wrapper">
+        <svg class="roi-ring" width="120" height="120">
+            <circle class="bg" cx="60" cy="60" r="50" stroke="#eee" stroke-width="10" fill="none" />
+            <circle class="progressGross" cx="60" cy="60" r="50" stroke="green" stroke-width="10" fill="none"
+                    stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="314" />
+        </svg>
+        <div class="circle-text" id="grossCircle">0%</div>
+        <div style="text-align:center;">Gross Profit Margin</div>
+    </div>
+
+    <div class="circle-wrapper">
+        <svg class="roi-ring" width="120" height="120">
+            <circle class="bg" cx="60" cy="60" r="50" stroke="#eee" stroke-width="10" fill="none" />
+            <circle class="progressNet" cx="60" cy="60" r="50" stroke="blue" stroke-width="10" fill="none"
+                    stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="314" />
+        </svg>
+        <div class="circle-text" id="netCircle">0%</div>
+        <div style="text-align:center;">Net Profit Margin</div>
+    </div>
+</div>
+
+<!-- Back to Dashboard button -->
+<div style="margin-top:20px;">
+    <button onclick="goToDashboard()" style="padding:8px 16px; cursor:pointer;">⬅ Back to Dashboard</button>
+</div>
+
+<script src="loadCurrencies.js"></script>
 <script>
-const revenueInput = document.getElementById('revenue');
-const cogsInput = document.getElementById('cogs');
-const operatingExpensesInput = document.getElementById('operatingExpenses');
-const taxesInput = document.getElementById('taxes');
-const otherExpensesInput = document.getElementById('otherExpenses');
-const calculateBtn = document.getElementById('calculateBtn');
-const resetBtn = document.getElementById('resetBtn');
-const resultsDiv = document.getElementById('results');
-const grossProfitP = document.getElementById('grossProfit');
-const operatingProfitP = document.getElementById('operatingProfit');
-const netProfitP = document.getElementById('netProfit');
-const backBtn = document.getElementById('backBtn');
-let profitChart;
+populateCurrencyDropdown('currencyRevenue');
 
-calculateBtn.addEventListener('click', ()=>{
-  const revenue = parseFloat(revenueInput.value) || 0;
-  const cogs = parseFloat(cogsInput.value) || 0;
-  const operatingExpenses = parseFloat(operatingExpensesInput.value) || 0;
-  const taxes = parseFloat(taxesInput.value) || 0;
-  const otherExpenses = parseFloat(otherExpensesInput.value) || 0;
+function calculateProfitMargin() {
+    let revenue = parseFloat(document.getElementById('revenue').value);
+    let cogs = parseFloat(document.getElementById('cogs').value);
+    let expenses = parseFloat(document.getElementById('expenses').value) || 0;
+    let taxes = parseFloat(document.getElementById('taxes').value) || 0;
 
-  if(revenue <= 0){ alert("Revenue must be greater than 0"); return; }
-
-  const grossProfit = revenue - cogs;
-  const operatingProfit = grossProfit - operatingExpenses;
-  const netProfit = operatingProfit - taxes - otherExpenses;
-
-  const grossMargin = ((grossProfit/revenue)*100).toFixed(2);
-  const operatingMargin = ((operatingProfit/revenue)*100).toFixed(2);
-  const netMargin = ((netProfit/revenue)*100).toFixed(2);
-
-  grossProfitP.innerText = `Gross Profit: $${grossProfit} (${grossMargin}%)`;
-  operatingProfitP.innerText = `Operating Profit: $${operatingProfit} (${operatingMargin}%)`;
-  netProfitP.innerText = `Net Profit: $${netProfit} (${netMargin}%)`;
-
-  resultsDiv.style.display = 'block';
-
-  if(profitChart) profitChart.destroy();
-  const ctx = document.getElementById('profitChart').getContext('2d');
-  profitChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: ['Gross Margin', 'Operating Margin', 'Net Margin'],
-      datasets: [{
-        label: 'Profit Margin %',
-        data: [grossMargin, operatingMargin, netMargin],
-        backgroundColor: ['#4f46e5','#8b5cf6','#ec4899']
-      }]
-    },
-    options: {
-      responsive:true,
-      scales: { y: { beginAtZero: true, max:100 } }
+    if (isNaN(revenue) || isNaN(cogs)) {
+        alert("Please enter valid revenue and COGS.");
+        return;
     }
-  });
-});
 
-resetBtn.addEventListener('click', ()=>{
-  revenueInput.value = cogsInput.value = operatingExpensesInput.value = taxesInput.value = otherExpensesInput.value = '';
-  resultsDiv.style.display = 'none';
-  if(profitChart) profitChart.destroy();
-});
+    let grossProfit = revenue - cogs;
+    let grossMargin = (grossProfit / revenue) * 100;
 
-backBtn.addEventListener('click', ()=>{
-  window.location.href = "index.html";
-});
+    let netProfit = grossProfit - expenses - taxes;
+    let netMargin = (netProfit / revenue) * 100;
+
+    document.getElementById('grossProfit').innerText = grossProfit.toFixed(2);
+    document.getElementById('grossMargin').innerText = grossMargin.toFixed(2) + "%";
+    document.getElementById('netProfit').innerText = netProfit.toFixed(2);
+    document.getElementById('netMargin').innerText = netMargin.toFixed(2) + "%";
+
+    // Update Gross Profit Circle
+    const grossCircle = document.querySelector('.progressGross');
+    const grossOffset = 314 - (Math.min(Math.abs(grossMargin), 100) / 100) * 314;
+    grossCircle.style.strokeDashoffset = grossOffset;
+    grossCircle.style.stroke = grossMargin >= 0 ? "green" : "red";
+    document.getElementById('grossCircle').innerText = grossMargin.toFixed(2) + "%";
+
+    // Update Net Profit Circle
+    const netCircle = document.querySelector('.progressNet');
+    const netOffset = 314 - (Math.min(Math.abs(netMargin), 100) / 100) * 314;
+    netCircle.style.strokeDashoffset = netOffset;
+    netCircle.style.stroke = netMargin >= 0 ? "blue" : "red";
+    document.getElementById('netCircle').innerText = netMargin.toFixed(2) + "%";
+}
+
+function clearFields() {
+    document.getElementById('revenue').value = '';
+    document.getElementById('cogs').value = '';
+    document.getElementById('expenses').value = '';
+    document.getElementById('taxes').value = '';
+    document.getElementById('grossProfit').innerText = '0';
+    document.getElementById('grossMargin').innerText = '0%';
+    document.getElementById('netProfit').innerText = '0';
+    document.getElementById('netMargin').innerText = '0%';
+
+    document.querySelector('.progressGross').style.strokeDashoffset = 314;
+    document.querySelector('.progressGross').style.stroke = 'green';
+    document.getElementById('grossCircle').innerText = '0%';
+
+    document.querySelector('.progressNet').style.strokeDashoffset = 314;
+    document.querySelector('.progressNet').style.stroke = 'blue';
+    document.getElementById('netCircle').innerText = '0%';
+}
+
+function downloadResults() {
+    const revenue = document.getElementById('revenue').value;
+    const cogs = document.getElementById('cogs').value;
+    const expenses = document.getElementById('expenses').value;
+    const taxes = document.getElementById('taxes').value;
+    const grossProfit = document.getElementById('grossProfit').innerText;
+    const grossMargin = document.getElementById('grossMargin').innerText;
+    const netProfit = document.getElementById('netProfit').innerText;
+    const netMargin = document.getElementById('netMargin').innerText;
+    const currency = document.getElementById('currencyRevenue').value;
+
+    const csvContent = `Revenue,${revenue},${currency}\nCOGS,${cogs}\nExpenses,${expenses}\nTaxes,${taxes}\nGross Profit,${grossProfit}\nGross Margin,${grossMargin}\nNet Profit,${netProfit}\nNet Margin,${netMargin}`;
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Profit_Margin_Results.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function goToDashboard() {
+    window.location.href = "index.html";
+}
 </script>
 </body>
 </html>
