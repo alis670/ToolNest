@@ -3,157 +3,265 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Expense Tracker Pro</title>
+<title>Elite Expense Tracker Pro</title>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
 <style>
 :root{
-  --bg:#f6f8fb; --card:#fff; --accent:#2b6cb0; --success:#10b981; --danger:#ef4444; --radius:10px; --muted:#6b7280;
-  font-family:Arial,sans-serif;
+  --bg:#f6f8fb; --card:#fff; --muted:#6b7280; --accent:#2b6cb0;
+  --success:#10b981; --danger:#ef4444; --radius:10px;
+  font-family:Arial, sans-serif;
 }
-body{background:var(--bg);padding:16px;margin:0;color:#0f172a;}
-.card{background:var(--card);padding:16px;border-radius:var(--radius);box-shadow:0 6px 15px rgba(0,0,0,0.05);margin-bottom:16px;}
-input,select{padding:8px;margin:4px 0;width:100%;border-radius:6px;border:1px solid #e6eef8;}
-button{padding:8px 12px;border:none;border-radius:6px;cursor:pointer;margin-top:8px;}
-button.primary{background:var(--accent);color:#fff;}
-button.ghost{background:#f1f5f9;}
-table{width:100%;border-collapse:collapse;margin-top:12px;}
-th,td{padding:8px;border-bottom:1px solid #f1f5f9;text-align:left;}
-th{background:#fbfdff;position:sticky;top:0;}
-.kpi{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;}
-.kpi div{background:#fbfdff;padding:12px;border-radius:6px;flex:1;text-align:center;}
-.alert{padding:8px;background:#fff3f2;border:1px solid #fdecea;border-radius:6px;margin-top:6px;color:#b91c1c;}
+*{box-sizing:border-box;}
+body{margin:0; padding:20px; background:var(--bg); color:#0f172a;}
+.container{max-width:1200px; margin:0 auto; display:grid; grid-template-columns:1fr; gap:16px;}
+.card{background:var(--card); border-radius:var(--radius); padding:16px; box-shadow:0 8px 20px rgba(2,6,23,0.06);}
+h1{margin-top:0;}
+input,select{padding:8px; border-radius:6px; border:1px solid #e6eef8; width:100%;}
+button{padding:8px 16px; border:none; border-radius:6px; cursor:pointer;}
+button.primary{background:var(--accent); color:#fff;}
+button.ghost{background:#f1f5f9; border:1px solid #e6eef8;}
+button.danger{background:var(--danger); color:#fff;}
+.kpis{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;}
+.kpi{background:#fbfdff; padding:10px; border-radius:6px; text-align:center; flex:1;}
+.kpi h3{margin:0; font-size:14px;}
+.kpi p{margin:5px 0 0; font-weight:800;}
+.table{overflow:auto; margin-top:12px; border-radius:6px;}
+table{width:100%; border-collapse:collapse; font-size:14px;}
+th,td{padding:8px; border-bottom:1px solid #f1f5f9; text-align:left;}
+th{background:#fbfdff; position:sticky; top:0;}
+.alerts{margin-top:12px;}
+.audit-log{margin-top:12px; max-height:200px; overflow:auto; font-size:13px; color:var(--muted);}
+@media(max-width:768px){ .kpis{flex-direction:column;} }
 </style>
 </head>
 <body>
 
-<div class="card">
-<h2>Expense Tracker Pro</h2>
-<div style="display:flex;gap:8px;flex-wrap:wrap">
-  <div style="flex:2"><input type="text" id="desc" placeholder="Description"></div>
-  <div style="flex:1"><input type="number" id="amount" placeholder="Amount"></div>
-  <div style="flex:1"><select id="currency"></select></div>
-  <div style="flex:1"><input type="date" id="date"></div>
-  <div style="flex:1"><select id="type"><option value="expense">Expense</option><option value="income">Income</option></select></div>
-  <div style="flex:1"><button class="primary" id="addBtn">Add</button></div>
-</div>
+<div class="container">
+
+  <div class="card">
+    <h1>Elite Expense Tracker Pro</h1>
+    <p>Track income & expenses, manage budgets, set alerts, multi-currency ready.</p>
+
+    <!-- Display Currency -->
+    <div style="margin:10px 0;">
+      <label>Display Currency:</label>
+      <select id="displayCurrency"></select>
+    </div>
+
+    <!-- Entry Form -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px;">
+      <div>
+        <label>Description</label>
+        <input type="text" id="desc" placeholder="e.g. Rent">
+      </div>
+      <div>
+        <label>Amount</label>
+        <input type="number" id="amount">
+      </div>
+      <div>
+        <label>Currency</label>
+        <select id="currency"></select>
+      </div>
+      <div>
+        <label>Date</label>
+        <input type="date" id="date">
+      </div>
+      <div>
+        <label>Category</label>
+        <select id="category">
+          <option>Uncategorized</option>
+          <option>MRR</option>
+          <option>One-time</option>
+          <option>Salaries</option>
+          <option>Hosting</option>
+          <option>Marketing</option>
+          <option>Office</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div>
+        <label>Type</label>
+        <select id="type">
+          <option value="income">Income</option>
+          <option value="expense">Expense</option>
+        </select>
+      </div>
+      <div>
+        <label>Recurring</label>
+        <select id="recurring">
+          <option value="none">None</option>
+          <option value="monthly">Monthly</option>
+        </select>
+      </div>
+      <div style="align-self:end;">
+        <button class="primary" id="addBtn">Add</button>
+        <button class="ghost" id="clearBtn">Clear</button>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpis">
+      <div class="kpi"><h3>Total Income</h3><p id="kpiIncome">0</p></div>
+      <div class="kpi"><h3>Total Expenses</h3><p id="kpiExpense">0</p></div>
+      <div class="kpi"><h3>Net Balance</h3><p id="kpiBalance">0</p></div>
+    </div>
+
+    <!-- Alerts -->
+    <div class="alerts" id="alerts"></div>
+
+    <!-- Table -->
+    <div class="table">
+      <table>
+        <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th>Amount</th><th>Currency</th><th>Rec</th><th>Actions</th></tr></thead>
+        <tbody id="entriesTbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Export / Import -->
+    <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+      <button class="primary" id="exportCsv">Export CSV</button>
+      <button class="primary" id="exportJson">Export JSON</button>
+      <input type="file" id="importFile" accept=".json" style="display:none;">
+      <button class="ghost" id="importBtn">Import JSON</button>
+    </div>
+
+    <!-- Audit Log -->
+    <div class="audit-log" id="auditLog"></div>
+
+    <!-- Back to Dashboard -->
+    <div style="margin-top:20px; text-align:right;">
+      <button onclick="goToDashboard()" style="padding:8px 16px; cursor:pointer;">⬅ Back to Dashboard</button>
+    </div>
+
+  </div>
 </div>
 
-<div class="card">
-<div style="display:flex;gap:8px;align-items:center">
-  <label>Display Currency:</label>
-  <select id="displayCurrency"></select>
-</div>
-
-<div class="kpi">
-  <div><strong>Total Balance</strong><p id="totalBalance">0</p></div>
-  <div><strong>Total Income</strong><p id="totalIncome">0</p></div>
-  <div><strong>Total Expense</strong><p id="totalExpense">0</p></div>
-</div>
-
-<div class="alert" id="budgetAlert" style="display:none;"></div>
-
-<table>
-<thead><tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th><th>Currency</th><th>Actions</th></tr></thead>
-<tbody id="entriesTbody"></tbody>
-</table>
-
-<div style="margin-top:12px;display:flex;gap:8px">
-<button class="ghost" id="exportCsv">Export CSV</button>
-<button class="ghost" id="exportJson">Export JSON</button>
-<button class="ghost" id="importBtn">Import JSON</button>
-<input type="file" id="importFile" accept=".json" style="display:none;">
-<button class="ghost" onclick="goToDashboard()">⬅ Back to Dashboard</button>
-</div>
-</div>
-
+<!-- Load currency list -->
 <script src="loadCurrencies.js"></script>
+
 <script>
 let entries = [];
-const STORAGE_KEY = 'expense_tracker_pro';
-const budgetThreshold = 1000; // alert if monthly expense > threshold
+const STORAGE_KEY = 'elite_expense_tracker_v1';
+const displayCurrencyEl = document.getElementById('displayCurrency');
+const entriesTbody = document.getElementById('entriesTbody');
+const auditLogEl = document.getElementById('auditLog');
+const alertsEl = document.getElementById('alerts');
 
-// populate currencies
-populateCurrencyDropdown('currency');
-populateCurrencyDropdown('displayCurrency');
-
-// load saved
-loadEntries();
-
-// add entry
-document.getElementById('addBtn').addEventListener('click', async ()=>{
-  const desc = document.getElementById('desc').value.trim();
-  let amount = parseFloat(document.getElementById('amount').value);
-  const currency = document.getElementById('currency').value;
-  const type = document.getElementById('type').value;
-  const date = document.getElementById('date').value || new Date().toISOString().slice(0,10);
-  if(!desc || !amount || !currency){ alert("Fill all fields"); return; }
-  const id = 'id_'+Math.random().toString(36).slice(2,9);
-  entries.unshift({id,desc,amount,currency,type,date});
-  saveEntries();
-  renderEntries();
-  document.getElementById('desc').value=''; document.getElementById('amount').value=''; document.getElementById('date').value='';
-});
-
-// render entries and totals
-async function renderEntries(){
-  const tbody = document.getElementById('entriesTbody'); tbody.innerHTML='';
-  const displayCurrency = document.getElementById('displayCurrency').value || 'USD';
-  const rates = await fetchRates(displayCurrency);
-
-  let totalIncome=0, totalExpense=0;
-  for(const e of entries){
-    const amtDisplay = e.amount / (rates[e.currency]||1);
-    if(e.type==='income') totalIncome+=amtDisplay;
-    else totalExpense+=amtDisplay;
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${e.date}</td><td>${e.desc}</td><td>${e.type}</td>
-    <td>${amtDisplay.toFixed(2)}</td><td>${displayCurrency}</td>
-    <td><button onclick="deleteEntry('${e.id}')">Delete</button></td>`;
-    tbody.appendChild(tr);
-  }
-
-  const totalBalance = totalIncome - totalExpense;
-  document.getElementById('totalBalance').innerText = `${displayCurrency} ${totalBalance.toFixed(2)}`;
-  document.getElementById('totalIncome').innerText = `${displayCurrency} ${totalIncome.toFixed(2)}`;
-  document.getElementById('totalExpense').innerText = `${displayCurrency} ${totalExpense.toFixed(2)}`;
-
-  // budget alert
-  const budgetAlert = document.getElementById('budgetAlert');
-  if(totalExpense>budgetThreshold) { budgetAlert.style.display='block'; budgetAlert.innerText=`Warning! Monthly expenses exceed ${displayCurrency} ${budgetThreshold}`; }
-  else budgetAlert.style.display='none';
+if(typeof populateCurrencyDropdown==='function'){
+  populateCurrencyDropdown('currency');
+  populateCurrencyDropdown('displayCurrency');
+}else{
+  const o = document.createElement('option'); o.value='USD'; o.text='USD'; displayCurrencyEl.appendChild(o);
 }
 
-// delete
-function deleteEntry(id){ if(!confirm('Delete entry?')) return; entries = entries.filter(e=>e.id!==id); saveEntries(); renderEntries(); }
+load();
 
-// save/load
-function saveEntries(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); }
-function loadEntries(){ entries = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; renderEntries(); }
+function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); }
+function load(){ entries=JSON.parse(localStorage.getItem(STORAGE_KEY))||[]; renderAll(); }
 
-// export/import
-document.getElementById('exportCsv').addEventListener('click', ()=> {
-  const csv = 'date,desc,type,amount,currency\n' + entries.map(e=>`${e.date},"${e.desc}",${e.type},${e.amount},${e.currency}`).join('\n');
-  const blob = new Blob([csv],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='expenses.csv'; a.click(); URL.revokeObjectURL(a.href);
+function uid(){ return 'id_'+Math.random().toString(36).slice(2,9); }
+function fmt(n){ return Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+document.getElementById('addBtn').addEventListener('click',()=>{
+  const desc=document.getElementById('desc').value.trim();
+  const amount=parseFloat(document.getElementById('amount').value);
+  const currency=document.getElementById('currency').value;
+  const date=document.getElementById('date').value || new Date().toISOString().slice(0,10);
+  const category=document.getElementById('category').value;
+  const type=document.getElementById('type').value;
+  const recurring=document.getElementById('recurring').value;
+  if(!desc || !amount || !currency){ alert('Please fill Description, Amount & Currency'); return; }
+  const e={id:uid(), desc, amount, currency, date, category, type, recurring};
+  entries.unshift(e); save(); renderAll(); clearForm();
 });
-document.getElementById('exportJson').addEventListener('click', ()=> {
-  const blob = new Blob([JSON.stringify(entries,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='expenses.json'; a.click(); URL.revokeObjectURL(a.href);
+
+function clearForm(){
+  document.getElementById('desc').value='';
+  document.getElementById('amount').value='';
+  document.getElementById('date').value='';
+}
+
+function renderAll(){
+  renderTable(); renderKPIs(); renderAlerts(); renderAudit();
+}
+
+function renderTable(){
+  entriesTbody.innerHTML='';
+  entries.forEach(e=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${e.date}</td><td>${e.desc}</td><td>${e.category}</td><td>${e.type}</td><td>${fmt(e.amount)}</td><td>${e.currency}</td><td>${e.recurring}</td>
+      <td>
+        <button onclick="editEntry('${e.id}')">Edit</button>
+        <button onclick="deleteEntry('${e.id}')">Delete</button>
+      </td>`;
+    entriesTbody.appendChild(tr);
+  });
+}
+
+function renderKPIs(){
+  const displayCurrency = displayCurrencyEl.value || 'USD';
+  let income=0, expense=0;
+  entries.forEach(e=>{ if(e.type==='income') income+=e.amount; else expense+=e.amount; });
+  document.getElementById('kpiIncome').innerText=`${displayCurrency} ${fmt(income)}`;
+  document.getElementById('kpiExpense').innerText=`${displayCurrency} ${fmt(expense)}`;
+  document.getElementById('kpiBalance').innerText=`${displayCurrency} ${fmt(income-expense)}`;
+}
+
+function renderAlerts(){
+  alertsEl.innerHTML='';
+  const monthlyExpenses = entries.filter(e=>e.type==='expense');
+  let total = monthlyExpenses.reduce((s,e)=>s+e.amount,0);
+  if(total>1000){ // example alert
+    alertsEl.innerHTML=`<div style="padding:8px; background:#fdecea; border-radius:6px;">⚠️ Monthly expenses exceeded $1000!</div>`;
+  }
+}
+
+function renderAudit(){
+  auditLogEl.innerHTML = entries.slice(0,50).map(e=>`<div>${e.date} | ${e.desc} | ${e.amount} ${e.currency}</div>`).join('');
+}
+
+window.deleteEntry = function(id){
+  if(!confirm('Delete entry?')) return;
+  entries = entries.filter(e=>e.id!==id); save(); renderAll();
+}
+
+window.editEntry = function(id){
+  const e = entries.find(x=>x.id===id);
+  if(!e) return;
+  const newDesc = prompt('Description', e.desc);
+  if(newDesc===null) return; e.desc=newDesc;
+  const newAmt = prompt('Amount', e.amount);
+  if(newAmt!==null) e.amount=parseFloat(newAmt)||e.amount;
+  save(); renderAll();
+}
+
+// Export / Import
+document.getElementById('exportCsv').addEventListener('click',()=>{ 
+  const hdr='date,desc,category,type,amount,currency,recurring\n';
+  const lines=entries.map(e=>`${e.date},"${e.desc}",${e.category},${e.type},${e.amount},${e.currency},${e.recurring}`);
+  const blob=new Blob([hdr+lines.join('\n')],{type:'text/csv'});
+  const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='expenses.csv'; a.click(); URL.revokeObjectURL(url);
 });
-document.getElementById('importBtn').addEventListener('click', ()=> document.getElementById('importFile').click());
+document.getElementById('exportJson').addEventListener('click',()=>{
+  const blob = new Blob([JSON.stringify(entries,null,2)],{type:'application/json'});
+  const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='expenses.json'; a.click(); URL.revokeObjectURL(url);
+});
+document.getElementById('importBtn').addEventListener('click',()=>document.getElementById('importFile').click());
 document.getElementById('importFile').addEventListener('change', e=>{
   const f=e.target.files[0]; if(!f) return;
-  const reader=new FileReader();
-  reader.onload = ()=>{ try{ const data=JSON.parse(reader.result); if(Array.isArray(data)){ entries=data.concat(entries); saveEntries(); renderEntries(); alert('Imported!'); } else alert('Invalid JSON'); }catch(err){ alert(err); } };
-  reader.readAsText(f); e.target.value='';
+  const r=new FileReader();
+  r.onload=()=>{ try{ const data=JSON.parse(r.result); if(Array.isArray(data)){ entries=data.concat(entries); save(); renderAll(); alert('Imported'); }else alert('Invalid JSON'); }catch(err){ alert('Import error:'+err.message);} };
+  r.readAsText(f); e.target.value='';
 });
 
-// currency conversion
-const rateCache = {};
-async function fetchRates(base='USD'){
-  if(rateCache[base] && (Date.now()-rateCache[base].ts < 1000*60*15)) return rateCache[base].rates;
-  try{ const res=await fetch(`https://api.exchangerate.host/latest?base=${base}`); const data=await res.json(); rateCache[base]={ts:Date.now(),rates:data.rates||{}}; return rateCache[base].rates; }catch(e){ console.warn(e); return {}; }
-}
+// Clear form button
+document.getElementById('clearBtn').addEventListener('click', clearForm);
 
-// dashboard link
 function goToDashboard(){ window.location.href="index.html"; }
 </script>
+
 </body>
 </html>
