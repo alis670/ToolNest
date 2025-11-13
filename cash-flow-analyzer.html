@@ -1,263 +1,572 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cash Flow Analyzer | ToolNest</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ToolNest — Cash Flow Analyzer Pro</title>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
 <style>
-body {
-  font-family: 'Poppins', sans-serif;
-  background: #f4f6f8;
-  padding: 15px;
-  margin: 0;
+:root{
+  --bg:#f6f8fb; --card:#fff; --muted:#6b7280; --accent:#2b6cb0;
+  --success:#10b981; --danger:#ef4444; --radius:10px;
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;
 }
-.container {
-  max-width: 600px;
-  margin: auto;
-  background: white;
-  padding: 25px;
-  border-radius: 16px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-}
-h1 {
-  text-align: center;
-  margin-bottom: 15px;
-  color: #222;
-}
-.section-title {
-  margin-top: 15px;
-  font-weight: 600;
-  color: #333;
-}
-.form-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-input, select {
-  flex: 1 1 45%;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 15px;
-}
-button {
-  padding: 10px;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  width: 100%;
-}
-button:hover {
-  background: #0056b3;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-th, td {
-  padding: 8px;
-  border-bottom: 1px solid #eee;
-  text-align: center;
-  font-size: 14px;
-}
-.summary {
-  background: #f1f3f5;
-  padding: 12px;
-  border-radius: 10px;
-  margin-top: 15px;
-  text-align: center;
-  font-size: 18px;
-  font-weight: 600;
-}
-canvas {
-  margin-top: 20px;
-  width: 100%;
-  height: 250px;
-}
-.back-btn {
-  background: #6c757d;
-  margin-top: 20px;
-}
-.back-btn:hover {
-  background: #565e64;
-}
-@media (max-width: 480px) {
-  input, select {
-    flex: 1 1 100%;
-  }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:#0f172a;padding:16px}
+.container{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 380px;gap:16px;align-items:start}
+.card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 8px 20px rgba(2,6,23,0.06)}
+.header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px}
+.hleft{display:flex;flex-direction:column}
+.hleft h1{margin:0;font-size:18px}
+.hleft p{margin:4px 0 0;color:var(--muted);font-size:13px}
+.controls{display:flex;gap:8px;flex-wrap:wrap}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.field{min-width:120px;flex:1}
+small{color:var(--muted)}
+input,select,textarea{width:100%;padding:8px;border-radius:8px;border:1px solid #e6eef8;background:#fff;font-size:14px}
+textarea{min-height:70px}
+.btn{padding:8px 10px;border-radius:8px;border:0;cursor:pointer;font-weight:700}
+.btn.primary{background:var(--accent);color:#fff}
+.btn.ghost{background:#f1f5f9;border:1px solid #e6eef8}
+.btn.warn{background:#f59e0b;color:#fff}
+.btn.danger{background:var(--danger);color:#fff}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:10px}
+.kpi{background:#fbfdff;padding:10px;border-radius:8px;text-align:center}
+.kpi h3{margin:0;font-size:13px}
+.kpi p{margin:6px 0 0;font-weight:800}
+.table{margin-top:12px;overflow:auto;border-radius:8px;border:1px solid #eef2ff}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:8px;border-bottom:1px solid #f1f5f9;text-align:left}
+th{background:#fbfdff;position:sticky;top:0}
+.legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.badge{padding:6px 8px;border-radius:999px;background:#fff3cd;border:1px solid #ffe8a1;font-weight:700}
+.sidebar .card{position:sticky;top:16px}
+.charts{margin-top:12px}
+canvas{background:#fff;border-radius:8px;padding:8px}
+.alerts{margin-top:12px}
+.log{font-size:13px;color:var(--muted);margin-top:8px;max-height:160px;overflow:auto;padding-right:8px}
+
+@media(max-width:1024px){
+  .container{grid-template-columns:1fr}
+  .kpis{grid-template-columns:repeat(2,1fr)}
 }
 </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>💰 Cash Flow Analyzer</h1>
 
-  <div class="section-title">Add Transaction</div>
-  <div class="form-row">
-    <input type="text" id="desc" placeholder="Description">
-    <input type="number" id="amount" placeholder="Amount">
-  </div>
-  <div class="form-row">
-    <select id="type">
-      <option value="income">Income</option>
-      <option value="expense">Expense</option>
-    </select>
-    <select id="currency"></select>
-  </div>
-  <div class="form-row">
-    <input type="month" id="month">
-    <button onclick="addTransaction()">Add</button>
+  <!-- MAIN -->
+  <div class="card">
+    <div class="header">
+      <div class="hleft">
+        <h1>Cash Flow Analyzer — Pro</h1>
+        <p>Forecast, runway, burn, scenarios, recurring items — built for SaaS finance teams.</p>
+      </div>
+      <div>
+        <small>Display currency</small>
+        <select id="displayCurrency" style="padding:8px;border-radius:8px"></select>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpis" id="kpis">
+      <div class="kpi"><h3>Total Balance</h3><p id="kpiBalance">0</p></div>
+      <div class="kpi"><h3>Monthly Inflow</h3><p id="kpiInflow">0</p></div>
+      <div class="kpi"><h3>Monthly Outflow</h3><p id="kpiOutflow">0</p></div>
+      <div class="kpi"><h3>Burn Rate</h3><p id="kpiBurn">0</p></div>
+      <div class="kpi"><h3>Runway (months)</h3><p id="kpiRunway">∞</p></div>
+    </div>
+
+    <!-- entry form -->
+    <div>
+      <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+        <div class="field"><label>Description</label><input id="desc" placeholder="e.g. Monthly subscription"></div>
+        <div style="width:120px"><label>Amount</label><input id="amount" type="number" /></div>
+        <div style="width:140px"><label>Currency</label><select id="currency"></select></div>
+        <div style="width:150px"><label>Date</label><input id="date" type="date" /></div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+        <div style="width:140px"><label>Category</label><select id="category"><option>Uncategorized</option><option>MRR</option><option>One-time</option><option>Salaries</option><option>Hosting</option><option>Marketing</option><option>Office</option><option>Other</option></select></div>
+        <div style="width:140px"><label>Type</label><select id="type"><option value="income">Income</option><option value="expense">Expense</option></select></div>
+        <div style="width:160px"><label>Recurring</label><select id="recurring"><option value="none">None</option><option value="monthly">Monthly</option></select></div>
+        <div style="flex:1"></div>
+        <button class="btn primary" id="addBtn">Add</button>
+        <button class="btn ghost" id="clearBtn">Clear</button>
+      </div>
+      <div style="margin-top:6px"><small class="muted">Tip: set Display currency to unify multi-currency reporting.</small></div>
+    </div>
+
+    <!-- filters & scenario -->
+    <div style="display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap">
+      <div style="width:160px"><label>From (month)</label><input id="fromMonth" type="month"></div>
+      <div style="width:160px"><label>To (month)</label><input id="toMonth" type="month"></div>
+      <div style="width:180px"><label>Category filter</label><select id="filterCategory"><option value="">All</option><option>Uncategorized</option><option>MRR</option><option>One-time</option><option>Salaries</option><option>Hosting</option><option>Marketing</option><option>Office</option></select></div>
+      <div style="width:120px"><label>Scenario%</label><input id="scenarioPct" type="number" placeholder="0" /></div>
+      <div><button class="btn ghost" id="applyFilter">Apply</button></div>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button class="btn" id="exportCsv">Export CSV</button>
+        <button class="btn" id="exportJson">Export JSON</button>
+        <input id="importFile" type="file" accept=".json" style="display:none"/>
+        <button class="btn" id="importBtn">Import JSON</button>
+      </div>
+    </div>
+
+    <!-- charts -->
+    <div class="charts">
+      <canvas id="stackChart" height="180"></canvas>
+      <canvas id="forecastChart" height="180"></canvas>
+    </div>
+
+    <!-- table -->
+    <div class="table" style="margin-top:12px">
+      <table>
+        <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th>Amt</th><th>Curr</th><th>Rec</th><th style="text-align:right">Actions</th></tr></thead>
+        <tbody id="entriesTbody"></tbody>
+      </table>
+    </div>
+
+    <div style="display:flex;gap:8px;align-items:center;margin-top:12px;justify-content:space-between">
+      <div class="muted">Showing <strong id="visibleCount">0</strong> entries</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn danger" id="clearAll">Clear All</button>
+        <button class="btn ghost" onclick="goToDashboard()">⬅ Back to Dashboard</button>
+      </div>
+    </div>
+
+    <div class="log" id="auditLog"></div>
   </div>
 
-  <table id="cashFlowTable">
-    <thead>
-      <tr>
-        <th>Description</th>
-        <th>Amount</th>
-        <th>Type</th>
-        <th>Currency</th>
-        <th>Month</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <!-- SIDEBAR -->
+  <div class="card sidebar">
+    <h3 style="margin:0 0 8px">Forecast & Runway</h3>
 
-  <div class="summary">
-    Net Cash Flow: <span id="netFlow">0.00</span>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div style="flex:1">
+        <label>Projection months</label>
+        <input id="projMonths" type="number" min="1" max="60" value="12" />
+      </div>
+      <div style="flex:1">
+        <label>Starting Cash</label>
+        <input id="startCash" type="number" value="0" />
+      </div>
+    </div>
+
+    <div style="margin-top:10px;display:flex;gap:8px">
+      <button class="btn primary" id="runForecast">Run Forecast</button>
+      <button class="btn" id="resetScenario">Reset Scenario</button>
+    </div>
+
+    <div style="margin-top:12px">
+      <h4 style="margin:6px 0">Scenario Comparison</h4>
+      <small class="muted">Apply scenario % above to revenue; negative to expenses by entering negative number.</small>
+      <div style="margin-top:8px" id="scenarioSummary"></div>
+    </div>
+
+    <div style="margin-top:12px">
+      <h4 style="margin:6px 0">Recent Alerts</h4>
+      <div id="alerts" class="alerts"></div>
+    </div>
   </div>
 
-  <canvas id="cashChart"></canvas>
-
-  <div style="text-align:center; margin-top:10px;">
-    <button onclick="downloadCSV()">Download CSV</button>
-    <button onclick="clearAll()">Clear All</button>
-    <button class="back-btn" onclick="goToDashboard()">⬅ Back to Dashboard</button>
-  </div>
 </div>
 
+<!-- load currencies (user must provide) -->
 <script src="loadCurrencies.js"></script>
+
 <script>
-populateCurrencyDropdown('currency');
+/*
+  Cash Flow Analyzer Pro
+  - Requires: loadCurrencies.js (populateCurrencyDropdown)
+  - Uses exchangerate.host for conversion
+  - LocalStorage persistence
+  - Charts via Chart.js
+*/
 
-let transactions = [];
-let chart;
+// storage keys
+const STORAGE_KEY = 'toolnest_cashflow_pro_v1';
+let entries = []; // {id, desc, amount, currency, date(YYYY-MM-DD), category, type('income'|'expense'), recurring('none'|'monthly'), notes}
+let audit = []; // simple audit log
+let stackChart, forecastChart;
 
-function addTransaction() {
+// DOM refs
+const displayCurrencyEl = document.getElementById('displayCurrency');
+const entriesTbody = document.getElementById('entriesTbody');
+const visibleCountEl = document.getElementById('visibleCount');
+const kpiBalance = document.getElementById('kpiBalance');
+const kpiInflow = document.getElementById('kpiInflow');
+const kpiOutflow = document.getElementById('kpiOutflow');
+const kpiBurn = document.getElementById('kpiBurn');
+const kpiRunway = document.getElementById('kpiRunway');
+const auditLogEl = document.getElementById('auditLog');
+const alertsEl = document.getElementById('alerts');
+
+// init currencies
+if(typeof populateCurrencyDropdown === 'function'){
+  populateCurrencyDropdown('currency');
+  populateCurrencyDropdown('displayCurrency');
+} else {
+  // fallback
+  const o = document.createElement('option'); o.value='USD'; o.text='USD'; displayCurrencyEl.appendChild(o);
+}
+
+// load from storage
+load();
+
+function save(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+  localStorage.setItem(STORAGE_KEY+'_audit', JSON.stringify(audit.slice(-200)));
+}
+
+function load(){
+  try{
+    entries = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    audit = JSON.parse(localStorage.getItem(STORAGE_KEY+'_audit')) || [];
+  }catch(e){ entries = []; audit = []; }
+  renderAll();
+}
+
+// small helpers
+function uid(){ return 'id_'+Math.random().toString(36).slice(2,9); }
+function fmt(n){ return Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function logAudit(msg){ audit.unshift({ts:new Date().toISOString(), msg}); if(audit.length>200) audit.pop(); save(); renderAudit(); }
+function renderAudit(){ auditLogEl.innerHTML = audit.slice(0,50).map(a=>`<div style="padding:6px;border-bottom:1px solid #f1f5f9"><small class="muted">${a.ts.slice(0,19).replace('T',' ')}</small><div>${escapeHtml(a.msg)}</div></div>`).join(''); }
+
+// escape
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// fetch latest rates for base currency (exchangerate.host)
+const rateCache = {};
+async function fetchRates(base='USD'){
+  try{
+    if(rateCache[base] && (Date.now()-rateCache[base].ts < 1000*60*15)) return rateCache[base].rates;
+    const res = await fetch(`https://api.exchangerate.host/latest?base=${encodeURIComponent(base)}`);
+    const data = await res.json();
+    rateCache[base] = { ts: Date.now(), rates: data.rates || {} };
+    return rateCache[base].rates;
+  }catch(e){ console.warn('rates fail', e); return {}; }
+}
+
+// convert amount FROM currency -> TO base currency (amount in from -> amount in to)
+async function convertTo(amount, fromCode, toCode){
+  if(!fromCode || !toCode) return amount;
+  if(fromCode === toCode) return amount;
+  const rates = await fetchRates(toCode); // rates: 1 toCode = rates[other]
+  const r = rates[fromCode];
+  if(!r || r === 0) return amount; // fallback
+  return amount / r;
+}
+
+// Add entry
+document.getElementById('addBtn').addEventListener('click', async ()=>{
   const desc = document.getElementById('desc').value.trim();
   const amount = parseFloat(document.getElementById('amount').value);
-  const type = document.getElementById('type').value;
   const currency = document.getElementById('currency').value;
-  const month = document.getElementById('month').value;
+  const date = document.getElementById('date').value || new Date().toISOString().slice(0,10);
+  const category = document.getElementById('category').value;
+  const type = document.getElementById('type').value;
+  const recurring = document.getElementById('recurring').value;
 
-  if (!desc || !amount || !currency || !month) {
-    alert("Please fill all fields correctly.");
-    return;
-  }
+  if(!desc || !amount || !currency){ alert('Please enter description, amount and currency'); return; }
+  const e = { id: uid(), desc, amount, currency, date, category, type, recurring, notes:'' };
+  entries.unshift(e);
+  logAudit(`Added ${type} ${amount} ${currency} (${desc})`);
+  save();
+  renderAll();
+  // clear inputs
+  document.getElementById('desc').value=''; document.getElementById('amount').value=''; document.getElementById('date').value='';
+});
 
-  transactions.push({ desc, amount, type, currency, month });
+// render all: table, KPIs and charts
+async function renderAll(){
   renderTable();
-  updateSummary();
-  updateChart();
-
-  document.getElementById('desc').value = '';
-  document.getElementById('amount').value = '';
+  await renderKPIsAndCharts();
+  renderAudit();
+  renderAlerts();
 }
 
-function renderTable() {
-  const tbody = document.querySelector("#cashFlowTable tbody");
+// render table
+function renderTable(){
+  const tbody = entriesTbody;
   tbody.innerHTML = '';
-  transactions.forEach((t, i) => {
-    const row = `<tr>
-      <td>${t.desc}</td>
-      <td>${t.amount.toFixed(2)}</td>
-      <td>${t.type}</td>
-      <td>${t.currency}</td>
-      <td>${t.month}</td>
-      <td><button onclick="deleteTransaction(${i})" style="background:#dc3545;">X</button></td>
-    </tr>`;
-    tbody.insertAdjacentHTML('beforeend', row);
+  entries.forEach((it, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${escapeHtml(it.date)}</td>
+      <td><strong>${escapeHtml(it.desc)}</strong></td>
+      <td>${escapeHtml(it.category)}</td>
+      <td>${escapeHtml(it.type)}</td>
+      <td>${fmt(it.amount)}</td>
+      <td>${escapeHtml(it.currency)}</td>
+      <td>${escapeHtml(it.recurring)}</td>
+      <td style="text-align:right">
+        <button class="btn ghost" onclick="editEntry('${it.id}')">Edit</button>
+        <button class="btn danger" onclick="deleteEntry('${it.id}')">Delete</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+  visibleCountEl.textContent = entries.length;
+}
+
+// edit/delete
+window.deleteEntry = function(id){
+  if(!confirm('Delete entry?')) return;
+  entries = entries.filter(e=>e.id!==id);
+  logAudit(`Deleted entry ${id}`);
+  save(); renderAll();
+}
+function editEntry(id){
+  const e = entries.find(x=>x.id===id);
+  if(!e) return;
+  // simple prompt-based edit to keep file single-page (you can replace with modal)
+  const newDesc = prompt('Description', e.desc);
+  if(newDesc === null) return;
+  e.desc = newDesc;
+  const newAmt = prompt('Amount', e.amount);
+  if(newAmt === null) return;
+  e.amount = parseFloat(newAmt) || e.amount;
+  save(); logAudit(`Edited entry ${id}`); renderAll();
+}
+
+// get filtered list
+function getFiltered(){
+  const from = document.getElementById('fromMonth').value;
+  const to = document.getElementById('toMonth').value;
+  const cat = document.getElementById('filterCategory').value;
+  const list = entries.filter(e=>{
+    if(cat && cat !== '' && e.category !== cat) return false;
+    if(from && e.date.slice(0,7) < from) return false;
+    if(to && e.date.slice(0,7) > to) return false;
+    return true;
+  });
+  return list;
+}
+
+// KPIs and charts
+async function renderKPIsAndCharts(){
+  const displayCurrency = displayCurrencyEl.value || 'USD';
+  const list = getFiltered();
+
+  // fetch rates
+  const rates = await fetchRates(displayCurrency);
+
+  // build monthly buckets for last 24 months + forecast months
+  const buckets = {}; // YYYY-MM -> {income, expense}
+  let totalBalance = parseFloat(document.getElementById('startCash').value) || 0;
+
+  // compute totals
+  for(const e of entries){
+    // convert to display
+    const amtDisplay = rates && rates[e.currency] ? e.amount / rates[e.currency] : e.amount;
+    const m = e.date.slice(0,7);
+    if(!buckets[m]) buckets[m] = {income:0, expense:0};
+    if(e.type === 'income') { buckets[m].income += amtDisplay; totalBalance += (e.type==='income'? amtDisplay: -amtDisplay); } 
+    else { buckets[m].expense += amtDisplay; totalBalance -= (e.type==='expense' ? amtDisplay : -amtDisplay); }
+  }
+
+  // summary numbers: use last 3 months average for inflow/outflow
+  const months = Object.keys(buckets).sort();
+  const lastN = 3;
+  const recent = months.slice(-lastN);
+  let sumIn=0, sumOut=0;
+  recent.forEach(m=>{
+    sumIn += (buckets[m].income||0);
+    sumOut += (buckets[m].expense||0);
+  });
+  const avgIn = recent.length ? sumIn/recent.length : 0;
+  const avgOut = recent.length ? sumOut/recent.length : 0;
+  const burn = Math.max(0, avgOut - avgIn); // monthly net burn
+  const runway = burn>0 ? (totalBalance / burn) : Infinity;
+
+  kpiBalance.textContent = `${displayCurrency} ${fmt(totalBalance)}`;
+  kpiInflow.textContent = `${displayCurrency} ${fmt(avgIn)}`;
+  kpiOutflow.textContent = `${displayCurrency} ${fmt(avgOut)}`;
+  kpiBurn.textContent = `${displayCurrency} ${fmt(burn)}`;
+  kpiRunway.textContent = isFinite(runway) ? `${Math.max(0,round(runway,2))}` : '∞';
+
+  // stacked bar data for last 12 months
+  const last12 = getLastNMonths(12);
+  const inflowData = last12.map(m => buckets[m] ? buckets[m].income : 0);
+  const outflowData = last12.map(m => buckets[m] ? buckets[m].expense : 0);
+  renderStackChart(last12, inflowData, outflowData);
+
+  // forecast chart: project using recurring items + historical averages + scenario
+  // baseline projection
+  const projMonths = parseInt(document.getElementById('projMonths').value) || 12;
+  const scenarioPct = parseFloat(document.getElementById('scenarioPct').value)||0;
+  const forecast = await buildForecast(projMonths, displayCurrency, scenarioPct);
+  renderForecastChart(forecast.labels, forecast.netSeries, forecast.cumulative);
+  renderScenarioSummary(forecast, scenarioPct);
+
+  renderAlerts(); // budgets/alerts display
+}
+
+// helpers
+function getLastNMonths(n){
+  const arr=[];
+  const now = new Date();
+  for(let i=n-1;i>=0;i--){
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    arr.push(d.toISOString().slice(0,7));
+  }
+  return arr;
+}
+function round(num, dec=2){ return Math.round(num * Math.pow(10,dec))/Math.pow(10,dec); }
+
+// render stack chart
+function renderStackChart(labels, inflowData, outflowData){
+  const ctx = document.getElementById('stackChart').getContext('2d');
+  if(stackChart) stackChart.destroy();
+  stackChart = new Chart(ctx, {
+    type:'bar',
+    data:{labels, datasets:[
+      {label:'Inflow', data: inflowData, backgroundColor:'#10b981'},
+      {label:'Outflow', data: outflowData, backgroundColor:'#ef4444'}
+    ]},
+    options:{responsive:true, plugins:{legend:{position:'bottom'}} , scales:{ y:{beginAtZero:true} } }
   });
 }
 
-function deleteTransaction(i) {
-  transactions.splice(i, 1);
-  renderTable();
-  updateSummary();
-  updateChart();
+// build forecast
+async function buildForecast(months=12, displayCurrency='USD', scenarioPct=0){
+  // baseline: take recurring monthly items + average one-time flows (simple)
+  const rates = await fetchRates(displayCurrency);
+  // convert entries to display currency and bucket by month
+  const convEntries = entries.map(e=>{
+    const r = rates && rates[e.currency] ? rates[e.currency] : 1;
+    const amt = (r===0)? e.amount : (e.amount / r);
+    return {...e, amtDisplay: amt};
+  });
+
+  // average monthly from history
+  const monthlyNet = {}; // YYYY-MM -> net
+  convEntries.forEach(e=>{
+    const m = e.date.slice(0,7);
+    monthlyNet[m] = (monthlyNet[m]||0) + (e.type==='income'? e.amtDisplay : -e.amtDisplay);
+  });
+  const monthsHist = Object.keys(monthlyNet).sort();
+  const avgNet = monthsHist.length ? (monthsHist.reduce((s,m)=>s+monthlyNet[m],0)/monthsHist.length) : 0;
+
+  // recurring contributions: sum of monthly recurring amounts (converted)
+  const recurringMonthly = convEntries.filter(e=>e.recurring==='monthly').reduce((s,e)=> s + (e.type==='income'? e.amtDisplay : -e.amtDisplay), 0);
+
+  // build forecast label months starting next month
+  const start = new Date();
+  const labels = [];
+  for(let i=1;i<=months;i++){
+    const d = new Date(start.getFullYear(), start.getMonth()+i, 1);
+    labels.push(d.toISOString().slice(0,7));
+  }
+
+  // net series: baseline uses recurringMonthly + avgNet (distributed) and scenarioPct adjusts incomes
+  const netSeries = [];
+  let cumulative = [];
+  const startCash = parseFloat(document.getElementById('startCash').value) || 0;
+  let cum = startCash;
+  for(let i=0;i<labels.length;i++){
+    // naive: baseline month net = avgNet + (recurringMonthly - recurring component already in avg?) We'll do:
+    const base = avgNet + recurringMonthly;
+    // scenario: apply scenarioPct to income portion only; assume avg income portion = (avgNet + avgOut? complicated)
+    // simple approach: apply scenario% as increase/decrease to base (user chooses sign).
+    const adjusted = base * (1 + (scenarioPct/100));
+    netSeries.push(adjusted);
+    cum += adjusted;
+    cumulative.push(cum);
+  }
+
+  return { labels, netSeries, cumulative, baseAvg: avgNet, recurringMonthly };
 }
 
-function updateSummary() {
-  const income = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-  const expense = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
-  const net = income - expense;
-  const netFlow = document.getElementById('netFlow');
-  netFlow.textContent = net.toFixed(2);
-  netFlow.style.color = net >= 0 ? 'green' : 'red';
-}
-
-function updateChart() {
-  const months = [...new Set(transactions.map(t => t.month))];
-  const incomeData = months.map(m => transactions.filter(t => t.type === 'income' && t.month === m).reduce((sum, t) => sum + t.amount, 0));
-  const expenseData = months.map(m => transactions.filter(t => t.type === 'expense' && t.month === m).reduce((sum, t) => sum + t.amount, 0));
-
-  const ctx = document.getElementById('cashChart').getContext('2d');
-  if (chart) chart.destroy();
-  chart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: months,
-      datasets: [
-        { label: 'Income', data: incomeData, backgroundColor: '#28a745' },
-        { label: 'Expenses', data: expenseData, backgroundColor: '#dc3545' }
+// render forecast chart
+function renderForecastChart(labels, netSeries, cumulative){
+  const ctx = document.getElementById('forecastChart').getContext('2d');
+  if(forecastChart) forecastChart.destroy();
+  forecastChart = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        {label:'Projected Net (monthly)', data: netSeries, borderColor:'#3b82f6', fill:false, tension:0.2},
+        {label:'Cumulative Cash', data: cumulative, borderColor:'#10b981', fill:true, backgroundColor:'rgba(16,185,129,0.08)', tension:0.2}
       ]
     },
-    options: {
-      responsive: true,
-      plugins: { legend: { position: 'top' } },
-      scales: { y: { beginAtZero: true } }
-    }
+    options:{responsive:true, plugins:{legend:{position:'bottom'}}, scales:{ y:{beginAtZero:false}}}
   });
 }
 
-function downloadCSV() {
-  if (transactions.length === 0) {
-    alert("No data to download.");
-    return;
-  }
-
-  let csv = "Description,Amount,Type,Currency,Month\n";
-  transactions.forEach(t => {
-    csv += `${t.desc},${t.amount},${t.type},${t.currency},${t.month}\n`;
-  });
-
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = "CashFlow_Analyzer.csv";
-  a.click();
-  URL.revokeObjectURL(url);
+// scenario summary
+function renderScenarioSummary(forecast, pct){
+  const el = document.getElementById('scenarioSummary');
+  const totalProj = forecast.netSeries.reduce((s,v)=>s+v,0);
+  el.innerHTML = `<div style="padding:8px;border-radius:8px;background:#fbfdff;border:1px solid #eef2ff">
+    <div><strong>Projected net over ${forecast.labels.length} months:</strong> ${fmt(totalProj)}</div>
+    <div>Scenario adjustment: ${pct}%</div>
+  </div>`;
 }
 
-function clearAll() {
-  if (confirm("Clear all transactions?")) {
-    transactions = [];
-    renderTable();
-    updateSummary();
-    updateChart();
+// run forecast button
+document.getElementById('runForecast').addEventListener('click', async ()=>{
+  document.getElementById('runForecast').disabled = true;
+  await renderKPIsAndCharts();
+  document.getElementById('runForecast').disabled = false;
+});
+
+// export / import
+document.getElementById('exportCsv').addEventListener('click', ()=> downloadCSV(entries));
+document.getElementById('exportJson').addEventListener('click', ()=> downloadJSON(entries));
+document.getElementById('importBtn').addEventListener('click', ()=> document.getElementById('importFile').click());
+document.getElementById('importFile').addEventListener('change', importJSON);
+
+function downloadCSV(list){
+  const hdr = 'date,desc,category,type,amount,currency,recurring\n';
+  const lines = list.map(e=>`${e.date},"${e.desc.replace(/"/g,'""')}",${e.category},${e.type},${e.amount},${e.currency},${e.recurring}`);
+  const blob = new Blob([hdr + lines.join('\n')], {type:'text/csv'});
+  const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='cashflow.csv'; a.click(); URL.revokeObjectURL(url);
+}
+function downloadJSON(list){ const blob = new Blob([JSON.stringify(list,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='cashflow.json'; a.click(); URL.revokeObjectURL(url); }
+function importJSON(e){
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ()=>{ try{ const data = JSON.parse(r.result); if(Array.isArray(data)){ entries = data.concat(entries); save(); renderAll(); alert('Imported'); } else alert('Invalid JSON'); } catch(err){ alert('Import error: '+err.message);} };
+  r.readAsText(f); e.target.value='';
+}
+
+// clear all
+document.getElementById('clearAll').addEventListener('click', ()=>{ if(confirm('Delete all data?')){ entries=[]; save(); renderAll(); } });
+
+// apply filters
+document.getElementById('applyFilter').addEventListener('click', ()=> renderAll());
+
+// simple alerts: budget-like: if monthly expenses > threshold, show alert (you can extend)
+function renderAlerts(){
+  alertsEl.innerHTML = '';
+  // example: if last month net < - (avgOut * 1.5) then warn
+  // compute last month stats
+  const lastMonth = (()=>{ const d = new Date(); d.setMonth(d.getMonth()-1); return d.toISOString().slice(0,7); })();
+  const last = entries.filter(e=> e.date.slice(0,7) === lastMonth);
+  const out = last.filter(e=>e.type==='expense').reduce((s,e)=>s+e.amount,0);
+  const inp = last.filter(e=>e.type==='income').reduce((s,e)=>s+e.amount,0);
+  if(out > inp*1.5){
+    alertsEl.innerHTML = `<div style="padding:8px;border-radius:8px;background:#fff3f2;border:1px solid #fdecea"><strong>Warning:</strong> Last month's outflow (${fmt(out)}) is > 150% of inflow (${fmt(inp)}).</div>`;
   }
 }
 
-function goToDashboard() {
-  window.location.href = "index.html";
+// utilities
+function round2(n){ return Math.round(n*100)/100; }
+function goToDashboard(){ window.location.href = "index.html"; }
+
+// initial render
+renderAll();
+logAudit('Initialized Cash Flow Analyzer Pro');
+
+// SaaS hook placeholder (call your backend to persist server-side)
+async function SYNC_TO_SERVER(payload){
+  // Example:
+  // await fetch('https://your.api/save', {method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify(payload)});
+  // call this after save() or periodically to sync.
 }
 </script>
 </body>
