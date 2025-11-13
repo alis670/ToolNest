@@ -1,267 +1,167 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Elite Expense Tracker Pro</title>
-
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-
-<style>
+<title>Pro Expense Tracker — SaaS Model</title><!-- Chart.js --><script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script><style>
 :root{
   --bg:#f6f8fb; --card:#fff; --muted:#6b7280; --accent:#2b6cb0;
-  --success:#10b981; --danger:#ef4444; --radius:10px;
-  font-family:Arial, sans-serif;
+  --success:#10b981; --danger:#ef4444; --warning:#f59e0b; --radius:10px;
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;
 }
-*{box-sizing:border-box;}
-body{margin:0; padding:20px; background:var(--bg); color:#0f172a;}
-.container{max-width:1200px; margin:0 auto; display:grid; grid-template-columns:1fr; gap:16px;}
-.card{background:var(--card); border-radius:var(--radius); padding:16px; box-shadow:0 8px 20px rgba(2,6,23,0.06);}
-h1{margin-top:0;}
-input,select{padding:8px; border-radius:6px; border:1px solid #e6eef8; width:100%;}
-button{padding:8px 16px; border:none; border-radius:6px; cursor:pointer;}
-button.primary{background:var(--accent); color:#fff;}
-button.ghost{background:#f1f5f9; border:1px solid #e6eef8;}
-button.danger{background:var(--danger); color:#fff;}
-.kpis{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;}
-.kpi{background:#fbfdff; padding:10px; border-radius:6px; text-align:center; flex:1;}
-.kpi h3{margin:0; font-size:14px;}
-.kpi p{margin:5px 0 0; font-weight:800;}
-.table{overflow:auto; margin-top:12px; border-radius:6px;}
-table{width:100%; border-collapse:collapse; font-size:14px;}
-th,td{padding:8px; border-bottom:1px solid #f1f5f9; text-align:left;}
-th{background:#fbfdff; position:sticky; top:0;}
-.alerts{margin-top:12px;}
-.audit-log{margin-top:12px; max-height:200px; overflow:auto; font-size:13px; color:var(--muted);}
-@media(max-width:768px){ .kpis{flex-direction:column;} }
-</style>
-</head>
-<body>
-
-<div class="container">
-
-  <div class="card">
-    <h1>Elite Expense Tracker Pro</h1>
-    <p>Track income & expenses, manage budgets, set alerts, multi-currency ready.</p>
-
-    <!-- Display Currency -->
-    <div style="margin:10px 0;">
-      <label>Display Currency:</label>
-      <select id="displayCurrency"></select>
-    </div>
-
-    <!-- Entry Form -->
-    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px;">
-      <div>
-        <label>Description</label>
-        <input type="text" id="desc" placeholder="e.g. Rent">
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:#0f172a;padding:16px}
+.container{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 380px;gap:16px;align-items:start}
+.card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 8px 20px rgba(2,6,23,0.06)}
+.header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px}
+.hleft h1{margin:0;font-size:18px}
+.hleft p{margin:4px 0 0;color:var(--muted);font-size:13px}
+input, select, textarea{width:100%;padding:8px;border-radius:8px;border:1px solid #e6eef8;background:#fff;font-size:14px}
+textarea{min-height:70px}
+button{padding:8px 16px;border-radius:8px;border:0;cursor:pointer;font-weight:700}
+.btn.primary{background:var(--accent);color:#fff}
+.btn.ghost{background:#f1f5f9;border:1px solid #e6eef8}
+.btn.warn{background:var(--warning);color:#fff}
+.btn.danger{background:var(--danger);color:#fff}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:10px}
+.kpi{background:#fbfdff;padding:10px;border-radius:8px;text-align:center}
+.kpi h3{margin:0;font-size:13px}
+.kpi p{margin:6px 0 0;font-weight:800}
+.table{margin-top:12px;overflow:auto;border-radius:8px;border:1px solid #eef2ff}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:8px;border-bottom:1px solid #f1f5f9;text-align:left}
+th{background:#fbfdff;position:sticky;top:0}
+.alerts{margin-top:12px}
+.log{font-size:13px;color:var(--muted);margin-top:8px;max-height:160px;overflow:auto;padding-right:8px}
+@media(max-width:1024px){.container{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}}
+</style></head>
+<body><div class="container">  <!-- MAIN -->  <div class="card">
+    <div class="header">
+      <div class="hleft">
+        <h1>Expense Tracker — Pro SaaS</h1>
+        <p>Track income, expenses, budgets, alerts, and reports.</p>
       </div>
       <div>
-        <label>Amount</label>
-        <input type="number" id="amount">
+        <small>Display currency</small>
+        <select id="displayCurrency" style="padding:8px;border-radius:8px"></select>
       </div>
-      <div>
-        <label>Currency</label>
-        <select id="currency"></select>
-      </div>
-      <div>
-        <label>Date</label>
-        <input type="date" id="date">
-      </div>
-      <div>
-        <label>Category</label>
-        <select id="category">
-          <option>Uncategorized</option>
-          <option>MRR</option>
-          <option>One-time</option>
-          <option>Salaries</option>
-          <option>Hosting</option>
-          <option>Marketing</option>
-          <option>Office</option>
-          <option>Other</option>
-        </select>
-      </div>
-      <div>
-        <label>Type</label>
-        <select id="type">
-          <option value="income">Income</option>
-          <option value="expense">Expense</option>
-        </select>
-      </div>
-      <div>
-        <label>Recurring</label>
-        <select id="recurring">
-          <option value="none">None</option>
-          <option value="monthly">Monthly</option>
-        </select>
-      </div>
-      <div style="align-self:end;">
-        <button class="primary" id="addBtn">Add</button>
-        <button class="ghost" id="clearBtn">Clear</button>
-      </div>
-    </div>
+    </div><!-- KPIs -->
+<div class="kpis" id="kpis">
+  <div class="kpi"><h3>Total Balance</h3><p id="kpiBalance">0</p></div>
+  <div class="kpi"><h3>Total Income</h3><p id="kpiIncome">0</p></div>
+  <div class="kpi"><h3>Total Expenses</h3><p id="kpiExpense">0</p></div>
+  <div class="kpi"><h3>Monthly Avg Expense</h3><p id="kpiAvgExp">0</p></div>
+  <div class="kpi"><h3>Highest Expense Cat</h3><p id="kpiTopCat">-</p></div>
+</div>
 
-    <!-- KPIs -->
-    <div class="kpis">
-      <div class="kpi"><h3>Total Income</h3><p id="kpiIncome">0</p></div>
-      <div class="kpi"><h3>Total Expenses</h3><p id="kpiExpense">0</p></div>
-      <div class="kpi"><h3>Net Balance</h3><p id="kpiBalance">0</p></div>
-    </div>
-
-    <!-- Alerts -->
-    <div class="alerts" id="alerts"></div>
-
-    <!-- Table -->
-    <div class="table">
-      <table>
-        <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th>Amount</th><th>Currency</th><th>Rec</th><th>Actions</th></tr></thead>
-        <tbody id="entriesTbody"></tbody>
-      </table>
-    </div>
-
-    <!-- Export / Import -->
-    <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
-      <button class="primary" id="exportCsv">Export CSV</button>
-      <button class="primary" id="exportJson">Export JSON</button>
-      <input type="file" id="importFile" accept=".json" style="display:none;">
-      <button class="ghost" id="importBtn">Import JSON</button>
-    </div>
-
-    <!-- Audit Log -->
-    <div class="audit-log" id="auditLog"></div>
-
-    <!-- Back to Dashboard -->
-    <div style="margin-top:20px; text-align:right;">
-      <button onclick="goToDashboard()" style="padding:8px 16px; cursor:pointer;">⬅ Back to Dashboard</button>
-    </div>
-
+<!-- entry form -->
+<div>
+  <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+    <div style="flex:2"><label>Description</label><input id="desc" placeholder="e.g. Software Subscription"></div>
+    <div style="width:120px"><label>Amount</label><input id="amount" type="number" /></div>
+    <div style="width:140px"><label>Currency</label><select id="currency"></select></div>
+    <div style="width:150px"><label>Date</label><input id="date" type="date" /></div>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+    <div style="width:140px"><label>Category</label><select id="category"><option>Uncategorized</option><option>MRR</option><option>One-time</option><option>Salaries</option><option>Marketing</option><option>Office</option><option>Other</option></select></div>
+    <div style="width:140px"><label>Type</label><select id="type"><option value="income">Income</option><option value="expense">Expense</option></select></div>
+    <div style="width:160px"><label>Recurring</label><select id="recurring"><option value="none">None</option><option value="monthly">Monthly</option></select></div>
+    <div style="flex:1"></div>
+    <button class="btn primary" id="addBtn">Add</button>
+    <button class="btn ghost" id="clearBtn">Clear</button>
   </div>
 </div>
 
-<!-- Load currency list -->
-<script src="loadCurrencies.js"></script>
+<!-- table -->
+<div class="table">
+  <table>
+    <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th>Amt</th><th>Curr</th><th>Rec</th><th style="text-align:right">Actions</th></tr></thead>
+    <tbody id="entriesTbody"></tbody>
+  </table>
+</div>
 
-<script>
-let entries = [];
-const STORAGE_KEY = 'elite_expense_tracker_v1';
-const displayCurrencyEl = document.getElementById('displayCurrency');
-const entriesTbody = document.getElementById('entriesTbody');
-const auditLogEl = document.getElementById('auditLog');
-const alertsEl = document.getElementById('alerts');
+<!-- alerts -->
+<div class="alerts" id="alerts"></div>
 
-if(typeof populateCurrencyDropdown==='function'){
-  populateCurrencyDropdown('currency');
-  populateCurrencyDropdown('displayCurrency');
-}else{
-  const o = document.createElement('option'); o.value='USD'; o.text='USD'; displayCurrencyEl.appendChild(o);
-}
+<!-- audit log -->
+<div class="log" id="auditLog"></div>
+
+<!-- export/import & dashboard -->
+<div style="display:flex;gap:8px;margin-top:12px;justify-content:space-between">
+  <div>
+    <button class="btn primary" id="exportCsv">Export CSV</button>
+    <button class="btn ghost" id="exportJson">Export JSON</button>
+    <input id="importFile" type="file" accept=".json" style="display:none" />
+    <button class="btn ghost" id="importBtn">Import JSON</button>
+  </div>
+  <button class="btn ghost" onclick="goToDashboard()">⬅ Back to Dashboard</button>
+</div>
+
+  </div></div><script src="loadCurrencies.js"></script><script>
+populateCurrencyDropdown('currency');
+populateCurrencyDropdown('displayCurrency');
+
+const STORAGE_KEY = 'toolnest_expense_tracker_v1';
+let entries = []; let audit = [];
+
+function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); localStorage.setItem(STORAGE_KEY+'_audit', JSON.stringify(audit.slice(-200))); }
+function load(){ entries = JSON.parse(localStorage.getItem(STORAGE_KEY))||[]; audit = JSON.parse(localStorage.getItem(STORAGE_KEY+'_audit'))||[]; renderAll(); }
+function uid(){ return 'id_'+Math.random().toString(36).slice(2,9); }
+function fmt(n){ return Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function logAudit(msg){ audit.unshift({ts:new Date().toISOString(), msg}); if(audit.length>200) audit.pop(); save(); renderAudit(); }
+function renderAudit(){ document.getElementById('auditLog').innerHTML = audit.slice(0,50).map(a=>`<div style="padding:6px;border-bottom:1px solid #f1f5f9"><small>${a.ts.slice(0,19).replace('T',' ')}</small><div>${a.msg}</div></div>`).join(''); }
+function escapeHtml(s){ return String(s||'').replace(/[&<>"]',''); }
 
 load();
 
-function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); }
-function load(){ entries=JSON.parse(localStorage.getItem(STORAGE_KEY))||[]; renderAll(); }
-
-function uid(){ return 'id_'+Math.random().toString(36).slice(2,9); }
-function fmt(n){ return Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
-
+// add entry
 document.getElementById('addBtn').addEventListener('click',()=>{
   const desc=document.getElementById('desc').value.trim();
   const amount=parseFloat(document.getElementById('amount').value);
   const currency=document.getElementById('currency').value;
-  const date=document.getElementById('date').value || new Date().toISOString().slice(0,10);
+  const date=document.getElementById('date').value||new Date().toISOString().slice(0,10);
   const category=document.getElementById('category').value;
   const type=document.getElementById('type').value;
   const recurring=document.getElementById('recurring').value;
-  if(!desc || !amount || !currency){ alert('Please fill Description, Amount & Currency'); return; }
-  const e={id:uid(), desc, amount, currency, date, category, type, recurring};
-  entries.unshift(e); save(); renderAll(); clearForm();
+  if(!desc||!amount||!currency){ alert('Fill all required fields'); return; }
+  entries.unshift({id:uid(), desc, amount, currency, date, category, type, recurring});
+  logAudit(`Added ${type} ${amount} ${currency} (${desc})`);
+  save(); renderAll();
+  document.getElementById('desc').value=''; document.getElementById('amount').value=''; document.getElementById('date').value='';
 });
 
-function clearForm(){
-  document.getElementById('desc').value='';
-  document.getElementById('amount').value='';
-  document.getElementById('date').value='';
-}
-
-function renderAll(){
-  renderTable(); renderKPIs(); renderAlerts(); renderAudit();
-}
-
-function renderTable(){
-  entriesTbody.innerHTML='';
-  entries.forEach(e=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${e.date}</td><td>${e.desc}</td><td>${e.category}</td><td>${e.type}</td><td>${fmt(e.amount)}</td><td>${e.currency}</td><td>${e.recurring}</td>
-      <td>
-        <button onclick="editEntry('${e.id}')">Edit</button>
-        <button onclick="deleteEntry('${e.id}')">Delete</button>
-      </td>`;
-    entriesTbody.appendChild(tr);
-  });
-}
+function renderAll(){ renderTable(); renderKPIs(); renderAlerts(); renderAudit(); }
+function renderTable(){ const tbody=document.getElementById('entriesTbody'); tbody.innerHTML=''; entries.forEach(e=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td>${e.date}</td><td>${e.desc}</td><td>${e.category}</td><td>${e.type}</td><td>${fmt(e.amount)}</td><td>${e.currency}</td><td>${e.recurring}</td><td style="text-align:right"><button onclick="editEntry('${e.id}')">Edit</button> <button onclick="deleteEntry('${e.id}')">Delete</button></td>`; tbody.appendChild(tr); });}
+function editEntry(id){ const e=entries.find(x=>x.id===id); if(!e) return; const newDesc=prompt('Description', e.desc); if(newDesc===null) return; e.desc=newDesc; const newAmt=parseFloat(prompt('Amount', e.amount))||e.amount; e.amount=newAmt; save(); logAudit(`Edited entry ${id}`); renderAll(); }
+function deleteEntry(id){ if(!confirm('Delete entry?')) return; entries=entries.filter(e=>e.id!==id); logAudit(`Deleted entry ${id}`); save(); renderAll(); }
 
 function renderKPIs(){
-  const displayCurrency = displayCurrencyEl.value || 'USD';
-  let income=0, expense=0;
-  entries.forEach(e=>{ if(e.type==='income') income+=e.amount; else expense+=e.amount; });
-  document.getElementById('kpiIncome').innerText=`${displayCurrency} ${fmt(income)}`;
-  document.getElementById('kpiExpense').innerText=`${displayCurrency} ${fmt(expense)}`;
-  document.getElementById('kpiBalance').innerText=`${displayCurrency} ${fmt(income-expense)}`;
+  const display=document.getElementById('displayCurrency').value||'USD';
+  let totalIncome=0,totalExp=0;
+  entries.forEach(e=>{ if(e.type==='income') totalIncome+=e.amount; else totalExp+=e.amount; });
+  document.getElementById('kpiBalance').innerText=`${display} ${fmt(totalIncome-totalExp)}`;
+  document.getElementById('kpiIncome').innerText=`${display} ${fmt(totalIncome)}`;
+  document.getElementById('kpiExpense').innerText=`${display} ${fmt(totalExp)}`;
+  const monthlyAvg=entries.filter(e=>e.type==='expense').reduce((s,e)=>s+e.amount,0)/Math.max(1,new Date().getMonth()+1);
+  document.getElementById('kpiAvgExp').innerText=`${display} ${fmt(monthlyAvg)}`;
+  const topCat=entries.filter(e=>e.type==='expense').reduce((acc,e)=>{acc[e.category]=(acc[e.category]||0)+e.amount; return acc;},{})
+  ;const top=Object.entries(topCat).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('kpiTopCat').innerText=top?top[0]:'-';
 }
 
-function renderAlerts(){
-  alertsEl.innerHTML='';
-  const monthlyExpenses = entries.filter(e=>e.type==='expense');
-  let total = monthlyExpenses.reduce((s,e)=>s+e.amount,0);
-  if(total>1000){ // example alert
-    alertsEl.innerHTML=`<div style="padding:8px; background:#fdecea; border-radius:6px;">⚠️ Monthly expenses exceeded $1000!</div>`;
-  }
+function renderAlerts(){ const alerts=document.getElementById('alerts'); alerts.innerHTML=''; const lastMonth=(new Date(new Date().getFullYear(),new Date().getMonth()-1,1)).toISOString().slice(0,7);
+  const last=entries.filter(e=>e.date.slice(0,7)===lastMonth && e.type==='expense'); const sumOut=last.reduce((s,e)=>s+e.amount,0);
+  const sumIn=entries.filter(e=>e.date.slice(0,7)===lastMonth && e.type==='income').reduce((s,e)=>s+e.amount,0);
+  if(sumOut>sumIn*1.5) alerts.innerHTML=`<div style="padding:8px;border-radius:8px;background:#fff3f2;border:1px solid #fdecea"><strong>Warning:</strong> Last month's outflow (${fmt(sumOut)}) is > 150% of inflow (${fmt(sumIn)}).</div>`;
 }
 
-function renderAudit(){
-  auditLogEl.innerHTML = entries.slice(0,50).map(e=>`<div>${e.date} | ${e.desc} | ${e.amount} ${e.currency}</div>`).join('');
-}
-
-window.deleteEntry = function(id){
-  if(!confirm('Delete entry?')) return;
-  entries = entries.filter(e=>e.id!==id); save(); renderAll();
-}
-
-window.editEntry = function(id){
-  const e = entries.find(x=>x.id===id);
-  if(!e) return;
-  const newDesc = prompt('Description', e.desc);
-  if(newDesc===null) return; e.desc=newDesc;
-  const newAmt = prompt('Amount', e.amount);
-  if(newAmt!==null) e.amount=parseFloat(newAmt)||e.amount;
-  save(); renderAll();
-}
-
-// Export / Import
-document.getElementById('exportCsv').addEventListener('click',()=>{ 
-  const hdr='date,desc,category,type,amount,currency,recurring\n';
-  const lines=entries.map(e=>`${e.date},"${e.desc}",${e.category},${e.type},${e.amount},${e.currency},${e.recurring}`);
-  const blob=new Blob([hdr+lines.join('\n')],{type:'text/csv'});
-  const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='expenses.csv'; a.click(); URL.revokeObjectURL(url);
-});
-document.getElementById('exportJson').addEventListener('click',()=>{
-  const blob = new Blob([JSON.stringify(entries,null,2)],{type:'application/json'});
-  const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='expenses.json'; a.click(); URL.revokeObjectURL(url);
-});
+// export/import
+document.getElementById('exportCsv').addEventListener('click',()=>{ const hdr='date,desc,category,type,amount,currency,recurring\n'; const lines=entries.map(e=>`${e.date},"${e.desc}",${e.category},${e.type},${e.amount},${e.currency},${e.recurring}`); const blob=new Blob([hdr+lines.join('\n')],{type:'text/csv'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='expense_tracker.csv'; a.click(); URL.revokeObjectURL(url); });
+document.getElementById('exportJson').addEventListener('click',()=>{ const blob=new Blob([JSON.stringify(entries,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='expense_tracker.json'; a.click(); URL.revokeObjectURL(url); });
 document.getElementById('importBtn').addEventListener('click',()=>document.getElementById('importFile').click());
-document.getElementById('importFile').addEventListener('change', e=>{
-  const f=e.target.files[0]; if(!f) return;
-  const r=new FileReader();
-  r.onload=()=>{ try{ const data=JSON.parse(r.result); if(Array.isArray(data)){ entries=data.concat(entries); save(); renderAll(); alert('Imported'); }else alert('Invalid JSON'); }catch(err){ alert('Import error:'+err.message);} };
-  r.readAsText(f); e.target.value='';
-});
+document.getElementById('importFile').addEventListener('change',e=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ const data=JSON.parse(r.result); if(Array.isArray(data)){ entries=data.concat(entries); save(); renderAll(); alert('Imported'); } else alert('Invalid JSON'); } catch(err){ alert('Import error:'+err.message);} }; r.readAsText(f); e.target.value=''; });
 
-// Clear form button
-document.getElementById('clearBtn').addEventListener('click', clearForm);
-
-function goToDashboard(){ window.location.href="index.html"; }
-</script>
-
-</body>
+// clear
+document.getElementById('clearBtn').addEventListener('click',()=>{ document.getElementById('desc').value=''; document.getElementById('amount').value=''; document.getElementById('date').value=''; });
+function goToDashboard(){ window.location.href='index.html'; }
+</script></body>
 </html>
