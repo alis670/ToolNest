@@ -74,6 +74,11 @@ button { padding: 8px 16px; margin: 10px 5px 0 0; cursor: pointer; }
     </div>
 </div>
 
+<!-- Back to Dashboard button -->
+<div style="margin-top:20px;">
+    <button onclick="goToDashboard()" style="padding:8px 16px; cursor:pointer;">⬅ Back to Dashboard</button>
+</div>
+
 <script src="loadCurrencies.js"></script>
 <script>
 populateCurrencyDropdown('currencyInvested');
@@ -161,13 +166,11 @@ function downloadResults() {
     a.href = url;
     a.download = 'ROI_Calculator_Results.csv';
     a.click();
-    URL.revokeObjectURL(url);<div style="margin-top:20px;">
-    <button onclick="goToDashboard()" style="padding:8px 16px; cursor:pointer;">⬅ Back to Dashboard</button>
-</div>
+    URL.revokeObjectURL(url);
+}
 
-<script>
 function goToDashboard() {
-    // Replace the URL below with your actual dashboard URL
+    // Replace with your actual dashboard URL
     window.location.href = "dashboard.html";
 }
 </script>
