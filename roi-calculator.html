@@ -98,7 +98,6 @@ async function calculateROI() {
         return;
     }
 
-    // Real-time currency conversion if needed
     if(fromCurrency !== toCurrency) {
         const apiUrl = `https://api.exchangerate.host/convert?from=${toCurrency}&to=${fromCurrency}&amount=${returned}`;
         try {
@@ -120,9 +119,8 @@ async function calculateROI() {
     document.getElementById('annualizedROI').innerText = annualized.toFixed(2) + "%";
     document.getElementById('investmentLength').innerText = days.toFixed(0);
 
-    // Update circular progress ring
     const progressCircle = document.querySelector('.progress');
-    const roiValue = Math.min(Math.abs(roi), 100); // cap at 100%
+    const roiValue = Math.min(Math.abs(roi), 100);
     const circumference = 2 * Math.PI * 50;
     const offset = circumference - (roiValue / 100) * circumference;
     progressCircle.style.strokeDashoffset = offset;
@@ -167,6 +165,10 @@ function downloadResults() {
     a.download = 'ROI_Calculator_Results.csv';
     a.click();
     URL.revokeObjectURL(url);
+}
+
+function goToDashboard() {
+    window.location.href = "index.html";
 }
 </script>
 </body>
