@@ -1,260 +1,567 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ROI Calculator | ToolNest</title>
-  <style>
-    body {
-      font-family: "Poppins", sans-serif;
-      background: #f5f7fb;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-    }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ToolNest — ROI Calculator Pro (Global Edition)</title>
 
-    .container {
-      background: #fff;
-      padding: 30px 40px;
-      border-radius: 16px;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-      width: 420px;
-    }
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
-    h2 {
-      text-align: center;
-      margin-bottom: 25px;
-      color: #333;
-    }
+<!-- CSS -->
+<style>
+  :root{
+    --bg: #f6f8fb;
+    --card: #ffffff;
+    --muted: #64748b;
+    --accent: #ef4444; /* red circle as requested */
+    --accent-2: #2563eb;
+    --glass: rgba(255,255,255,0.6);
+    --radius: 12px;
+  }
+  *{box-sizing:border-box;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+  body{margin:0;background:linear-gradient(180deg,#fbfbfe 0%,var(--bg) 100%);color:#0f172a;padding:28px;}
+  .container{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start;}
+  .card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:0 8px 30px rgba(2,6,23,0.06);}
+  h1{margin:0;font-size:20px;}
+  p.lead{margin:6px 0 14px;color:var(--muted);font-size:13px;}
 
-    label {
-      font-weight: 500;
-      color: #333;
-      display: block;
-      margin-bottom: 6px;
-    }
+  /* Form layout */
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  label{display:block;font-size:13px;color:#0f172a;margin-bottom:6px;font-weight:600;}
+  .input-row{display:flex;gap:8px;align-items:center;}
+  .currency-pill{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;border:1px solid #e6eef8;background:#fff;min-width:120px;cursor:pointer;}
+  .flag{width:22px;height:16px;object-fit:cover;border-radius:2px;}
+  .input{flex:1;padding:12px 14px;border-radius:10px;border:1px solid #e6eef8;font-size:16px;background:#fff;}
+  .input[type="number"]::-webkit-inner-spin-button, .input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 
-    input {
-      width: 100%;
-      padding: 14px;
-      margin-bottom: 18px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      font-size: 16px;
-      box-sizing: border-box;
-    }
+  /* currency dropdown */
+  .dropdown{position:absolute;background:#fff;border:1px solid #e6eef8;border-radius:10px;padding:10px;box-shadow:0 10px 30px rgba(2,6,23,0.06);max-height:360px;overflow:auto;z-index:80;width:100%;}
+  .currency-item{display:flex;gap:10px;align-items:center;padding:8px;border-radius:8px;cursor:pointer;}
+  .currency-item:hover{background:#f8fafc;}
 
-    select {
-      width: 100%;
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      font-size: 15px;
-      margin-bottom: 16px;
-    }
+  /* controls */
+  .controls{display:flex;gap:8px;margin-top:14px;align-items:center;}
+  .btn{padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:700;}
+  .btn.primary{background:var(--accent-2);color:#fff;}
+  .btn.ghost{background:#f1f5f9;border:1px solid #e6eef8;}
+  .btn.danger{background:var(--accent);color:#fff;}
 
-    .buttons {
-      display: flex;
-      justify-content: space-between;
-    }
+  /* results */
+  .results{margin-top:14px;display:grid;grid-template-columns:1fr 160px;gap:14px;align-items:center;}
+  .result-card{padding:12px;border-radius:10px;background:linear-gradient(180deg, rgba(37,99,235,0.03), rgba(37,99,235,0.01));}
+  .label{font-size:12px;color:var(--muted);}
+  .value{font-size:18px;font-weight:700;color:#0f172a;margin-top:6px;}
 
-    button {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-      color: #fff;
-      transition: all 0.2s ease;
-    }
+  /* percentage circle */
+  .circle-wrap{display:flex;align-items:center;justify-content:center;padding:8px;}
+  .circle-svg{width:140px;height:140px;display:block;}
+  .circle-text{position:relative;top:-100px;text-align:center;font-weight:700;font-size:18px;color:var(--accent);}
+  .small-muted{font-size:12px;color:var(--muted);}
 
-    .calculate {
-      background: #007bff;
-    }
+  /* sidebar */
+  .sidebar .card{position:sticky;top:28px;}
+  .download-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+  .note{font-size:12px;color:var(--muted);margin-top:12px;}
 
-    .calculate:hover {
-      background: #0056d2;
-    }
-
-    .clear {
-      background: #f44336;
-    }
-
-    .clear:hover {
-      background: #c62828;
-    }
-
-    .results {
-      margin-top: 25px;
-      background: #f9fafc;
-      padding: 15px;
-      border-radius: 12px;
-      border: 1px solid #eee;
-      text-align: center;
-    }
-
-    .results p {
-      font-size: 15px;
-      margin: 8px 0;
-    }
-
-    .highlight {
-      font-weight: 600;
-      color: #007bff;
-    }
-
-    .footer {
-      text-align: center;
-      font-size: 13px;
-      color: #888;
-      margin-top: 20px;
-    }
-
-    .circle-container {
-      position: relative;
-      width: 140px;
-      height: 140px;
-      margin: 20px auto;
-    }
-
-    .circle {
-      stroke-dasharray: 440;
-      stroke-dashoffset: 440;
-      stroke-width: 15;
-      stroke: #007bff;
-      fill: none;
-      transition: stroke-dashoffset 1s ease;
-    }
-
-    .circle-bg {
-      stroke: #e0e0e0;
-      stroke-width: 15;
-      fill: none;
-    }
-
-    .circle-text {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 20px;
-      font-weight: bold;
-      color: #007bff;
-    }
-  </style>
+  /* responsive */
+  @media (max-width:1000px){
+    .container{grid-template-columns:1fr; padding:12px;}
+    .results{grid-template-columns:1fr;}
+    .sidebar .card{position:static;}
+  }
+</style>
 </head>
 <body>
-  <div class="container">
-    <h2>ROI Calculator</h2>
 
-    <label for="currency">Select Currency</label>
-    <select id="currency">
-      <option value="USD" selected>🇺🇸 USD - United States Dollar</option>
-      <option value="EUR">🇪🇺 EUR - Euro</option>
-      <option value="GBP">🇬🇧 GBP - British Pound</option>
-      <option value="PKR">🇵🇰 PKR - Pakistani Rupee</option>
-      <option value="INR">🇮🇳 INR - Indian Rupee</option>
-      <option value="JPY">🇯🇵 JPY - Japanese Yen</option>
-      <option value="CNY">🇨🇳 CNY - Chinese Yuan</option>
-      <option value="CAD">🇨🇦 CAD - Canadian Dollar</option>
-      <option value="AUD">🇦🇺 AUD - Australian Dollar</option>
-      <!-- Add all currencies later -->
-    </select>
+<div class="container">
+  <!-- MAIN -->
+  <div class="card">
+    <h1>ToolNest — ROI Calculator (Pro Global)</h1>
+    <p class="lead">Type amounts, choose dates and currency. Calculator converts in real-time and displays ROI, annualized return, investment length and a live red percentage circle.</p>
 
-    <label for="invested">Amount Invested</label>
-    <input type="number" id="invested" placeholder="e.g. 500" />
-
-    <label for="returned">Amount Returned</label>
-    <input type="number" id="returned" placeholder="e.g. 700" />
-
-    <label for="start">Start Date 📅</label>
-    <input type="date" id="start" />
-
-    <label for="end">End Date 📅</label>
-    <input type="date" id="end" />
-
-    <div class="buttons">
-      <button class="calculate" onclick="calculateROI()">Calculate</button>
-      <button class="clear" onclick="clearFields()">Clear</button>
+    <div style="position:relative;margin-bottom:12px;">
+      <label>Currency</label>
+      <!-- Top-level currency button (opens dropdown) -->
+      <div id="currencyBtn" class="currency-pill" title="Select Currency"></div>
+      <!-- dropdown container (populated dynamically) -->
+      <div id="currencyDropdown" class="dropdown" style="display:none;"></div>
     </div>
 
-    <div class="results" id="results" style="display:none;">
-      <div class="circle-container">
-        <svg width="140" height="140">
-          <circle class="circle-bg" cx="70" cy="70" r="60"></circle>
-          <circle class="circle" cx="70" cy="70" r="60"></circle>
-        </svg>
-        <div class="circle-text" id="circleText">0%</div>
+    <div class="form-grid" style="margin-top:8px;">
+      <div>
+        <label>Amount Invested</label>
+        <div class="input-row">
+          <div id="investPrefix" class="currency-pill" style="min-width:90px;justify-content:center"></div>
+          <input id="invested" class="input" type="number" placeholder="e.g. 500" />
+        </div>
       </div>
 
-      <p>💰 <strong>Investment Gain:</strong> <span id="gain" class="highlight"></span></p>
-      <p>📈 <strong>ROI:</strong> <span id="roi" class="highlight"></span>%</p>
-      <p>📅 <strong>Investment Length:</strong> <span id="length" class="highlight"></span></p>
-      <p>📊 <strong>Annualized ROI:</strong> <span id="annualized" class="highlight"></span>%</p>
+      <div>
+        <label>Amount Returned</label>
+        <div class="input-row">
+          <div id="returnPrefix" class="currency-pill" style="min-width:90px;justify-content:center"></div>
+          <input id="returned" class="input" type="number" placeholder="e.g. 700" />
+        </div>
+      </div>
+
+      <div>
+        <label>Start Date 📅</label>
+        <input id="startDate" class="input" type="date" />
+      </div>
+
+      <div>
+        <label>End Date 📅</label>
+        <input id="endDate" class="input" type="date" />
+      </div>
     </div>
 
-    <div class="footer">Powered by <strong>ToolNest</strong></div>
+    <div class="controls">
+      <button id="calcBtn" class="btn primary">Calculate</button>
+      <button id="clearBtn" class="btn ghost">Clear</button>
+      <div style="margin-left:auto;font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:center;">
+        <div class="small-muted">Auto-convert</div>
+        <label style="display:inline-flex;align-items:center;gap:6px;">
+          <input id="autoToggle" type="checkbox" checked /> <span class="small-muted">ON</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="results" id="results" style="display:none;">
+      <div class="result-card">
+        <div class="label">Investment Gain</div>
+        <div class="value" id="gainValue">-</div>
+
+        <div style="margin-top:10px" class="label">ROI</div>
+        <div class="value" id="roiValue">-</div>
+
+        <div style="margin-top:10px" class="label">Investment Length</div>
+        <div class="value" id="lengthValue">-</div>
+
+        <div style="margin-top:10px" class="label">Annualized ROI</div>
+        <div class="value" id="annualValue">-</div>
+
+        <div style="margin-top:12px;font-size:13px;color:var(--muted)">
+          <strong>Breakdown:</strong> <span id="breakdown">-</span>
+        </div>
+      </div>
+
+      <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
+        <div class="circle-wrap">
+          <svg class="circle-svg" viewBox="0 0 120 120" role="img" aria-label="ROI percent">
+            <defs>
+              <linearGradient id="g1" x1="0%" x2="100%" y1="0%" y2="0%">
+                <stop offset="0%" stop-color="#ff6b6b"/>
+                <stop offset="100%" stop-color="#ef4444"/>
+              </linearGradient>
+            </defs>
+            <circle cx="60" cy="60" r="48" stroke="#eee" stroke-width="12" fill="none"></circle>
+            <circle id="progressCircle" cx="60" cy="60" r="48"
+              stroke="url(#g1)" stroke-linecap="round" stroke-width="12" fill="none"
+              stroke-dasharray="301.44" stroke-dashoffset="301.44" transform="rotate(-90 60 60)"></circle>
+          </svg>
+        </div>
+        <div style="text-align:center">
+          <div id="circleText" style="font-weight:800;font-size:20px;color:var(--accent)">0%</div>
+          <div class="small-muted" style="margin-top:6px">ROI Visual</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="note">Tip: If you typed amounts in another currency, toggle off Auto-convert or switch currency first for correct conversion behavior.</div>
   </div>
 
-  <script>
-    async function getExchangeRate(currency) {
-      try {
-        const res = await fetch(`https://api.exchangerate.host/latest?base=${currency}`);
-        const data = await res.json();
-        return data.rates['USD'] || 1; 
-      } catch (err) {
-        console.log("Exchange rate error:", err);
-        return 1;
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="card">
+      <h3 style="margin:0 0 8px;">Export & Settings</h3>
+      <p class="small-muted" style="margin:0 0 12px;">Download results or export exchange rates.</p>
+
+      <div>
+        <label>Filename</label>
+        <input id="filename" class="input" type="text" value="roi-results" />
+      </div>
+
+      <div class="download-row">
+        <button id="downloadCsv" class="btn ghost">Download CSV</button>
+        <button id="downloadJson" class="btn ghost">Download JSON</button>
+        <button id="downloadPdf" class="btn primary">Download PDF</button>
+      </div>
+
+      <div style="margin-top:10px;">
+        <button id="downloadRates" class="btn ghost">Export Latest Rates</button>
+      </div>
+
+      <div style="margin-top:10px;" class="note">
+        External currency list: <code>./currencies.json</code> (keeps the app lightweight). Flags load from flagcdn for speed.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Libraries for PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNa5bX2G6i4xl0mFj8wq5c4jI+y5QkQbV0Z5jJv3Kx6eG0gN9fYj0sV6xJ6n8w+V4q0QY1tLZsJ7u0w2q0b0MQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-ZI0N8G1G3q5hVTC8c3Zk6I0tW1p9WJXgL1kq5g3ZK7z6K7m6g1I2J6m1u2s3t4y5n6p7s8t9u0v1w2x3y4z5==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script>
+/* -------------------------
+  ToolNest ROI Calculator Pro
+  - loads ./currencies.json (external)
+  - uses exchangerate.host for live conversion
+  - animated percentage circle (red)
+  - downloads: CSV, JSON, PDF, rates
+--------------------------*/
+
+/* --------- Config --------- */
+const CURRENCIES_JSON = './currencies.json'; // external file (B option)
+const RATE_API_BASE = 'https://api.exchangerate.host'; // free, no-key
+
+/* --------- State --------- */
+let currencies = []; // loaded externally
+let currencyMap = {};
+let selectedCurrency = 'USD';
+let lastSelectedCurrency = 'USD';
+let autoConvert = true;
+let lastRatesCache = {}; // simple cache
+
+/* --------- DOM refs --------- */
+const currencyBtn = document.getElementById('currencyBtn');
+const currencyDropdown = document.getElementById('currencyDropdown');
+const investPrefix = document.getElementById('investPrefix');
+const returnPrefix = document.getElementById('returnPrefix');
+const investedInput = document.getElementById('invested');
+const returnedInput = document.getElementById('returned');
+const startDateEl = document.getElementById('startDate');
+const endDateEl = document.getElementById('endDate');
+const calcBtn = document.getElementById('calcBtn');
+const clearBtn = document.getElementById('clearBtn');
+const resultsEl = document.getElementById('results');
+const gainValue = document.getElementById('gainValue');
+const roiValue = document.getElementById('roiValue');
+const lengthValue = document.getElementById('lengthValue');
+const annualValue = document.getElementById('annualValue');
+const breakdownEl = document.getElementById('breakdown');
+const progressCircle = document.getElementById('progressCircle');
+const circleText = document.getElementById('circleText');
+const autoToggle = document.getElementById('autoToggle');
+const downloadCsv = document.getElementById('downloadCsv');
+const downloadJson = document.getElementById('downloadJson');
+const downloadPdf = document.getElementById('downloadPdf');
+const downloadRatesBtn = document.getElementById('downloadRates');
+const filenameInput = document.getElementById('filename');
+
+/* --------- Utilities --------- */
+function fmtNumber(n){
+  if(!isFinite(n)) return 'N/A';
+  return Number(n).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function parseNum(v){
+  if(v === null || v === undefined || v === '') return NaN;
+  const n = Number(String(v).replace(/[^0-9.\-]/g,'')); // basic sanitize
+  return isNaN(n) ? NaN : n;
+}
+
+function daysBetween(a,b){
+  const d1 = new Date(a), d2 = new Date(b);
+  if(isNaN(d1) || isNaN(d2)) return NaN;
+  const ms = d2 - d1;
+  return Math.round(ms / (1000*60*60*24));
+}
+
+/* --------- Load currencies (external JSON) --------- */
+async function loadCurrencies(){
+  try{
+    const resp = await fetch(CURRENCIES_JSON);
+    if(!resp.ok) throw new Error('Failed loading currencies.json');
+    currencies = await resp.json();
+    // expected shape: [{code:"USD", name:"United States Dollar", symbol:"$", cc:"us"}, ...]
+    currencies.forEach(c => currencyMap[c.code] = c);
+    // set default if provided in JSON
+    if(currencies.length && !currencyMap[selectedCurrency]) selectedCurrency = currencies[0].code;
+    renderCurrencyButton(selectedCurrency);
+    buildDropdown();
+  }catch(err){
+    console.error('loadCurrencies error', err);
+    // fallback to minimal list if external json fails
+    currencies = [
+      {code:"USD",name:"United States Dollar",symbol:"$",cc:"us"},
+      {code:"EUR",name:"Euro",symbol:"€",cc:"eu"},
+      {code:"PKR",name:"Pakistani Rupee",symbol:"Rs",cc:"pk"},
+      {code:"INR",name:"Indian Rupee",symbol:"₹",cc:"in"}
+    ];
+    currencies.forEach(c => currencyMap[c.code] = c);
+    renderCurrencyButton(selectedCurrency);
+    buildDropdown();
+  }
+}
+
+/* --------- Render currency UI --------- */
+function getFlagUrl(cc){
+  if(!cc) return '';
+  return `https://flagcdn.com/24x18/${cc.toLowerCase()}.png`;
+}
+
+function renderCurrencyButton(code){
+  selectedCurrency = code;
+  const c = currencyMap[code] || {code, name:code, symbol:code, cc:''};
+  const flag = c.cc ? `<img class="flag" src="${getFlagUrl(c.cc)}" onerror="this.style.display='none'">` : '';
+  currencyBtn.innerHTML = `${flag}<div style="min-width:8px"></div><div style="flex:1"><div style="font-weight:700">${c.code}</div><div style="font-size:12px;color:var(--muted)">${c.name}</div></div><div style="font-weight:800">${c.symbol||c.code}</div>`;
+  investPrefix.innerHTML = `${flag}<strong style="padding-left:6px">${c.symbol||c.code}</strong>`;
+  returnPrefix.innerHTML = `${flag}<strong style="padding-left:6px">${c.symbol||c.code}</strong>`;
+}
+
+/* Build dropdown */
+function buildDropdown(){
+  currencyDropdown.innerHTML = '';
+  currencies.forEach(c=>{
+    const el = document.createElement('div');
+    el.className = 'currency-item';
+    const flag = c.cc ? `<img class="flag" src="${getFlagUrl(c.cc)}" onerror="this.style.display='none'">` : '';
+    el.innerHTML = `${flag}<div style="flex:1"><div style="font-weight:700">${c.code} — ${c.name}</div><div style="font-size:12px;color:var(--muted)">${c.symbol||''}</div></div>`;
+    el.addEventListener('click', async ()=> {
+      const previous = selectedCurrency;
+      selectedCurrency = c.code;
+      renderCurrencyButton(selectedCurrency);
+      currencyDropdown.style.display = 'none';
+      // auto-convert from previous to selected if enabled
+      if(autoConvert && (previous !== selectedCurrency)) {
+        await convertInputsBetween(previous, selectedCurrency);
+        lastSelectedCurrency = selectedCurrency;
       }
+    });
+    currencyDropdown.appendChild(el);
+  });
+}
+
+/* Toggle dropdown */
+currencyBtn.addEventListener('click', (e)=>{
+  e.stopPropagation();
+  currencyDropdown.style.display = currencyDropdown.style.display === 'block' ? 'none' : 'block';
+});
+document.addEventListener('click', (e)=> {
+  if(!currencyBtn.contains(e.target) && !currencyDropdown.contains(e.target)) currencyDropdown.style.display = 'none';
+});
+
+/* --------- Exchange rate helpers --------- */
+
+// convert from->to with amount (uses exchangerate.host convert endpoint)
+async function convertAmount(from, to, amount){
+  try{
+    if(from === to) return amount;
+    const k = `${from}_${to}_${amount}`;
+    // small cache for identical queries
+    if(lastRatesCache[k]) return lastRatesCache[k];
+    const url = `${RATE_API_BASE}/convert?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&amount=${encodeURIComponent(amount)}`;
+    const resp = await fetch(url);
+    if(!resp.ok) throw new Error('rate fetch failed');
+    const json = await resp.json();
+    lastRatesCache[k] = json.result;
+    return json.result;
+  }catch(err){
+    console.warn('convertAmount failed',err);
+    return null;
+  }
+}
+
+// fetch latest rates for base (useful for export)
+async function fetchLatestRates(base='USD'){
+  try{
+    const symbols = currencies.map(c=>c.code).join(',');
+    const url = `${RATE_API_BASE}/latest?base=${encodeURIComponent(base)}&symbols=${encodeURIComponent(symbols)}`;
+    const resp = await fetch(url);
+    const json = await resp.json();
+    return json;
+  }catch(err){
+    console.warn('fetchLatestRates failed',err);
+    return null;
+  }
+}
+
+/* Convert current input fields from oldCurrency -> newCurrency */
+async function convertInputsBetween(oldCurrency, newCurrency){
+  const inv = parseNum(investedInput.value);
+  const ret = parseNum(returnedInput.value);
+  if(!isFinite(inv) && !isFinite(ret)) return;
+  try{
+    if(isFinite(inv)){
+      const newInv = await convertAmount(oldCurrency, newCurrency, inv);
+      if(newInv !== null) investedInput.value = roundForInput(newInv);
     }
-
-    async function calculateROI() {
-      const invested = parseFloat(document.getElementById('invested').value);
-      const returned = parseFloat(document.getElementById('returned').value);
-      const startDate = new Date(document.getElementById('start').value);
-      const endDate = new Date(document.getElementById('end').value);
-      const currency = document.getElementById('currency').value;
-
-      if (isNaN(invested) || isNaN(returned) || !startDate || !endDate) {
-        alert("Please fill all fields correctly.");
-        return;
-      }
-
-      const gain = returned - invested;
-      const roi = ((gain / invested) * 100).toFixed(2);
-
-      const diffTime = Math.abs(endDate - startDate);
-      const diffDays = diffTime / (1000 * 60 * 60 * 24);
-      const diffYears = diffDays / 365;
-      const annualizedROI = ((Math.pow(returned / invested, 1 / diffYears) - 1) * 100).toFixed(2);
-
-      // Update results
-      document.getElementById('gain').innerText = `${currency} ${gain.toFixed(2)}`;
-      document.getElementById('roi').innerText = roi;
-      document.getElementById('length').innerText = `${Math.round(diffDays)} days`;
-      document.getElementById('annualized').innerText = isFinite(annualizedROI) ? annualizedROI : "N/A";
-
-      // Circle animation
-      const circle = document.querySelector('.circle');
-      const circleText = document.getElementById('circleText');
-      let percentage = Math.min(Math.max(roi, 0), 200); // limit to 200%
-      const offset = 440 - (440 * percentage) / 100;
-      circle.style.strokeDashoffset = offset;
-      circleText.innerText = `${roi}%`;
-
-      document.getElementById('results').style.display = 'block';
+    if(isFinite(ret)){
+      const newRet = await convertAmount(oldCurrency, newCurrency, ret);
+      if(newRet !== null) returnedInput.value = roundForInput(newRet);
     }
+  }catch(err){
+    console.warn('convertInputsBetween error',err);
+  }
+}
 
-    function clearFields() {
-      document.getElementById('invested').value = '';
-      document.getElementById('returned').value = '';
-      document.getElementById('start').value = '';
-      document.getElementById('end').value = '';
-      document.getElementById('results').style.display = 'none';
-    }
-  </script>
+function roundForInput(n){
+  if(!isFinite(n)) return '';
+  // keep up to 2 decimals
+  return Math.round(n*100)/100;
+}
+
+/* --------- Calculation & display --------- */
+function computeResults(invested, returned, sDate, eDate){
+  const gain = returned - invested;
+  const roiPct = invested !== 0 ? (gain / invested) * 100 : NaN;
+  const lenDays = daysBetween(sDate, eDate);
+  const lenYears = lenDays / 365;
+  let annualized = NaN;
+  if(lenYears > 0 && invested > 0){
+    try{ annualized = (Math.pow(returned / invested, 1/lenYears) - 1) * 100; } catch(e){ annualized = NaN; }
+  }
+  const profitPct = returned !== 0 ? (gain / returned) * 100 : NaN;
+  return {gain, roiPct, lenDays, annualized, profitPct};
+}
+
+function showResults(obj, rawInputs){
+  resultsEl.style.display = 'grid';
+  const cur = currencyMap[selectedCurrency] || {symbol:selectedCurrency};
+  gainValue.textContent = `${cur.symbol || selectedCurrency} ${fmtNumber(obj.gain)}`;
+  roiValue.textContent = isFinite(obj.roiPct) ? `${obj.roiPct.toFixed(2)} %` : 'N/A';
+  lengthValue.textContent = isFinite(obj.lenDays) ? `${obj.lenDays} days` : 'N/A';
+  annualValue.textContent = isFinite(obj.annualized) ? `${obj.annualized.toFixed(2)} %` : 'N/A';
+  breakdownEl.textContent = `Invested ${cur.symbol||selectedCurrency} ${fmtNumber(rawInputs.invested)} • Returned ${cur.symbol||selectedCurrency} ${fmtNumber(rawInputs.returned)} • Currency: ${selectedCurrency}`;
+  // animate circle
+  animateCircle(obj.roiPct);
+}
+
+function animateCircle(percent){
+  // clamp percent between 0 and 200 for visualization safety
+  const p = isFinite(percent) ? Math.max(0, Math.min(200, percent)) : 0;
+  const circle = progressCircle;
+  const radius = 48;
+  const circumference = 2 * Math.PI * radius; // ~301.44
+  const offset = circumference - (p/100) * circumference;
+  circle.style.transition = 'stroke-dashoffset 900ms ease';
+  circle.style.strokeDashoffset = offset;
+  circleText.textContent = isFinite(percent) ? `${Number(percent).toFixed(2)}%` : 'N/A';
+}
+
+/* --------- UI actions --------- */
+calcBtn.addEventListener('click', async ()=>{
+  const invested = parseNum(investedInput.value);
+  const returned = parseNum(returnedInput.value);
+  const sDate = startDateEl.value;
+  const eDate = endDateEl.value;
+  if(isNaN(invested) || isNaN(returned) || !sDate || !eDate){
+    alert('Please enter Invested, Returned and both dates.');
+    return;
+  }
+  // assume input numbers are in selectedCurrency (we convert earlier if user switched currency with autoConvert ON)
+  const res = computeResults(invested, returned, sDate, eDate);
+  showResults(res, {invested, returned, sDate, eDate});
+});
+
+clearBtn.addEventListener('click', ()=>{
+  investedInput.value = '';
+  returnedInput.value = '';
+  startDateEl.value = '';
+  endDateEl.value = '';
+  resultsEl.style.display = 'none';
+  // reset circle
+  progressCircle.style.strokeDashoffset = progressCircle.getTotalLength();
+  circleText.textContent = '0%';
+});
+
+autoToggle.addEventListener('change', (e)=>{
+  autoConvert = e.target.checked;
+});
+
+/* Auto-conversion on input if user toggles currency while inputs exist is handled in dropdown item click */
+
+/* --------- Downloads --------- */
+function getResultObject(){
+  const invested = parseNum(investedInput.value);
+  const returned = parseNum(returnedInput.value);
+  const sDate = startDateEl.value;
+  const eDate = endDateEl.value;
+  const res = computeResults(invested, returned, sDate, eDate);
+  return {
+    timestamp: new Date().toISOString(),
+    currency: selectedCurrency,
+    invested,
+    returned,
+    startDate: sDate,
+    endDate: eDate,
+    gain: res.gain,
+    roi_pct: res.roiPct,
+    length_days: res.lenDays,
+    annualized_pct: res.annualized,
+    profit_pct_of_returned: res.profitPct
+  };
+}
+
+downloadCsv.addEventListener('click', ()=>{
+  const obj = getResultObject();
+  const fname = (filenameInput.value || 'roi-results') + '.csv';
+  const headers = Object.keys(obj).join(',');
+  const rows = Object.values(obj).map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',');
+  const csv = headers + "\n" + rows;
+  downloadText(csv, fname, 'text/csv');
+});
+
+downloadJson.addEventListener('click', ()=>{
+  const obj = getResultObject();
+  const fname = (filenameInput.value || 'roi-results') + '.json';
+  downloadText(JSON.stringify(obj,null,2), fname, 'application/json');
+});
+
+downloadRatesBtn.addEventListener('click', async ()=>{
+  const base = selectedCurrency || 'USD';
+  const rates = await fetchLatestRates(base);
+  if(!rates) return alert('Failed to fetch rates');
+  const fname = `${filenameInput.value || 'rates'}-${base}.json`;
+  downloadText(JSON.stringify(rates,null,2), fname, 'application/json');
+});
+
+downloadPdf.addEventListener('click', async ()=>{
+  // Create a snapshot of the results card and generate PDF
+  if(resultsEl.style.display === 'none') return alert('No results to export. Please calculate first.');
+  const node = resultsEl; // capture results area
+  try{
+    const canvas = await html2canvas(node, {scale:2, useCORS:true, allowTaint:true});
+    const imgData = canvas.toDataURL('image/png');
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({orientation:'portrait', unit:'px', format:[canvas.width, canvas.height]});
+    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+    const fname = (filenameInput.value || 'roi-results') + '.pdf';
+    pdf.save(fname);
+  }catch(err){
+    console.error('pdf error',err);
+    alert('Failed to create PDF.');
+  }
+});
+
+/* helper download */
+function downloadText(text, filename, mime){
+  const blob = new Blob([text], {type: mime || 'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a);
+  a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* --------- Init --------- */
+(async function init(){
+  // set circle stroke dasharray to circumference for safety
+  const radius = 48;
+  const circ = 2 * Math.PI * radius; // ~301.44
+  progressCircle.style.strokeDasharray = circ;
+  progressCircle.style.strokeDashoffset = circ;
+  // load currencies
+  await loadCurrencies();
+  // preload rates cache for default currency (speed)
+  const r = await fetchLatestRates(selectedCurrency);
+  if(r && r.rates) lastRatesCache[`base_${selectedCurrency}`] = r.rates;
+})();
+</script>
+
 </body>
 </html>
