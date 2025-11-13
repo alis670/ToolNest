@@ -4,97 +4,148 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tax / GST / VAT Calculator</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body { font-family: Arial, sans-serif; padding: 20px; }
+input, select { padding: 8px; margin: 5px 0; width: 200px; }
+button { padding: 8px 16px; margin: 10px 5px 0 0; cursor: pointer; }
+.results { margin-top: 20px; }
+.circle-wrapper {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin-top: 10px;
+    display: inline-block;
+}
+.roi-ring { transform: rotate(-90deg); }
+.circle-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+}
+</style>
 </head>
-<body class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 min-h-screen flex items-center justify-center p-4">
+<body>
 
-<div class="bg-white/10 backdrop-blur rounded-xl p-6 shadow-lg w-full max-w-lg text-white">
-  <h1 class="text-2xl font-bold mb-4 text-center">Tax / GST / VAT Calculator</h1>
+<h1>Tax / GST / VAT Calculator</h1>
 
-  <div class="space-y-3">
-    <input type="number" id="originalAmount" placeholder="Original Amount ($)" class="w-full p-2 rounded bg-white/30 text-white placeholder-white">
-    <select id="taxType" class="w-full p-2 rounded bg-white/30 text-white">
-      <option value="GST">GST</option>
-      <option value="VAT">VAT</option>
-      <option value="Custom">Custom</option>
-    </select>
-    <input type="number" id="taxRate" placeholder="Tax Rate (%)" class="w-full p-2 rounded bg-white/30 text-white placeholder-white">
-    <input type="number" id="discountRate" placeholder="Discount (%) (Optional)" class="w-full p-2 rounded bg-white/30 text-white placeholder-white">
-  </div>
-
-  <div class="flex space-x-2 mt-4">
-    <button id="calculateBtn" class="w-1/2 bg-indigo-600 py-2 rounded font-semibold hover:bg-indigo-700">Calculate</button>
-    <button id="resetBtn" class="w-1/2 bg-red-600 py-2 rounded font-semibold hover:bg-red-700">Reset</button>
-  </div>
-
-  <div class="mt-6 space-y-2" id="results" style="display:none;">
-    <p id="taxAmount"></p>
-    <p id="discountAmount"></p>
-    <p id="finalAmount"></p>
-    <canvas id="taxPieChart" class="mt-4 bg-white/20 rounded-lg p-2"></canvas>
-  </div>
-
-  <button id="backBtn" class="mt-4 w-full bg-purple-600 py-2 rounded font-semibold hover:bg-purple-700">Back to Dashboard</button>
+<div>
+    <label>Amount:</label>
+    <input type="number" id="amount" placeholder="1000">
+    <select id="currencyAmount"></select>
 </div>
 
+<div>
+    <label>Tax Rate (%):</label>
+    <input type="number" id="taxRate" placeholder="18">
+</div>
+
+<div>
+    <label>Calculation Type:</label>
+    <select id="calcType">
+        <option value="add">Add Tax (Net → Gross)</option>
+        <option value="remove">Remove Tax (Gross → Net)</option>
+    </select>
+</div>
+
+<div>
+    <button onclick="calculateTax()">Calculate</button>
+    <button onclick="clearFields()">Clear</button>
+    <button onclick="downloadResults()">Download Results</button>
+</div>
+
+<div class="results">
+    <div>Tax Amount: <span id="taxAmount">0</span></div>
+    <div>Net Amount: <span id="netAmount">0</span></div>
+    <div>Gross Amount: <span id="grossAmount">0</span></div>
+
+    <div class="circle-wrapper">
+        <svg class="roi-ring" width="120" height="120">
+            <circle class="bg" cx="60" cy="60" r="50" stroke="#eee" stroke-width="10" fill="none" />
+            <circle class="progressTax" cx="60" cy="60" r="50" stroke="orange" stroke-width="10" fill="none"
+                    stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="314" />
+        </svg>
+        <div class="circle-text" id="taxCircle">0%</div>
+        <div style="text-align:center;">Tax %</div>
+    </div>
+</div>
+
+<!-- Back to Dashboard button -->
+<div style="margin-top:20px;">
+    <button onclick="goToDashboard()" style="padding:8px 16px; cursor:pointer;">⬅ Back to Dashboard</button>
+</div>
+
+<script src="loadCurrencies.js"></script>
 <script>
-const originalAmountInput = document.getElementById('originalAmount');
-const taxTypeSelect = document.getElementById('taxType');
-const taxRateInput = document.getElementById('taxRate');
-const discountRateInput = document.getElementById('discountRate');
-const calculateBtn = document.getElementById('calculateBtn');
-const resetBtn = document.getElementById('resetBtn');
-const resultsDiv = document.getElementById('results');
-const taxAmountP = document.getElementById('taxAmount');
-const discountAmountP = document.getElementById('discountAmount');
-const finalAmountP = document.getElementById('finalAmount');
-const backBtn = document.getElementById('backBtn');
+populateCurrencyDropdown('currencyAmount');
 
-let pieChart;
+function calculateTax() {
+    let amount = parseFloat(document.getElementById('amount').value);
+    let rate = parseFloat(document.getElementById('taxRate').value);
+    let type = document.getElementById('calcType').value;
 
-calculateBtn.addEventListener('click', ()=>{
-  const original = parseFloat(originalAmountInput.value) || 0;
-  const taxRate = parseFloat(taxRateInput.value) || 0;
-  const discountRate = parseFloat(discountRateInput.value) || 0;
+    if(isNaN(amount) || isNaN(rate)) {
+        alert("Please enter valid Amount and Tax Rate.");
+        return;
+    }
 
-  if(original<=0 || taxRate<0 || discountRate<0){
-    alert("Enter valid positive numbers");
-    return;
-  }
+    let taxAmount = 0, net = 0, gross = 0;
 
-  const taxAmount = original * (taxRate/100);
-  const discountAmount = original * (discountRate/100);
-  const finalAmount = original + taxAmount - discountAmount;
+    if(type === "add") {
+        taxAmount = (amount * rate) / 100;
+        gross = amount + taxAmount;
+        net = amount;
+    } else {
+        net = amount / (1 + rate / 100);
+        taxAmount = amount - net;
+        gross = amount;
+    }
 
-  taxAmountP.innerText = `Tax Amount: $${taxAmount.toFixed(2)}`;
-  discountAmountP.innerText = `Discount Amount: $${discountAmount.toFixed(2)}`;
-  finalAmountP.innerText = `Final Amount: $${finalAmount.toFixed(2)}`;
-  resultsDiv.style.display='block';
+    document.getElementById('taxAmount').innerText = taxAmount.toFixed(2);
+    document.getElementById('netAmount').innerText = net.toFixed(2);
+    document.getElementById('grossAmount').innerText = gross.toFixed(2);
 
-  if(pieChart) pieChart.destroy();
-  const ctxPie = document.getElementById('taxPieChart').getContext('2d');
-  pieChart = new Chart(ctxPie, {
-    type:'pie',
-    data:{
-      labels:['Original','Tax','Discount'],
-      datasets:[{
-        data:[original, taxAmount, discountAmount],
-        backgroundColor:['#4f46e5','#facc15','#f87171']
-      }]
-    },
-    options:{plugins:{legend:{labels:{color:'white'}}}}
-  });
-});
+    // Update Tax % Circle
+    const circle = document.querySelector('.progressTax');
+    const offset = 314 - (Math.min(rate, 100)/100)*314;
+    circle.style.strokeDashoffset = offset;
+    document.getElementById('taxCircle').innerText = rate.toFixed(2) + "%";
+}
 
-resetBtn.addEventListener('click', ()=>{
-  originalAmountInput.value = taxRateInput.value = discountRateInput.value = '';
-  resultsDiv.style.display = 'none';
-  if(pieChart) pieChart.destroy();
-});
+function clearFields() {
+    document.getElementById('amount').value = '';
+    document.getElementById('taxRate').value = '';
+    document.getElementById('taxAmount').innerText = '0';
+    document.getElementById('netAmount').innerText = '0';
+    document.getElementById('grossAmount').innerText = '0';
+    document.querySelector('.progressTax').style.strokeDashoffset = 314;
+    document.getElementById('taxCircle').innerText = '0%';
+}
 
-backBtn.addEventListener('click', ()=>window.location.href='index.html');
+function downloadResults() {
+    const amount = document.getElementById('amount').value;
+    const rate = document.getElementById('taxRate').value;
+    const taxAmount = document.getElementById('taxAmount').innerText;
+    const net = document.getElementById('netAmount').innerText;
+    const gross = document.getElementById('grossAmount').innerText;
+    const currency = document.getElementById('currencyAmount').value;
+
+    const csvContent = `Amount,${amount},${currency}\nTax Rate,${rate}%\nTax Amount,${taxAmount}\nNet Amount,${net}\nGross Amount,${gross}`;
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Tax_Calculator_Results.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function goToDashboard() {
+    window.location.href = "index.html";
+}
 </script>
-
 </body>
 </html>
