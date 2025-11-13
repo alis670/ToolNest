@@ -3,101 +3,157 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Break-even Analyzer</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<title>Break-Even Analyzer</title>
+<style>
+body { font-family: Arial, sans-serif; padding: 20px; }
+input, select { padding: 8px; margin: 5px 0; width: 200px; }
+button { padding: 8px 16px; margin: 10px 5px 0 0; cursor: pointer; }
+.results { margin-top: 20px; }
+.circle-wrapper {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin-top: 10px;
+    display: inline-block;
+    margin-right: 20px;
+}
+.roi-ring { transform: rotate(-90deg); }
+.circle-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+}
+</style>
 </head>
-<body class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 min-h-screen flex items-center justify-center p-4">
+<body>
 
-<div class="bg-white/10 backdrop-blur rounded-xl p-6 shadow-lg w-full max-w-lg text-white">
-  <h1 class="text-2xl font-bold mb-4 text-center">Break-even Analyzer</h1>
+<h1>Break-Even Analyzer</h1>
 
-  <div class="space-y-3">
-    <input type="number" id="fixedCosts" placeholder="Fixed Costs ($)" class="w-full p-2 rounded bg-white/30 text-white placeholder-white">
-    <input type="number" id="variableCost" placeholder="Variable Cost per Unit ($)" class="w-full p-2 rounded bg-white/30 text-white placeholder-white">
-    <input type="number" id="sellingPrice" placeholder="Selling Price per Unit ($)" class="w-full p-2 rounded bg-white/30 text-white placeholder-white">
-  </div>
-
-  <div class="flex space-x-2 mt-4">
-    <button id="calculateBtn" class="w-1/2 bg-indigo-600 py-2 rounded font-semibold hover:bg-indigo-700">Calculate</button>
-    <button id="resetBtn" class="w-1/2 bg-red-600 py-2 rounded font-semibold hover:bg-red-700">Reset</button>
-  </div>
-
-  <div class="mt-6 space-y-2" id="results" style="display:none;">
-    <p id="breakEvenUnits"></p>
-    <p id="breakEvenRevenue"></p>
-    <canvas id="breakEvenChart" class="mt-4 bg-white/20 rounded-lg p-2"></canvas>
-  </div>
-
-  <button id="backBtn" class="mt-4 w-full bg-purple-600 py-2 rounded font-semibold hover:bg-purple-700">Back to Dashboard</button>
+<div>
+    <label>Fixed Costs:</label>
+    <input type="number" id="fixedCosts" placeholder="1000">
+    <select id="currencyFixed"></select>
 </div>
 
+<div>
+    <label>Variable Cost per Unit:</label>
+    <input type="number" id="variableCost" placeholder="50">
+</div>
+
+<div>
+    <label>Selling Price per Unit:</label>
+    <input type="number" id="sellingPrice" placeholder="100">
+</div>
+
+<div>
+    <label>Units Sold (optional):</label>
+    <input type="number" id="unitsSold" placeholder="50">
+</div>
+
+<div>
+    <button onclick="calculateBreakEven()">Calculate</button>
+    <button onclick="clearFields()">Clear</button>
+    <button onclick="downloadResults()">Download Results</button>
+</div>
+
+<div class="results">
+    <div>Break-Even Units: <span id="breakEvenUnits">0</span></div>
+    <div>Break-Even Revenue: <span id="breakEvenRevenue">0</span></div>
+    <div>Profit: <span id="profit">0</span></div>
+    <div>Profit Margin: <span id="profitMargin">0%</span></div>
+
+    <div class="circle-wrapper">
+        <svg class="roi-ring" width="120" height="120">
+            <circle class="bg" cx="60" cy="60" r="50" stroke="#eee" stroke-width="10" fill="none" />
+            <circle class="progressProfit" cx="60" cy="60" r="50" stroke="green" stroke-width="10" fill="none"
+                    stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="314" />
+        </svg>
+        <div class="circle-text" id="profitCircle">0%</div>
+        <div style="text-align:center;">Profit Margin</div>
+    </div>
+</div>
+
+<!-- Back to Dashboard button -->
+<div style="margin-top:20px;">
+    <button onclick="goToDashboard()" style="padding:8px 16px; cursor:pointer;">⬅ Back to Dashboard</button>
+</div>
+
+<script src="loadCurrencies.js"></script>
 <script>
-const fixedCostsInput = document.getElementById('fixedCosts');
-const variableCostInput = document.getElementById('variableCost');
-const sellingPriceInput = document.getElementById('sellingPrice');
-const calculateBtn = document.getElementById('calculateBtn');
-const resetBtn = document.getElementById('resetBtn');
-const resultsDiv = document.getElementById('results');
-const breakEvenUnitsP = document.getElementById('breakEvenUnits');
-const breakEvenRevenueP = document.getElementById('breakEvenRevenue');
-const backBtn = document.getElementById('backBtn');
-let breakEvenChart;
+populateCurrencyDropdown('currencyFixed');
 
-calculateBtn.addEventListener('click', ()=>{
-  const fixedCosts = parseFloat(fixedCostsInput.value) || 0;
-  const variableCost = parseFloat(variableCostInput.value) || 0;
-  const sellingPrice = parseFloat(sellingPriceInput.value) || 0;
+function calculateBreakEven() {
+    let fixed = parseFloat(document.getElementById('fixedCosts').value);
+    let variable = parseFloat(document.getElementById('variableCost').value);
+    let price = parseFloat(document.getElementById('sellingPrice').value);
+    let unitsSold = parseFloat(document.getElementById('unitsSold').value) || 0;
 
-  if(fixedCosts<0 || variableCost<=0 || sellingPrice<=0){
-    alert("Enter valid positive numbers. Variable cost and selling price must be > 0");
-    return;
-  }
+    if(isNaN(fixed) || isNaN(variable) || isNaN(price) || price <= variable) {
+        alert("Please enter valid numbers. Selling Price must be greater than Variable Cost.");
+        return;
+    }
 
-  const breakEvenUnits = Math.ceil(fixedCosts / (sellingPrice - variableCost));
-  const breakEvenRevenue = breakEvenUnits * sellingPrice;
+    let breakEvenUnits = fixed / (price - variable);
+    let breakEvenRevenue = breakEvenUnits * price;
+    let profit = (unitsSold * (price - variable)) - fixed;
+    let profitMargin = unitsSold > 0 ? (profit / (unitsSold * price)) * 100 : 0;
 
-  breakEvenUnitsP.innerText = `Break-even Point: ${breakEvenUnits} units`;
-  breakEvenRevenueP.innerText = `Break-even Revenue: $${breakEvenRevenue.toFixed(2)}`;
-  resultsDiv.style.display = 'block';
+    document.getElementById('breakEvenUnits').innerText = breakEvenUnits.toFixed(2);
+    document.getElementById('breakEvenRevenue').innerText = breakEvenRevenue.toFixed(2);
+    document.getElementById('profit').innerText = profit.toFixed(2);
+    document.getElementById('profitMargin').innerText = profitMargin.toFixed(2) + "%";
 
-  // Generate chart
-  if(breakEvenChart) breakEvenChart.destroy();
+    // Update Profit Margin Circle
+    const profitCircle = document.querySelector('.progressProfit');
+    const offset = 314 - (Math.min(Math.abs(profitMargin),100)/100)*314;
+    profitCircle.style.strokeDashoffset = offset;
+    profitCircle.style.stroke = profitMargin >= 0 ? "green" : "red";
+    document.getElementById('profitCircle').innerText = profitMargin.toFixed(2) + "%";
+}
 
-  const labels = [];
-  const totalCost = [];
-  const revenue = [];
-  const profit = [];
+function clearFields() {
+    document.getElementById('fixedCosts').value = '';
+    document.getElementById('variableCost').value = '';
+    document.getElementById('sellingPrice').value = '';
+    document.getElementById('unitsSold').value = '';
+    document.getElementById('breakEvenUnits').innerText = '0';
+    document.getElementById('breakEvenRevenue').innerText = '0';
+    document.getElementById('profit').innerText = '0';
+    document.getElementById('profitMargin').innerText = '0%';
+    document.querySelector('.progressProfit').style.strokeDashoffset = 314;
+    document.querySelector('.progressProfit').style.stroke = 'green';
+    document.getElementById('profitCircle').innerText = '0%';
+}
 
-  for(let i=0; i<=breakEvenUnits*2; i+=Math.ceil(breakEvenUnits/10)||1){
-    labels.push(i);
-    totalCost.push(fixedCosts + variableCost*i);
-    revenue.push(sellingPrice*i);
-    profit.push(sellingPrice*i - (fixedCosts + variableCost*i));
-  }
+function downloadResults() {
+    const fixed = document.getElementById('fixedCosts').value;
+    const variable = document.getElementById('variableCost').value;
+    const price = document.getElementById('sellingPrice').value;
+    const unitsSold = document.getElementById('unitsSold').value;
+    const breakEvenUnits = document.getElementById('breakEvenUnits').innerText;
+    const breakEvenRevenue = document.getElementById('breakEvenRevenue').innerText;
+    const profit = document.getElementById('profit').innerText;
+    const profitMargin = document.getElementById('profitMargin').innerText;
+    const currency = document.getElementById('currencyFixed').value;
 
-  const ctx = document.getElementById('breakEvenChart').getContext('2d');
-  breakEvenChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [
-        { label: 'Total Cost', data: totalCost, borderColor:'#f87171', backgroundColor:'rgba(248,113,113,0.2)', fill:true },
-        { label: 'Revenue', data: revenue, borderColor:'#4f46e5', backgroundColor:'rgba(79,70,229,0.2)', fill:true },
-        { label: 'Profit', data: profit, borderColor:'#22c55e', backgroundColor:'rgba(34,197,94,0.2)', fill:true }
-      ]
-    },
-    options: { responsive:true, plugins:{legend:{labels:{color:'white'}}}, scales:{ x:{ ticks:{color:'white'} }, y:{ ticks:{color:'white'} } } }
-  });
-});
+    const csvContent = `Fixed Costs,${fixed},${currency}\nVariable Cost per Unit,${variable}\nSelling Price per Unit,${price}\nUnits Sold,${unitsSold}\nBreak-Even Units,${breakEvenUnits}\nBreak-Even Revenue,${breakEvenRevenue}\nProfit,${profit}\nProfit Margin,${profitMargin}`;
 
-resetBtn.addEventListener('click', ()=>{
-  fixedCostsInput.value = variableCostInput.value = sellingPriceInput.value = '';
-  resultsDiv.style.display = 'none';
-  if(breakEvenChart) breakEvenChart.destroy();
-});
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'BreakEven_Results.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+}
 
-backBtn.addEventListener('click', ()=>window.location.href='index.html');
+function goToDashboard() {
+    window.location.href = "index.html";
+}
 </script>
 </body>
 </html>
