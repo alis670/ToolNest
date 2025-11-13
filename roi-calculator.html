@@ -35,11 +35,15 @@
   .input{flex:1;padding:12px 14px;border-radius:10px;border:1px solid #e6eef8;font-size:16px;background:#fff;}
   .input[type="number"]::-webkit-inner-spin-button, .input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 
-  /* currency dropdown */
-  .dropdown{position:absolute;background:#fff;border:1px solid #e6eef8;border-radius:10px;padding:10px;box-shadow:0 10px 30px rgba(2,6,23,0.06);max-height:360px;overflow:auto;z-index:80;width:100%;}
-  .currency-item{display:flex;gap:10px;align-items:center;padding:8px;border-radius:8px;cursor:pointer;}
-  .currency-item:hover{background:#f8fafc;}
-
+/* Make currency dropdown compact */
+#currencySelect {
+    width: 120px;       /* Adjust width as needed */
+    padding: 5px 8px;   /* Smaller padding */
+    font-size: 16px;    /* Adjust font size */
+    border-radius: 5px; /* Rounded edges */
+    border: 1px solid #ccc;
+    display: inline-block;
+  }
   /* controls */
   .controls{display:flex;gap:8px;margin-top:14px;align-items:center;}
   .btn{padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:700;}
