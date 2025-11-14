@@ -160,38 +160,51 @@ label{display:block;margin-bottom:6px;font-weight:600}
 
   </div>
 
-  <!-- SIDEBAR -->
-  <div class="card">
-    <h3 style="margin:0 0 8px">Budgets & Alerts</h3>
+<!-- SIDEBAR -->
+<div class="card" style="display:flex;flex-direction:column;gap:12px;">
+  <h3 style="margin:0 0 8px">Budgets & Alerts</h3>
 
-    <div>
-      <label>Set monthly budget (per category)</label>
-      <div style="display:flex;gap:8px;margin-top:6px">
-        <select id="budgetCategory" style="flex:1"><option>Software</option><option>Marketing</option><option>Salaries</option><option>Hosting</option><option>Office</option><option>Travel</option><option>Other</option></select>
-        <input id="budgetAmount" type="number" placeholder="amount" style="width:120px">
-        <button id="addBudget" class="btn primary">Save</button>
-      </div>
-    </div>
-
-    <div style="margin-top:12px">
-      <h4 style="margin:6px 0">Active Budgets (this month)</h4>
-      <div id="budgetList" class="audit"></div>
-    </div>
-
-    <div style="margin-top:12px">
-      <h4 style="margin:6px 0">Quick KPIs</h4>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <div style="background:#fbfdff;padding:8px;border-radius:8px;text-align:center"><div class="muted">Avg Monthly Expense</div><div id="avgMonthly">0</div></div>
-        <div style="background:#fbfdff;padding:8px;border-radius:8px;text-align:center"><div class="muted">Highest Category</div><div id="topCategory">-</div></div>
-      </div>
-    </div>
-
-    <div style="margin-top:12px">
-      <h4 style="margin:6px 0">Recent Alerts</h4>
-      <div id="alerts" class="audit"></div>
+  <div style="display:flex;flex-direction:column;gap:6px;">
+    <label>Set monthly budget (per category)</label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <select id="budgetCategory" style="flex:1; min-width:120px;">
+        <option>Software</option>
+        <option>Marketing</option>
+        <option>Salaries</option>
+        <option>Hosting</option>
+        <option>Office</option>
+        <option>Travel</option>
+        <option>Other</option>
+      </select>
+      <input id="budgetAmount" type="number" placeholder="amount" style="width:120px; flex:0 0 auto;">
+      <button id="addBudget" class="btn primary" style="flex:0 0 auto;">Save</button>
     </div>
   </div>
 
+  <div>
+    <h4 style="margin:6px 0">Active Budgets (this month)</h4>
+    <div id="budgetList" class="audit"></div>
+  </div>
+
+  <div>
+    <h4 style="margin:6px 0">Quick KPIs</h4>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;flex-wrap:wrap;">
+      <div style="background:#fbfdff;padding:8px;border-radius:8px;text-align:center; min-width:120px;">
+        <div class="muted">Avg Monthly Expense</div>
+        <div id="avgMonthly">0</div>
+      </div>
+      <div style="background:#fbfdff;padding:8px;border-radius:8px;text-align:center; min-width:120px;">
+        <div class="muted">Highest Category</div>
+        <div id="topCategory">-</div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <h4 style="margin:6px 0">Recent Alerts</h4>
+    <div id="alerts" class="audit"></div>
+  </div>
+        </div>
 </div>
 
 <script src="loadCurrencies.js"></script>
