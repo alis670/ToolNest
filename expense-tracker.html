@@ -1,206 +1,259 @@
-<!doctype html>  
-<html lang="en">  
-<head>  
-<meta charset="utf-8" />  
-<meta name="viewport" content="width=device-width,initial-scale=1" />  
-<title>Expense Tracker — Single Base Currency</title>  
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Expense Tracker — Single Base Currency</title>
 
-<!-- Chart.js -->  
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>  
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
-<style>  
-:root{  
-  --bg:#f6f8fb; --card:#fff; --muted:#6b7280; --accent:#2563eb;  
-  --success:#10b981; --danger:#ef4444; --radius:10px;  
-  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;  
-}  
-*{box-sizing:border-box}  
-body{margin:0;background:var(--bg);color:#0f172a;padding:18px}  
-.app{max-width:1150px;margin:0 auto;display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start}  
-.card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 10px 30px rgba(2,6,23,0.06)}  
-.header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px}  
-h1{margin:0;font-size:18px}  
-small.muted{color:var(--muted)}  
-.controls{display:flex;gap:8px;flex-wrap:wrap}  
-input,select,textarea,button{font-family:inherit}  
-input,select,textarea{padding:8px;border-radius:8px;border:1px solid #e6eef8;background:#fff}  
-button{padding:8px 12px;border-radius:8px;border:0;cursor:pointer}  
-.btn{font-weight:700}  
-.primary{background:var(--accent);color:#fff}  
-.ghost{background:#f1f5f9;border:1px solid #e6eef8}  
-.danger{background:var(--danger);color:#fff}  
-.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}  
-.kpi{background:#fbfdff;padding:12px;border-radius:8px;text-align:center}  
-.kpi h3{margin:0;font-size:13px}  
-.kpi p{margin:6px 0 0;font-weight:800}  
-.table{margin-top:12px;overflow:auto;border-radius:8px;border:1px solid #eef2ff}  
-table{width:100%;border-collapse:collapse;font-size:14px}  
-th,td{padding:8px;border-bottom:1px solid #f1f5f9;text-align:left}  
-th{background:#fbfdff;position:sticky;top:0}  
-.charts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}  
-canvas{background:#fff;border-radius:8px;padding:8px}  
-.audit{margin-top:12px;max-height:180px;overflow:auto;font-size:13px;color:var(--muted)}  
-@media (max-width:1000px){ .app{grid-template-columns:1fr} .kpis{grid-template-columns:repeat(2,1fr)} .charts{grid-template-columns:1fr} }  
-.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}  
-.badge{display:inline-block;padding:6px 8px;border-radius:999px;background:#fff3f2;color:var(--danger);font-weight:700}  
-label{display:block;margin-bottom:6px;font-weight:600}  
-.readonly { background:#f8fafc; color:#0b1220; }  
-</style>  
-</head>  
-<body>  
+<style>
+:root{
+  --bg:#f6f8fb; --card:#fff; --muted:#6b7280; --accent:#2563eb;
+  --success:#10b981; --danger:#ef4444; --radius:10px;
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:#0f172a;padding:18px}
+.app{max-width:1150px;margin:0 auto;display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start}
+.card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 10px 30px rgba(2,6,23,0.06)}
+.header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+h1{margin:0;font-size:18px}
+small.muted{color:var(--muted)}
+.controls{display:flex;gap:8px;flex-wrap:wrap}
+input,select,textarea,button{font-family:inherit}
+input,select,textarea{padding:8px;border-radius:8px;border:1px solid #e6eef8;background:#fff}
+button{padding:8px 12px;border-radius:8px;border:0;cursor:pointer}
+.btn{font-weight:700}
+.primary{background:var(--accent);color:#fff}
+.ghost{background:#f1f5f9;border:1px solid #e6eef8}
+.danger{background:var(--danger);color:#fff}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.kpi{background:#fbfdff;padding:12px;border-radius:8px;text-align:center}
+.kpi h3{margin:0;font-size:13px}
+.kpi p{margin:6px 0 0;font-weight:800}
+.table{margin-top:12px;overflow:auto;border-radius:8px;border:1px solid #eef2ff}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:8px;border-bottom:1px solid #f1f5f9;text-align:left}
+th{background:#fbfdff;position:sticky;top:0}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+canvas{background:#fff;border-radius:8px;padding:8px}
+.audit{margin-top:12px;max-height:180px;overflow:auto;font-size:13px;color:var(--muted)}
+@media (max-width:1000px){ .app{grid-template-columns:1fr} .kpis{grid-template-columns:repeat(2,1fr)} .charts{grid-template-columns:1fr} }
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.badge{display:inline-block;padding:6px 8px;border-radius:999px;background:#fff3f2;color:var(--danger);font-weight:700}
+label{display:block;margin-bottom:6px;font-weight:600}
+.readonly { background:#f8fafc; color:#0b1220; }
+.flex-end{display:flex;align-items:end;gap:8px}
+</style>
+</head>
+<body>
 
-<div class="app">  
+<div class="app">
 
-  <!-- MAIN -->  
-  <div class="card">  
-    <div class="header">  
-      <div>  
-        <h1>Expense Tracker — Single Base Currency</h1>  
-        <small class="muted">Choose one base currency — all sections follow it automatically.</small>  
-      </div>  
+  <!-- MAIN -->
+  <div class="card">
+    <div class="header">
+      <div>
+        <h1>Expense Tracker — Single Base Currency</h1>
+        <small class="muted">Choose one base currency — all sections follow it automatically.</small>
+      </div>
 
-      <div style="min-width:180px">  
-        <small class="muted">Base currency</small>  
-        <select id="baseCurrency" style="width:100%;padding:8px"></select>  
-      </div>  
-    </div>  
+      <div style="min-width:180px">
+        <small class="muted">Base currency</small>
+        <select id="baseCurrency" style="width:100%;padding:8px"></select>
+      </div>
+    </div>
 
-    <!-- form -->  
-    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:8px; align-items:end;">  
-      <div>  
-        <label>Description</label>  
-        <input id="desc" placeholder="e.g. Google Workspace">  
-      </div>  
+    <!-- form -->
+    <div style="display:grid;grid-template-columns:1fr 120px 120px 160px;gap:8px;align-items:end">
+      <div>
+        <label>Description</label>
+        <input id="desc" placeholder="e.g. Google Workspace">
+      </div>
 
-      <div>  
-        <label>Amount</label>  
-        <input id="amount" type="number" min="0" step="0.01">  
-      </div>  
+      <div>
+        <label>Amount</label>
+        <input id="amount" type="number" min="0" step="0.01">
+      </div>
 
-      <div>  
-        <label>Date</label>  
-        <input id="date" type="date">  
-      </div>  
+      <div>
+        <label>Date</label>
+        <input id="date" type="date">
+      </div>
 
-      <div>  
-        <label>Category</label>  
-        <select id="category">  
-          <option>Uncategorized</option><option>Software</option><option>Marketing</option><option>Salaries</option>  
-          <option>Hosting</option><option>Office</option><option>Travel</option><option>Other</option>  
-        </select>  
-      </div>  
+      <div>
+        <label>Category</label>
+        <select id="category">
+          <option>Uncategorized</option><option>Software</option><option>Marketing</option><option>Salaries</option>
+          <option>Hosting</option><option>Office</option><option>Travel</option><option>Other</option>
+        </select>
+      </div>
 
-      <div>  
-        <label>Type</label>  
-        <select id="type"><option value="expense">Expense</option><option value="income">Income</option></select>  
-      </div>  
+      <div>
+        <label>Type</label>
+        <select id="type"><option value="expense">Expense</option><option value="income">Income</option></select>
+      </div>
 
-      <div>  
-        <label>Recurring</label>  
-        <select id="recurring"><option value="none">None</option><option value="monthly">Monthly</option></select>  
-      </div>  
+      <div>
+        <label>Recurring</label>
+        <select id="recurring"><option value="none">None</option><option value="monthly">Monthly</option></select>
+      </div>
 
-      <!-- Add/Clear buttons -->
-      <div style="display:flex; gap:8px; grid-column: 1 / -1;">  
-        <button id="addBtn" class="btn primary">Add</button>  
-        <button id="clearBtn" class="btn ghost">Clear</button>  
-      </div>  
-    </div>  
+      <div class="flex-end">
+        <button id="addBtn" class="btn primary">Add</button>
+        <button id="clearBtn" class="btn ghost">Clear</button>
+      </div>
+    </div>
 
-    <!-- filters (FULL DATE) -->  
-    <div class="filter-row" style="margin-top:12px">  
-      <div><label>Start date 📅</label><input id="startDate" type="date"></div>  
-      <div><label>End date 📅</label><input id="endDate" type="date"></div>  
-      <div style="min-width:160px"><label>Category</label><select id="filterCategory"><option value="">All</option><option>Uncategorized</option><option>Software</option><option>Marketing</option><option>Salaries</option><option>Hosting</option><option>Office</option><option>Travel</option><option>Other</option></select></div>  
-      <div style="min-width:140px"><label>Search</label><input id="searchText" placeholder="search description"></div>  
-      <div style="align-self:end"><button id="applyFilter" class="btn ghost">Apply</button></div>  
-      <div style="margin-left:auto;align-self:end;display:flex;gap:8px">  
-        <button id="exportCsv" class="btn ghost">Export CSV</button>  
-        <button id="exportJson" class="btn ghost">Export JSON</button>  
-        <button id="importBtn" class="btn ghost">Import JSON</button>  
-        <input id="importFile" type="file" accept=".json" style="display:none">  
-      </div>  
-    </div>  
+    <!-- filters -->
+    <div class="filter-row" style="margin-top:12px">
+      <div><label>Start date 📅</label><input id="startDate" type="date"></div>
+      <div><label>End date 📅</label><input id="endDate" type="date"></div>
+      <div style="min-width:160px"><label>Category</label>
+        <select id="filterCategory">
+          <option value="">All</option>
+          <option>Uncategorized</option><option>Software</option><option>Marketing</option><option>Salaries</option>
+          <option>Hosting</option><option>Office</option><option>Travel</option><option>Other</option>
+        </select>
+      </div>
+      <div style="min-width:140px"><label>Search</label><input id="searchText" placeholder="search description"></div>
+      <div style="align-self:end"><button id="applyFilter" class="btn ghost">Apply</button></div>
+      <div style="margin-left:auto;align-self:end;display:flex;gap:8px;flex-wrap:wrap">
+        <button id="exportCsv" class="btn ghost">Export CSV</button>
+        <button id="exportJson" class="btn ghost">Export JSON</button>
+        <button id="importBtn" class="btn ghost">Import JSON</button>
+        <input id="importFile" type="file" accept=".json" style="display:none">
+      </div>
+    </div>
 
-    <!-- KPIs -->  
-    <div class="kpis" style="margin-top:12px">  
-      <div class="kpi"><h3>Total Balance</h3><p id="kpiBalance">0</p></div>  
-      <div class="kpi"><h3>Total Income</h3><p id="kpiIncome">0</p></div>  
-      <div class="kpi"><h3>Total Expense</h3><p id="kpiExpense">0</p></div>  
-    </div>  
+    <!-- KPIs -->
+    <div class="kpis" style="margin-top:12px">
+      <div class="kpi"><h3>Total Balance</h3><p id="kpiBalance">0</p></div>
+      <div class="kpi"><h3>Total Income</h3><p id="kpiIncome">0</p></div>
+      <div class="kpi"><h3>Total Expense</h3><p id="kpiExpense">0</p></div>
+    </div>
 
-    <!-- charts -->  
-    <div class="charts">  
-      <canvas id="monthlyChart" height="220"></canvas>  
-      <canvas id="categoryChart" height="220"></canvas>  
-    </div>  
+    <!-- charts -->
+    <div class="charts">
+      <canvas id="monthlyChart" height="220"></canvas>
+      <canvas id="categoryChart" height="220"></canvas>
+    </div>
 
-    <!-- table -->  
-    <div class="table" style="margin-top:12px">  
-      <table>  
-        <thead>  
-          <tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th style="text-align:right">Amount</th><th>Curr</th><th>Rec</th><th style="text-align:right">Actions</th></tr>  
-        </thead>  
-        <tbody id="entriesTbody"></tbody>  
-      </table>  
-    </div>  
+    <!-- table -->
+    <div class="table" style="margin-top:12px">
+      <table>
+        <thead>
+          <tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th style="text-align:right">Amount</th><th>Curr</th><th>Rec</th><th style="text-align:right">Actions</th></tr>
+        </thead>
+        <tbody id="entriesTbody"></tbody>
+      </table>
+    </div>
 
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">  
-      <div class="audit" id="auditLog"></div>  
-      <div style="text-align:right">  
-        <button onclick="goToDashboard()" class="btn ghost">⬅ Back to Dashboard</button>  
-      </div>  
-    </div>  
-  </div>  
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+      <div class="audit" id="auditLog"></div>
+      <div style="text-align:right">
+        <button onclick="goToDashboard()" class="btn ghost">⬅ Back to Dashboard</button>
+      </div>
+    </div>
 
-  <!-- SIDEBAR -->  
-  <div class="card">  
-    <h3 style="margin:0 0 8px">Budgets & Alerts</h3>  
+  </div>
 
-    <div>  
-      <label>Set monthly budget (per category)</label>  
-      <div style="display:flex;gap:8px;margin-top:6px">  
-        <select id="budgetCategory" style="flex:1"><option>Software</option><option>Marketing</option><option>Salaries</option><option>Hosting</option><option>Office</option><option>Travel</option><option>Other</option></select>  
-        <input id="budgetAmount" type="number" placeholder="amount" style="width:120px">  
-        <button id="addBudget" class="btn primary">Save</button>  
-      </div>  
-    </div>  
+  <!-- SIDEBAR -->
+  <div class="card">
+    <h3 style="margin:0 0 8px">Budgets & Alerts</h3>
 
-    <div style="margin-top:12px">  
-      <h4 style="margin:6px 0">Active Budgets (this month)</h4>  
-      <div id="budgetList" class="audit"></div>  
-    </div>  
+    <div>
+      <label>Set monthly budget (per category)</label>
+      <div style="display:flex;gap:8px;margin-top:6px">
+        <select id="budgetCategory" style="flex:1"><option>Software</option><option>Marketing</option><option>Salaries</option><option>Hosting</option><option>Office</option><option>Travel</option><option>Other</option></select>
+        <input id="budgetAmount" type="number" placeholder="amount" style="width:120px">
+        <button id="addBudget" class="btn primary">Save</button>
+      </div>
+    </div>
 
-    <div style="margin-top:12px">  
-      <h4 style="margin:6px 0">Quick KPIs</h4>  
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">  
-        <div style="background:#fbfdff;padding:8px;border-radius:8px;text-align:center"><div class="muted">Avg Monthly Expense</div><div id="avgMonthly">0</div></div>  
-        <div style="background:#fbfdff;padding:8px;border-radius:8px;text-align:center"><div class="muted">Highest Category</div><div id="topCategory">-</div></div>  
-      </div>  
-    </div>  
+    <div style="margin-top:12px">
+      <h4 style="margin:6px 0">Active Budgets (this month)</h4>
+      <div id="budgetList" class="audit"></div>
+    </div>
 
-    <div style="margin-top:12px">  
-      <h4 style="margin:6px 0">Recent Alerts</h4>  
-      <div id="alerts" class="audit"></div>  
-    </div>  
-  </div>  
+    <div style="margin-top:12px">
+      <h4 style="margin:6px 0">Quick KPIs</h4>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="background:#fbfdff;padding:8px;border-radius:8px;text-align:center"><div class="muted">Avg Monthly Expense</div><div id="avgMonthly">0</div></div>
+        <div style="background:#fbfdff;padding:8px;border-radius:8px;text-align:center"><div class="muted">Highest Category</div><div id="topCategory">-</div></div>
+      </div>
+    </div>
 
-</div>  
+    <div style="margin-top:12px">
+      <h4 style="margin:6px 0">Recent Alerts</h4>
+      <div id="alerts" class="audit"></div>
+    </div>
+  </div>
 
-<script src="loadCurrencies.js"></script>  
-<script>  
-/* ---------- Storage & state ---------- */  
-const STORAGE_KEY = 'et_pro_v3_entries';  
-const BUDGET_KEY = 'et_pro_v3_budgets';  
-const AUDIT_KEY = 'et_pro_v3_audit';  
-let entries = []; let budgets = {}; let audit = [];  
-let monthlyChart, categoryChart;  
-let rateCache = {};  
+</div>
 
-const baseCurrencyEl = document.getElementById('baseCurrency');  
+<script src="loadCurrencies.js"></script>
+<script>
+/* ---------- STORAGE & STATE ---------- */
+const STORAGE_KEY = 'et_pro_v3_entries';
+const BUDGET_KEY = 'et_pro_v3_budgets';
+const AUDIT_KEY = 'et_pro_v3_audit';
+let entries=[], budgets={}, audit=[];
+let monthlyChart, categoryChart;
+let rateCache={};
 
-/* helpers and all JS remain unchanged... */  
-</script>  
+const baseCurrencyEl = document.getElementById('baseCurrency');
 
-</body>  
+function uid(){ return 'id_'+Math.random().toString(36).slice(2,9); }
+function fmt(n){ return Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function nowISO(){ return new Date().toISOString().slice(0,19).replace('T',' '); }
+function saveAll(){ localStorage.setItem(STORAGE_KEY,JSON.stringify(entries)); localStorage.setItem(BUDGET_KEY,JSON.stringify(budgets)); localStorage.setItem(AUDIT_KEY,JSON.stringify(audit.slice(0,500))); }
+function loadAll(){ entries=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); budgets=JSON.parse(localStorage.getItem(BUDGET_KEY)||'{}'); audit=JSON.parse(localStorage.getItem(AUDIT_KEY)||'[]'); }
+
+/* wait for populateCurrencyDropdown from loadCurrencies.js */
+async function waitForPopulate(timeout=3000){
+  const start=Date.now();
+  while(Date.now()-start<timeout){
+    if(typeof populateCurrencyDropdown==='function') return true;
+    await new Promise(r=>setTimeout(r,100));
+  }
+  return false;
+}
+
+(async function initBaseCurrency(){
+  const ok=await waitForPopulate(3000);
+  if(ok){
+    populateCurrencyDropdown('baseCurrency');
+    setTimeout(()=>{if(!baseCurrencyEl.value) baseCurrencyEl.value='USD'; renderAll();},200);
+  } else {
+    const o=document.createElement('option'); o.value='USD'; o.text='USD'; baseCurrencyEl.appendChild(o); renderAll();
+  }
+})();
+
+/* ---------- RENDER ALL ---------- */
+async function renderAll(){
+  const base=baseCurrencyEl.value||'USD';
+  const rates=await fetchRates(base);
+  for(const e of entries){
+    if(!e.originalCurrency) e.originalCurrency=base;
+    if(e.originalCurrency===base){ e.displayAmount=e.originalAmount; }
+    else{ const r=rates[e.originalCurrency]; e.displayAmount=r&&r!==0?e.originalAmount/r:e.originalAmount; }
+  }
+  renderTable();
+  renderKPIs();
+  await renderCharts();
+  renderBudgets();
+  renderAlerts();
+  renderAudit();
+}
+
+/* ---------- BACK TO DASHBOARD ---------- */
+function goToDashboard(){
+  window.location.href='index.html';
+}
+</script>
+
+</body>
 </html>
