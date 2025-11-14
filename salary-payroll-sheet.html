@@ -1,121 +1,166 @@
-<!-- salary-payroll-sheet.html -->
-<!DOCTYPE html>
+<!doctype html>
+
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Salary / Payroll Sheet</title>
-<script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 min-h-screen p-4 flex justify-center items-start">
-
-<div class="bg-white/10 backdrop-blur rounded-xl p-6 shadow-lg w-full max-w-4xl text-white">
-  <h1 class="text-2xl font-bold mb-4 text-center">Salary / Payroll Sheet</h1>
-
-  <!-- Add Employee -->
-  <div class="grid gap-2 mb-4 md:grid-cols-2 lg:grid-cols-4">
-    <input type="text" id="empName" placeholder="Employee Name" class="p-2 rounded bg-white/30 text-white placeholder-white">
-    <input type="number" id="basicSalary" placeholder="Basic Salary" class="p-2 rounded bg-white/30 text-white placeholder-white">
-    <input type="number" id="bonus" placeholder="Bonus" class="p-2 rounded bg-white/30 text-white placeholder-white">
-    <input type="number" id="deductions" placeholder="Deductions" class="p-2 rounded bg-white/30 text-white placeholder-white">
-  </div>
-
-  <button id="addEmpBtn" class="w-full bg-indigo-600 py-2 rounded font-semibold hover:bg-indigo-700 mb-4">Add Employee</button>
-
-  <!-- Payroll Table -->
-  <div class="overflow-x-auto mb-4">
-    <table class="w-full text-white text-left border-collapse">
-      <thead>
-        <tr>
-          <th class="border-b px-2 py-1">Employee</th>
-          <th class="border-b px-2 py-1">Basic Salary</th>
-          <th class="border-b px-2 py-1">Bonus</th>
-          <th class="border-b px-2 py-1">Deductions</th>
-          <th class="border-b px-2 py-1">Net Salary</th>
-          <th class="border-b px-2 py-1">Actions</th>
-        </tr>
-      </thead>
-      <tbody id="payrollTable"></tbody>
-    </table>
-  </div>
-
-  <div class="flex justify-between">
-    <button id="exportBtn" class="bg-green-500 px-4 py-2 rounded font-semibold hover:bg-green-600">Export CSV</button>
-    <button id="backBtn" class="bg-purple-600 px-4 py-2 rounded font-semibold hover:bg-purple-700">Back to Dashboard</button>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Salary Payroll Sheet — Pro SaaS</title><style>
+:root{
+  --bg:#f6f8fb; --card:#fff; --muted:#6b7280; --accent:#2563eb;
+  --success:#10b981; --danger:#ef4444; --radius:10px;
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:#0f172a;padding:18px}
+.app{max-width:1150px;margin:0 auto;display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start}
+.card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 10px 30px rgba(2,6,23,0.06)}
+.header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+h1{margin:0;font-size:18px}
+small.muted{color:var(--muted)}
+input,select,button{font-family:inherit;padding:8px;border-radius:8px;border:1px solid #e6eef8;background:#fff}
+button{cursor:pointer}
+.btn{font-weight:700}
+.primary{background:var(--accent);color:#fff}
+.ghost{background:#f1f5f9;border:1px solid #e6eef8}
+.danger{background:var(--danger);color:#fff}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.kpi{background:#fbfdff;padding:12px;border-radius:8px;text-align:center}
+.kpi h3{margin:0;font-size:13px}
+.kpi p{margin:6px 0 0;font-weight:800}
+.table{margin-top:12px;overflow:auto;border-radius:8px;border:1px solid #eef2ff}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:8px;border-bottom:1px solid #f1f5f9;text-align:left}
+th{background:#fbfdff;position:sticky;top:0}
+.audit{margin-top:12px;max-height:180px;overflow:auto;font-size:13px;color:var(--muted)}
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+label{display:block;margin-bottom:6px;font-weight:600}
+.flex-end{display:flex;align-items:end;gap:8px;flex-wrap:wrap}
+@media (max-width:1000px){.app{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}}
+</style></head>
+<body><div class="app">  <!-- MAIN -->  <div class="card">
+    <div class="header">
+      <div>
+        <h1>Salary Payroll Sheet</h1>
+        <small class="muted">Track employee salaries and payments</small>
+      </div>
+    </div><!-- Form -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;align-items:end;">
+  <div><label>Employee Name</label><input id="empName" placeholder="John Doe"></div>
+  <div><label>Employee ID</label><input id="empID" placeholder="EMP001"></div>
+  <div><label>Department</label><select id="department"><option>HR</option><option>Finance</option><option>IT</option><option>Marketing</option></select></div>
+  <div><label>Designation</label><input id="designation" placeholder="Manager"></div>
+  <div><label>Basic Salary</label><input id="basic" type="number" min="0"></div>
+  <div><label>Allowances</label><input id="allowances" type="number" min="0"></div>
+  <div><label>Deductions</label><input id="deductions" type="number" min="0"></div>
+  <div><label>Net Salary</label><input id="netSalary" type="number" readonly></div>
+  <div><label>Payment Date</label><input id="payDate" type="date"></div>
+  <div><label>Payment Method</label><select id="payMethod"><option>Cash</option><option>Other</option></select></div>
+  <div class="flex-end">
+    <button id="addSalary" class="btn primary">Add</button>
+    <button id="clearSalary" class="btn ghost">Clear</button>
   </div>
 </div>
 
-<script>
-const empName = document.getElementById('empName');
-const basicSalary = document.getElementById('basicSalary');
-const bonus = document.getElementById('bonus');
-const deductions = document.getElementById('deductions');
-const addEmpBtn = document.getElementById('addEmpBtn');
-const payrollTable = document.getElementById('payrollTable');
-const exportBtn = document.getElementById('exportBtn');
-const backBtn = document.getElementById('backBtn');
+<!-- Filters -->
+<div class="filter-row">
+  <div><label>Filter Department</label><select id="filterDept"><option value="">All</option><option>HR</option><option>Finance</option><option>IT</option><option>Marketing</option></select></div>
+  <div><label>Filter Month</label><input type="month" id="filterMonth"></div>
+  <div><label>Search Employee</label><input id="searchEmp" placeholder="Name or ID"></div>
+  <div><button id="applyFilter" class="btn ghost">Apply</button></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button id="exportCsv" class="btn ghost">Export CSV</button>
+    <button id="exportJson" class="btn ghost">Export JSON</button>
+  </div>
+</div>
 
-let employees = JSON.parse(localStorage.getItem('employees')) || [];
+<!-- Table -->
+<div class="table">
+  <table>
+    <thead>
+      <tr><th>Date</th><th>Name</th><th>ID</th><th>Department</th><th>Designation</th><th>Basic</th><th>Allowances</th><th>Deductions</th><th>Net Salary</th><th>Method</th><th>Actions</th></tr>
+    </thead>
+    <tbody id="salaryTbody"></tbody>
+  </table>
+</div>
 
-function renderTable() {
-  payrollTable.innerHTML = "";
-  employees.forEach((emp, index) => {
-    const netSalary = emp.basic + emp.bonus - emp.deductions;
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td class="border-b px-2 py-1">${emp.name}</td>
-      <td class="border-b px-2 py-1">${emp.basic}</td>
-      <td class="border-b px-2 py-1">${emp.bonus}</td>
-      <td class="border-b px-2 py-1">${emp.deductions}</td>
-      <td class="border-b px-2 py-1">${netSalary}</td>
-      <td class="border-b px-2 py-1">
-        <button onclick="removeEmployee(${index})" class="bg-red-500 px-2 py-1 rounded hover:bg-red-600">Remove</button>
-      </td>
-    `;
-    payrollTable.appendChild(row);
-  });
+<!-- KPIs -->
+<div class="kpis">
+  <div class="kpi"><h3>Total Paid</h3><p id="totalPaid">0</p></div>
+  <div class="kpi"><h3>Average Salary</h3><p id="avgSalary">0</p></div>
+  <div class="kpi"><h3>Highest Salary</h3><p id="highestSalary">0</p></div>
+</div>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+  <div class="audit" id="auditLog"></div>
+  <div style="text-align:right">
+    <button onclick="goToDashboard()" class="btn ghost">⬅ Back to Dashboard</button>
+  </div>
+</div>
+
+  </div>  <!-- SIDEBAR -->  <div class="card" style="display:flex;flex-direction:column;gap:12px;">
+    <h3>Quick KPIs</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;flex-wrap:wrap;">
+      <div class="kpi">Employees Paid<p id="employeesPaid">0</p></div>
+      <div class="kpi">Total Deductions<p id="totalDeduct">0</p></div>
+    </div>
+  </div></div><script>
+let salaries = [];
+function uid(){return 'id_'+Math.random().toString(36).slice(2,9);}
+function nowISO(){return new Date().toISOString().slice(0,19).replace('T',' ');}
+function renderAudit(){
+  document.getElementById('auditLog').innerHTML = salaries.slice(-50).map(a=>`<div style="padding:6px;border-bottom:1px solid #f1f5f9"><small>${a.date}</small><div>${a.name} salary recorded</div></div>`).join('');
 }
-
-function removeEmployee(index){
-  employees.splice(index,1);
-  localStorage.setItem('employees', JSON.stringify(employees));
-  renderTable();
+function calcNet(){
+  const b=+document.getElementById('basic').value||0;
+  const a=+document.getElementById('allowances').value||0;
+  const d=+document.getElementById('deductions').value||0;
+  document.getElementById('netSalary').value = b+a-d;
 }
+document.getElementById('basic').addEventListener('input',calcNet);
+document.getElementById('allowances').addEventListener('input',calcNet);
+document.getElementById('deductions').addEventListener('input',calcNet);
 
-addEmpBtn.addEventListener('click', ()=>{
-  const name = empName.value.trim();
-  const basic = parseFloat(basicSalary.value);
-  const bns = parseFloat(bonus.value) || 0;
-  const ded = parseFloat(deductions.value) || 0;
-
-  if(!name || isNaN(basic)) return alert("Enter valid name and basic salary.");
-
-  employees.push({name, basic, bonus:bns, deductions:ded});
-  localStorage.setItem('employees', JSON.stringify(employees));
-  empName.value = basicSalary.value = bonus.value = deductions.value = "";
+document.getElementById('addSalary').addEventListener('click',()=>{
+  const name=document.getElementById('empName').value.trim();
+  const id=document.getElementById('empID').value.trim();
+  const dept=document.getElementById('department').value;
+  const desig=document.getElementById('designation').value;
+  const basic=+document.getElementById('basic').value||0;
+  const allowances=+document.getElementById('allowances').value||0;
+  const deductions=+document.getElementById('deductions').value||0;
+  const net=basic+allowances-deductions;
+  const date=document.getElementById('payDate').value||new Date().toISOString().slice(0,10);
+  const method=document.getElementById('payMethod').value;
+  if(!name||!id){alert('Name and ID required');return;}
+  const e={uid:uid(),name,id,dept,desig,basic,allowances,deductions,net,date,method};
+  salaries.unshift(e);
   renderTable();
+  renderKPIs();
+  renderAudit();
 });
 
-exportBtn.addEventListener('click', ()=>{
-  if(employees.length === 0) return alert("No data to export.");
-  let csv = "Employee,Basic Salary,Bonus,Deductions,Net Salary\n";
-  employees.forEach(emp=>{
-    const netSalary = emp.basic + emp.bonus - emp.deductions;
-    csv += `${emp.name},${emp.basic},${emp.bonus},${emp.deductions},${netSalary}\n`;
-  });
-  const blob = new Blob([csv], {type:"text/csv"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = "payroll.csv";
-  a.click();
-  URL.revokeObjectURL(url);
-});
+function renderTable(){
+  document.getElementById('salaryTbody').innerHTML = salaries.map(e=>`<tr><td>${e.date}</td><td>${e.name}</td><td>${e.id}</td><td>${e.dept}</td><td>${e.desig}</td><td>${e.basic}</td><td>${e.allowances}</td><td>${e.deductions}</td><td>${e.net}</td><td>${e.method}</td><td><button onclick="deleteEntry('${e.uid}')" class='btn danger'>Del</button></td></tr>`).join('');
+}
+function deleteEntry(uid){
+  if(!confirm('Delete this entry?'))return;
+  salaries=salaries.filter(e=>e.uid!==uid);
+  renderTable();
+  renderKPIs();
+  renderAudit();
+}
+function renderKPIs(){
+  const total=salaries.reduce((sum,e)=>sum+e.net,0);
+  const avg= salaries.length?Math.round(total/salaries.length):0;
+  const highest=salaries.length?Math.max(...salaries.map(e=>e.net)):0;
+  document.getElementById('totalPaid').innerText=total;
+  document.getElementById('avgSalary').innerText=avg;
+  document.getElementById('highestSalary').innerText=highest;
+  document.getElementById('employeesPaid').innerText=salaries.length;
+  const totalDed = salaries.reduce((sum,e)=>sum+e.deductions,0);
+  document.getElementById('totalDeduct').innerText=totalDed;
+}
 
-backBtn.addEventListener('click', ()=>window.location.href='index.html');
-
-// Initial render
-renderTable();
-</script>
-</body>
+function goToDashboard(){window.location.href='index.html';}
+</script></body>
 </html>
