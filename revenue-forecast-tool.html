@@ -1,442 +1,436 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Revenue Forecast — ToolNest (Pro)</title>
-
-<!-- Tailwind -->
-<script src="https://cdn.tailwindcss.com"></script>
+<title>Revenue Forecast Tool — ToolNest</title>
 
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
-<!-- XLSX (Excel export) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
-<!-- jsPDF (PDF export) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
 <style>
-  /* page background & card */
-  body { min-height:100vh; background: linear-gradient(135deg,#7c3aed 0%, #2563eb 45%, #ec4899 100%); font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
-  .card { background: rgba(255,255,255,0.95); border-radius: 12px; box-shadow: 0 10px 40px rgba(2,6,23,0.35); }
-  .muted { color: #374151; }
-  /* responsive tweaks */
-  @media (max-width:640px) {
-    table th, table td { font-size: 13px; }
-  }
+:root{
+  --bg:#f6f8fb; --card:#fff; --muted:#6b7280; --accent:#2563eb;
+  --success:#10b981; --danger:#ef4444; --radius:10px;
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:#0f172a;padding:18px}
+.app{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start}
+.card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 10px 30px rgba(2,6,23,0.06)}
+.header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+h1{margin:0;font-size:18px}
+small.muted{color:var(--muted)}
+input,select,button,textarea{font-family:inherit}
+input,select,textarea{padding:8px;border-radius:8px;border:1px solid #e6eef8;background:#fff}
+button{padding:8px 12px;border-radius:8px;border:0;cursor:pointer}
+.btn{font-weight:700}
+.primary{background:var(--accent);color:#fff}
+.ghost{background:#f1f5f9;border:1px solid #e6eef8}
+.danger{background:var(--danger);color:#fff}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.kpi{background:#fbfdff;padding:12px;border-radius:8px;text-align:center}
+.kpi h3{margin:0;font-size:13px}
+.kpi p{margin:6px 0 0;font-weight:800}
+.table{margin-top:12px;overflow:auto;border-radius:8px;border:1px solid #eef2ff}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:8px;border-bottom:1px solid #f1f5f9;text-align:left}
+th{background:#fbfdff;position:sticky;top:0}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+canvas{background:#fff;border-radius:8px;padding:8px}
+.audit{margin-top:12px;max-height:180px;overflow:auto;font-size:13px;color:var(--muted)}
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+label{display:block;margin-bottom:6px;font-weight:600}
+@media (max-width:1000px){ .app{grid-template-columns:1fr} .kpis{grid-template-columns:repeat(2,1fr)} .charts{grid-template-columns:1fr} }
 </style>
 </head>
-<body class="p-4">
+<body>
 
-<div class="max-w-6xl mx-auto space-y-6">
+<div class="app">
+  <!-- MAIN -->
+  <div class="card">
+    <div class="header">
+      <div>
+        <h1>Revenue Forecast Tool</h1>
+        <small class="muted">Add revenue streams and project monthly forecasts. Pick base currency to unify reporting.</small>
+      </div>
 
-  <!-- Header -->
-  <header class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-    <div>
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg shadow">TN</div>
-        <div>
-          <h1 class="text-2xl md:text-3xl font-bold">Revenue Forecast — Pro</h1>
-          <p class="muted text-sm">Advanced per-product forecasting • exports • responsive</p>
-        </div>
+      <div style="min-width:180px">
+        <small class="muted">Base currency</small>
+        <select id="baseCurrency" style="width:100%;padding:8px;border-radius:8px"></select>
       </div>
     </div>
 
-    <div class="flex gap-2">
-      <button id="backBtn" class="px-3 py-2 rounded bg-white/10 text-white hover:bg-white/20">← Dashboard</button>
-      <button id="resetBtn" class="px-3 py-2 rounded bg-red-500 text-white hover:bg-red-600">Reset</button>
-      <button id="exportExcelBtn" class="px-3 py-2 rounded bg-green-600 text-white hover:bg-green-700">Export XLSX</button>
-      <button id="exportPdfBtn" class="px-3 py-2 rounded bg-white text-indigo-700 hover:bg-white/90">Export PDF</button>
-    </div>
-  </header>
-
-  <!-- Add Product (Enhanced) -->
-  <section class="card p-4">
-    <h2 class="text-lg font-semibold text-gray-800 mb-3">➕ Add / Edit Product</h2>
-
-    <div class="grid grid-cols-1 md:grid-cols-6 gap-3">
-      <input id="productName" placeholder="Product name (e.g., Premium Plan)" class="md:col-span-2 p-2 border rounded" />
-      <input id="monthlyRevenue" type="number" placeholder="Monthly revenue ($)" class="p-2 border rounded" />
-      <input id="monthlyExpense" type="number" placeholder="Monthly expense ($)" class="p-2 border rounded" />
-      <input id="growthRate" type="number" placeholder="Growth % / month" class="p-2 border rounded" />
-      <input id="seasonality" type="text" placeholder="Seasonality (e.g., +10,-5) optional" class="p-2 border rounded" />
-    </div>
-
-    <div class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
-      <input id="capex" type="number" placeholder="One-time CapEx ($) optional" class="p-2 border rounded" />
-      <input id="revenueCap" type="number" placeholder="Revenue cap (max) optional" class="p-2 border rounded" />
-      <input id="productNotes" placeholder="Notes (optional)" class="p-2 border rounded" />
-    </div>
-
-    <div class="mt-3 flex gap-3">
-      <button id="addBtn" class="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700">Add Product</button>
-      <button id="addAndGenerate" class="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600">Add & Generate</button>
-      <div class="ml-auto text-sm muted self-center">
-        <strong>Total products:</strong> <span id="productCount">0</span> &nbsp;|&nbsp;
-        <strong>Total (start rev):</strong> $<span id="startTotal">0.00</span>
+    <!-- ADD STREAM FORM -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;align-items:end">
+      <div>
+        <label>Stream name</label>
+        <input id="streamName" placeholder="e.g. SaaS Subscriptions">
+      </div>
+      <div>
+        <label>Amount</label>
+        <input id="streamAmount" type="number" step="0.01" min="0" placeholder="1000">
+      </div>
+      <div>
+        <label>Currency</label>
+        <select id="streamCurrency"></select>
+      </div>
+      <div>
+        <label>Frequency</label>
+        <select id="streamFreq"><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option><option value="yearly">Yearly</option><option value="one-time">One-time</option></select>
+      </div>
+      <div>
+        <label>Start date</label>
+        <input id="streamStart" type="date">
+      </div>
+      <div style="display:flex;gap:8px;align-items:end;flex-wrap:wrap">
+        <button id="addStreamBtn" class="btn primary">Add stream</button>
+        <button id="clearStreamBtn" class="btn ghost">Clear</button>
       </div>
     </div>
-  </section>
 
-  <!-- Table + Chart -->
-  <section class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <!-- SCENARIO & FORECAST SETTINGS -->
+    <div style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;align-items:end">
+      <div>
+        <label>Projection months</label>
+        <input id="projMonths" type="number" min="1" max="60" value="12">
+      </div>
+      <div>
+        <label>Scenario growth %</label>
+        <input id="scenarioPct" type="number" step="0.1" value="0">
+      </div>
+      <div>
+        <label>Apply scenario to</label>
+        <select id="scenarioApply"><option value="all">All streams</option><option value="recurring">Only recurring</option></select>
+      </div>
+      <div style="display:flex;gap:8px;align-items:end">
+        <button id="runForecast" class="btn primary">Run Forecast</button>
+        <button id="resetForecast" class="btn ghost">Reset</button>
+      </div>
+    </div>
 
-    <!-- Products list / table -->
-    <div class="card p-3 lg:col-span-1 overflow-auto" style="max-height:560px;">
-      <h3 class="font-semibold text-gray-800 mb-2">Products</h3>
-      <table class="w-full text-sm">
+    <!-- KPIs -->
+    <div class="kpis">
+      <div class="kpi"><h3>Monthly MRR (base)</h3><p id="kpiMRR">0</p></div>
+      <div class="kpi"><h3>Annualized Revenue (base)</h3><p id="kpiARR">0</p></div>
+      <div class="kpi"><h3>Projected (months)</h3><p id="kpiProjTotal">0</p></div>
+    </div>
+
+    <!-- STREAMS TABLE -->
+    <div class="table">
+      <table>
         <thead>
-          <tr class="text-left text-xs text-gray-600"><th class="p-2">#</th><th>Product</th><th>Rev</th><th>Exp</th><th>Include</th></tr>
+          <tr>
+            <th>Stream</th><th>Amount</th><th>Curr</th><th>Freq</th><th>Start</th><th>Converted</th><th style="text-align:right">Actions</th>
+          </tr>
         </thead>
-        <tbody id="productsList"></tbody>
+        <tbody id="streamsTbody"></tbody>
       </table>
     </div>
 
-    <!-- Forecast table -->
-    <div class="card p-3 lg:col-span-2 overflow-auto">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="font-semibold text-gray-800">Forecast Table</h3>
-        <div class="flex gap-2 items-center">
-          <label class="text-sm muted">Months</label>
-          <input id="forecastMonths" type="number" value="12" min="1" class="w-20 p-1 border rounded" />
-          <button id="generateBtn" class="px-3 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700">Generate</button>
-        </div>
-      </div>
+    <!-- CHARTS -->
+    <div class="charts">
+      <canvas id="stackChart" height="220"></canvas>
+      <canvas id="cumChart" height="220"></canvas>
+    </div>
 
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm" id="forecastTable">
-          <thead class="text-left text-xs text-gray-600">
-            <tr>
-              <th class="p-2">Product</th><th>Start Rev</th><th>Growth%</th><th>Seasonality</th><th>CapEx</th><th>Month</th><th>Forecast Rev</th><th>Net</th>
-            </tr>
-          </thead>
-          <tbody id="forecastBody"></tbody>
-        </table>
+    <!-- EXPORT / AUDIT -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:8px;flex-wrap:wrap">
+      <div style="display:flex;gap:8px;align-items:center">
+        <button id="exportCsv" class="btn ghost">Export CSV</button>
+        <button id="exportJson" class="btn ghost">Export JSON</button>
+        <input id="importFile" type="file" accept=".json" style="display:none">
+        <button id="importBtn" class="btn ghost">Import JSON</button>
+      </div>
+      <div style="text-align:right">
+        <button onclick="goToDashboard()" class="btn ghost">⬅ Back to Dashboard</button>
       </div>
     </div>
 
-    <!-- Chart -->
-    <div class="card p-4 lg:col-span-0">
-      <h3 class="font-semibold mb-2 text-gray-800">Forecast Chart</h3>
-      <div class="h-64">
-        <canvas id="forecastChart"></canvas>
-      </div>
-      <div class="mt-3 text-sm muted">
-        Tip: Click a product in list to toggle inclusion on chart.
-      </div>
-    </div>
-  </section>
+    <div class="audit" id="auditLog"></div>
+  </div>
 
-  <!-- Summary & footer -->
-  <section class="card p-4">
-    <h3 class="text-lg font-semibold text-gray-800">Summary</h3>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
-      <div class="p-3 bg-indigo-50 rounded">
-        <div class="text-sm muted">Projected last-month total</div>
-        <div id="projectedLast" class="text-xl font-semibold text-indigo-700">$0.00</div>
-      </div>
-      <div class="p-3 bg-green-50 rounded">
-        <div class="text-sm muted">Total Net Profit (last month)</div>
-        <div id="projectedNet" class="text-xl font-semibold text-green-700">$0.00</div>
-      </div>
-      <div class="p-3 bg-yellow-50 rounded">
-        <div class="text-sm muted">Avg monthly growth %</div>
-        <div id="avgGrowth" class="text-xl font-semibold text-yellow-700">0%</div>
-      </div>
-    </div>
-  </section>
-
+  <!-- SIDEBAR -->
+  <div class="card">
+    <h3 style="margin:0 0 8px">Forecast Summary</h3>
+    <div id="summary" class="audit">No forecast run yet.</div>
+  </div>
 </div>
 
+<script src="loadCurrencies.js"></script>
 <script>
-/* Revenue Forecast Pro — single-file implementation
-   - products[] contains product objects:
-     {id, name, startRevenue, expense, growthRate, seasonality (array or string), capex, revenueCap, notes, include}
-   - Chart.js used to draw one line per product for forecast months
-   - XLSX + jsPDF used for exports
-*/
+/* ---------- State ---------- */
+const STORAGE_KEY = 'tn_rev_forecast_v1';
+let streams = []; // {id, name, amount, currency, freq, start}
+let rateCache = {};
+let stackChart, cumChart;
 
-const products = [];
-let chart = null;
+/* DOM refs */
+const baseCurrencyEl = document.getElementById('baseCurrency');
+const streamCurrencyEl = document.getElementById('streamCurrency');
 
-// DOM refs
-const productName = document.getElementById('productName');
-const monthlyRevenue = document.getElementById('monthlyRevenue');
-const monthlyExpense = document.getElementById('monthlyExpense');
-const growthRate = document.getElementById('growthRate');
-const seasonalityInput = document.getElementById('seasonality');
-const capexInput = document.getElementById('capex');
-const revenueCapInput = document.getElementById('revenueCap');
-const productNotes = document.getElementById('productNotes');
-const addBtn = document.getElementById('addBtn');
-const addAndGenerate = document.getElementById('addAndGenerate');
-const productCount = document.getElementById('productCount');
-const startTotal = document.getElementById('startTotal');
-const productsList = document.getElementById('productsList');
-const forecastMonths = document.getElementById('forecastMonths');
-const generateBtn = document.getElementById('generateBtn');
-const forecastBody = document.getElementById('forecastBody');
-const projectedLast = document.getElementById('projectedLast');
-const projectedNet = document.getElementById('projectedNet');
-const avgGrowth = document.getElementById('avgGrowth');
+/* helpers */
+function uid(){ return 'id_'+Math.random().toString(36).slice(2,9); }
+function fmt(n){ return Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(streams)); }
+function load(){ streams = JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); }
 
-const resetBtn = document.getElementById('resetBtn');
-const backBtn = document.getElementById('backBtn');
-const exportExcelBtn = document.getElementById('exportExcelBtn');
-const exportPdfBtn = document.getElementById('exportPdfBtn');
-
-// Helpers
-function uid(){ return Math.random().toString(36).slice(2,9); }
-function parseSeasonality(str){
-  // Accept either comma list like "10,-5,0,5" or single number applied to every month
-  if(!str) return null;
-  const parts = str.split(',').map(s=>s.trim()).filter(Boolean);
-  if(parts.length === 1) return parseFloat(parts[0]) || 0;
-  return parts.map(p => parseFloat(p) || 0);
-}
-function clamp(v, min, max){ if(min!=null && v<min) return min; if(max!=null && v>max) return max; return v; }
-
-// Render product list (left)
-function renderProductsList(){
-  productsList.innerHTML = '';
-  products.forEach((p, i) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="p-2">${i+1}</td>
-      <td class="p-2 font-medium">${p.name}</td>
-      <td class="p-2">$${p.startRevenue.toLocaleString()}</td>
-      <td class="p-2">$${p.expense.toLocaleString()}</td>
-      <td class="p-2"><input type="checkbox" data-index="${i}" ${p.include ? 'checked' : ''} class="includeToggle" /></td>
-    `;
-    productsList.appendChild(tr);
-  });
-  productCount.innerText = products.length;
-  startTotal.innerText = products.reduce((s,p)=>s+p.startRevenue,0).toFixed(2);
-
-  // add toggle listeners
-  document.querySelectorAll('.includeToggle').forEach(chk=>{
-    chk.addEventListener('change', e=>{
-      const idx = e.target.dataset.index;
-      products[idx].include = e.target.checked;
-      // regenerate chart if already generated
-      if(chart) generateForecast();
-    });
-  });
-
-  // add click-to-edit (double-click product row)
-  productsList.querySelectorAll('tr').forEach((row, idx)=>{
-    row.addEventListener('dblclick', ()=>{
-      const p = products[idx];
-      productName.value = p.name;
-      monthlyRevenue.value = p.startRevenue;
-      monthlyExpense.value = p.expense;
-      growthRate.value = p.growthRate;
-      seasonalityInput.value = Array.isArray(p.seasonality) ? p.seasonality.join(',') : (p.seasonality || '');
-      capexInput.value = p.capex || '';
-      revenueCapInput.value = p.revenueCap || '';
-      productNotes.value = p.notes || '';
-      // remove old to permit edit re-add
-      products.splice(idx,1);
-      renderProductsList();
-    });
-  });
+/* wait for populateCurrencyDropdown */
+async function waitForPopulate(timeout=3000){
+  const start=Date.now();
+  while(Date.now()-start<timeout){
+    if(typeof populateCurrencyDropdown==='function') return true;
+    await new Promise(r=>setTimeout(r,100));
+  }
+  return false;
 }
 
-// Add product
-addBtn.addEventListener('click', ()=>{
-  const name = productName.value.trim();
-  const rev = parseFloat(monthlyRevenue.value);
-  const exp = parseFloat(monthlyExpense.value);
-  const growth = parseFloat(growthRate.value) || 0;
-  const season = parseSeasonality(seasonalityInput.value);
-  const capex = parseFloat(capexInput.value) || 0;
-  const revenueCap = parseFloat(revenueCapInput.value) || null;
-  const notes = productNotes.value.trim();
+/* init currencies */
+(async function initCurrencies(){
+  const ok = await waitForPopulate(3000);
+  if(ok){
+    populateCurrencyDropdown('baseCurrency');
+    populateCurrencyDropdown('streamCurrency');
+    setTimeout(()=>{ if(!baseCurrencyEl.value) baseCurrencyEl.value='USD'; renderAll(); },200);
+  } else {
+    const o = document.createElement('option'); o.value='USD'; o.text='USD'; baseCurrencyEl.appendChild(o); streamCurrencyEl.appendChild(o.cloneNode(true));
+    renderAll();
+  }
+})();
 
-  if(!name || isNaN(rev) || isNaN(exp)){
-    return alert('Please enter product name, monthly revenue and monthly expense.');
+/* fetch rates */
+async function fetchRates(base='USD'){
+  if(rateCache[base] && (Date.now()-rateCache[base].ts < 1000*60*15)) return rateCache[base].rates;
+  try{
+    const res = await fetch(`https://api.exchangerate.host/latest?base=${encodeURIComponent(base)}`);
+    const data = await res.json();
+    rateCache[base] = { ts: Date.now(), rates: data.rates || {} };
+    return rateCache[base].rates;
+  }catch(e){ console.warn('rates fail', e); return {}; }
+}
+
+/* convert amount in 'from' to base */
+async function convertToBase(amount, from, base){
+  if(!from || !base) return amount;
+  if(from === base) return amount;
+  const rates = await fetchRates(base);
+  const r = rates[from];
+  if(!r || r === 0) return amount;
+  return amount / r;
+}
+
+/* Add stream */
+document.getElementById('addStreamBtn').addEventListener('click', async ()=>{
+  const name = document.getElementById('streamName').value.trim();
+  const amount = parseFloat(document.getElementById('streamAmount').value) || 0;
+  const currency = streamCurrencyEl.value || (baseCurrencyEl.value || 'USD');
+  const freq = document.getElementById('streamFreq').value;
+  const start = document.getElementById('streamStart').value || new Date().toISOString().slice(0,10);
+
+  if(!name || amount<=0){ alert('Name and positive amount required'); return; }
+
+  streams.unshift({ id: uid(), name, amount, currency, freq, start });
+  save(); logAudit(`Added stream ${name} ${amount} ${currency} (${freq})`);
+  await renderAll();
+  // clear
+  document.getElementById('streamName').value=''; document.getElementById('streamAmount').value=''; document.getElementById('streamStart').value='';
+});
+
+/* Edit / Delete */
+function deleteStream(id){ if(!confirm('Delete stream?')) return; streams = streams.filter(s=>s.id!==id); save(); renderAll(); logAudit(`Deleted stream ${id}`); }
+function editStream(id){
+  const s = streams.find(x=>x.id===id); if(!s) return;
+  const name = prompt('Stream name', s.name); if(name===null) return;
+  const amount = prompt('Amount', s.amount); if(amount===null) return;
+  s.name = name; s.amount = parseFloat(amount) || s.amount;
+  save(); renderAll(); logAudit(`Edited stream ${s.name}`);
+}
+
+/* Run forecast */
+document.getElementById('runForecast').addEventListener('click', async ()=>{
+  await renderForecast();
+});
+document.getElementById('resetForecast').addEventListener('click', async ()=>{
+  document.getElementById('scenarioPct').value = 0;
+  document.getElementById('projMonths').value = 12;
+  renderAll();
+});
+
+/* Export / Import */
+document.getElementById('exportJson').addEventListener('click', ()=> {
+  const blob = new Blob([JSON.stringify(streams,null,2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='revenue_streams.json'; a.click(); URL.revokeObjectURL(url);
+});
+document.getElementById('exportCsv').addEventListener('click', ()=> {
+  const hdr = 'id,name,amount,currency,freq,start\n';
+  const lines = streams.map(s=>`${s.id},"${s.name.replace(/"/g,'""')}",${s.amount},${s.currency},${s.freq},${s.start}`);
+  const blob = new Blob([hdr + lines.join('\n')], { type:'text/csv' });
+  const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='revenue_streams.csv'; a.click(); URL.revokeObjectURL(url);
+});
+document.getElementById('importBtn').addEventListener('click', ()=> document.getElementById('importFile').click());
+document.getElementById('importFile').addEventListener('change', e=>{
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ()=> {
+    try{
+      const data = JSON.parse(r.result);
+      if(!Array.isArray(data)) return alert('Invalid JSON');
+      streams = data.concat(streams);
+      save(); renderAll(); alert('Imported');
+    } catch(err){ alert('Import error: '+err.message); }
+  };
+  r.readAsText(f); e.target.value='';
+});
+
+/* Render list + KPIs */
+async function renderAll(){
+  const base = baseCurrencyEl.value || 'USD';
+  const rates = await fetchRates(base);
+
+  // compute converted value for each stream for single unit (i.e., amount as provided) -> converted monthly contribution
+  for(const s of streams){
+    if(!s.currency) s.currency = base;
+    if(s.currency === base){ s.converted = s.amount; }
+    else {
+      const r = rates[s.currency];
+      s.converted = r && r!==0 ? s.amount / r : s.amount;
+    }
   }
 
-  products.push({
-    id: uid(),
-    name,
-    startRevenue: rev,
-    startRevenueRaw: rev,
-    expense: exp,
-    growthRate: growth,
-    seasonality: season,
-    capex,
-    revenueCap,
-    notes,
-    include: true
-  });
+  // fill table
+  const tbody = document.getElementById('streamsTbody');
+  tbody.innerHTML = streams.map(s=>{
+    return `<tr>
+      <td>${escapeHtml(s.name)}</td>
+      <td>${fmt(s.amount)}</td>
+      <td>${escapeHtml(s.currency)}</td>
+      <td>${escapeHtml(s.freq)}</td>
+      <td>${s.start}</td>
+      <td>${fmt(s.converted)} ${base}</td>
+      <td style="text-align:right">
+        <button class="btn ghost" onclick="editStream('${s.id}')">Edit</button>
+        <button class="btn danger" onclick="deleteStream('${s.id}')">Delete</button>
+      </td>
+    </tr>`;
+  }).join('');
 
-  // clear inputs
-  [productName, monthlyRevenue, monthlyExpense, growthRate, seasonalityInput, capexInput, revenueCapInput, productNotes].forEach(i => i.value = '');
-  renderProductsList();
-});
+  // quick KPIs: MRR (sum of monthly equivalents), ARR, proj total
+  const monthlyValues = streams.map(s=> freqToMonthly(s.converted, s.freq) );
+  const MRR = monthlyValues.reduce((a,b)=>a+b,0);
+  const months = parseInt(document.getElementById('projMonths').value)||12;
+  const scenarioPct = parseFloat(document.getElementById('scenarioPct').value)||0;
+  const applyTo = document.getElementById('scenarioApply').value;
 
-// Add & generate
-addAndGenerate.addEventListener('click', ()=>{
-  addBtn.click();
-  generateBtn.click();
-});
+  // compute projected series
+  const forecast = await buildForecast(months, scenarioPct, applyTo, base);
+  const projTotal = forecast.netSeries.reduce((a,b)=>a+b,0);
 
-// Generate forecast and render table & chart
-generateBtn.addEventListener('click', generateForecast);
+  document.getElementById('kpiMRR').innerText = `${fmt(MRR)} ${base}`;
+  document.getElementById('kpiARR').innerText = `${fmt(MRR*12)} ${base}`;
+  document.getElementById('kpiProjTotal').innerText = `${fmt(projTotal)} ${base}`;
 
-function generateForecast(){
-  const months = parseInt(forecastMonths.value) || 12;
-  // build labels (Month 1..N)
-  const labels = Array.from({length: months}, (_,i)=>`M${i+1}`);
+  // charts: show last X months (labels from forecast) and stacked by streams
+  renderStackChart(forecast.labels, forecast.byStream, base);
+  renderCumChart(forecast.labels, forecast.cumulative, base);
 
-  // table rows
-  let tableHtml = '';
-  const datasets = [];
-  const colors = ['#34d399','#60a5fa','#f97316','#ef4444','#a78bfa','#f472b6','#f59e0b','#06b6d4','#10b981','#fb7185'];
-  let projectedLastTotal = 0, projectedNetTotal = 0, growthSum = 0, growthCount = 0;
+  // summary
+  document.getElementById('summary').innerHTML = `<div>Projection: ${months} months • Scenario: ${scenarioPct}% applied to ${applyTo}</div>
+    <div style="margin-top:8px">Total projected revenue: <strong>${fmt(projTotal)} ${base}</strong></div>`;
+}
 
-  products.forEach((p, idx) => {
-    // compute series
-    let rev = p.startRevenue;
-    const series = [];
-    const seasonArr = Array.isArray(p.seasonality) ? p.seasonality : null;
-    for(let m=1;m<=months;m++){
-      // apply growth
-      rev = rev * (1 + (p.growthRate||0)/100);
-      // apply seasonality if per-month array
-      if(seasonArr && seasonArr[m-1] != null){
-        rev = rev * (1 + seasonArr[m-1]/100);
-      } else if(!seasonArr && p.seasonality != null && p.seasonality !== ''){
-        // single seasonality number applies as multiplier each month
-        const s = parseFloat(p.seasonality) || 0;
-        rev = rev * (1 + s/100);
+/* freq conversion helper: convert amount per freq to monthly equivalent */
+function freqToMonthly(amount, freq){
+  if(freq === 'monthly') return amount;
+  if(freq === 'quarterly') return amount / 3;
+  if(freq === 'yearly') return amount / 12;
+  if(freq === 'one-time') return amount; // treat one-time as single month (user decides)
+  return amount;
+}
+
+/* build forecast: returns { labels[], byStream: [{label, data[] }], netSeries[], cumulative[] } */
+async function buildForecast(months=12, scenarioPct=0, applyTo='all', base='USD'){
+  const rates = await fetchRates(base);
+  const labels = [];
+  const start = new Date();
+  for(let i=1;i<=months;i++){
+    const d = new Date(start.getFullYear(), start.getMonth()+i, 1);
+    labels.push(d.toISOString().slice(0,7));
+  }
+
+  // prepare per-stream monthly contributions across the months
+  const byStream = [];
+  const netSeries = new Array(months).fill(0);
+  for(const s of streams){
+    const arr = new Array(months).fill(0);
+    // monthly equivalent
+    const monthly = freqToMonthly(s.converted, s.freq);
+    // start month index
+    const sIdx = (()=>{ const sd = new Date(s.start); const monthsDiff = (start.getFullYear()-sd.getFullYear())*12 + (start.getMonth()-sd.getMonth()); return Math.max(0, -monthsDiff); })();
+    // simpler: we'll assume stream applies from its start if start <= future month
+    for(let m=0;m<months;m++){
+      // compare label to start
+      const label = labels[m] + '-01';
+      if(new Date(s.start) <= new Date(label)){
+        arr[m] = monthly;
       }
-      // enforce cap
-      if(p.revenueCap) rev = Math.min(rev, p.revenueCap);
-      const net = rev - (p.expense || 0) - ((p.capex || 0) / months); // simple capex amortization across months
-      series.push(parseFloat(net.toFixed(2)));
-      // append table row
-      tableHtml += `<tr class="border-b"><td class="p-2">${p.name}</td><td class="p-2">$${p.startRevenue.toLocaleString()}</td><td class="p-2">${p.growthRate}%</td><td class="p-2">${Array.isArray(p.seasonality)? p.seasonality.join(',') : (p.seasonality||0)}</td><td class="p-2">$${(p.capex||0).toFixed(2)}</td><td class="p-2">M${m}</td><td class="p-2">$${rev.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td><td class="p-2">$${net.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>`;
     }
-
-    // collect projected totals and net for last month
-    const lastNet = series[series.length-1] || 0;
-    projectedLastTotal += (series[series.length-1] || 0) + (p.expense || 0); // approximate revenue (we used net previously) add back expense to get revenue
-    projectedNetTotal += lastNet;
-
-    // average growth
-    if(!isNaN(p.growthRate)) { growthSum += p.growthRate; growthCount++; }
-
-    // chart dataset only if product included
-    if(p.include){
-      datasets.push({
-        label: p.name,
-        data: series,
-        borderColor: colors[idx % colors.length],
-        backgroundColor: colors[idx % colors.length],
-        tension: 0.3,
-        fill: false,
-        pointRadius: 2
-      });
+    // apply scenario if needed
+    const applyScenario = (applyTo === 'all') || (applyTo === 'recurring' && s.freq !== 'one-time');
+    if(applyScenario && scenarioPct){
+      for(let m=0;m<months;m++){
+        // apply monthly compounded growth across months relative to month 0
+        const growthFactor = Math.pow(1 + (scenarioPct/100), m/12); // annualized smoothing
+        arr[m] = arr[m] * growthFactor;
+      }
     }
-  });
+    // accumulate
+    for(let m=0;m<months;m++) netSeries[m] += arr[m];
+    byStream.push({ label: s.name, data: arr });
+  }
 
-  // update table
-  forecastBody.innerHTML = tableHtml || `<tr><td class="p-2" colspan="8">No forecast rows — add product & generate.</td></tr>`;
+  // cumulative
+  const cumulative = [];
+  let cum = 0;
+  for(let m=0;m<months;m++){ cum += netSeries[m]; cumulative.push(cum); }
 
-  // chart render
-  const ctx = document.getElementById('forecastChart').getContext('2d');
-  if(chart) chart.destroy();
-  chart = new Chart(ctx, {
-    type: 'line',
-    data: { labels, datasets },
-    options: {
-      plugins: { legend: { position: 'bottom' }, tooltip: { mode: 'index', intersect:false } },
-      scales: { y: { ticks: { callback: v => '$' + v.toLocaleString() } } },
-      responsive: true, maintainAspectRatio:false
-    }
-  });
-
-  // update summary
-  projectedLast.innerText = '$' + (projectedLastTotal.toFixed(2));
-  projectedNet.innerText = '$' + (projectedNetTotal.toFixed(2));
-  avgGrowth.innerText = (growthCount ? (growthSum / growthCount).toFixed(2) : 0) + '%';
+  return { labels, byStream, netSeries, cumulative };
 }
 
-// Remove all data
-resetBtn.addEventListener('click', ()=>{
-  if(!confirm('Reset all products and forecasts?')) return;
-  products.length = 0;
-  renderProductsList();
-  forecastBody.innerHTML = '';
-  if(chart){ chart.destroy(); chart = null; }
-  projectedLast.innerText = '$0.00';
-  projectedNet.innerText = '$0.00';
-  avgGrowth.innerText = '0%';
-});
-
-// Back to dashboard (change path if your dashboard filename differs)
-backBtn.addEventListener('click', ()=>{ window.location.href = 'index.html'; });
-
-// Export Excel
-exportExcelBtn.addEventListener('click', ()=>{
-  if(!forecastBody.innerHTML.trim()) return alert('Generate forecast before exporting.');
-  // Build array of rows from table
-  const rows = [];
-  const trs = forecastBody.querySelectorAll('tr');
-  trs.forEach(tr=>{
-    const tds = tr.querySelectorAll('td');
-    rows.push({
-      product: tds[0]?.innerText || '',
-      startRevenue: tds[1]?.innerText || '',
-      growth: tds[2]?.innerText || '',
-      seasonality: tds[3]?.innerText || '',
-      capex: tds[4]?.innerText || '',
-      month: tds[5]?.innerText || '',
-      forecastRevenue: tds[6]?.innerText || '',
-      net: tds[7]?.innerText || ''
-    });
+/* Charts rendering */
+function renderStackChart(labels, byStream, base){
+  const ctx = document.getElementById('stackChart').getContext('2d');
+  if(stackChart) stackChart.destroy();
+  const datasets = byStream.map((s,i)=>({ label: s.label, data: s.data, stack: 'stack1' }));
+  stackChart = new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets },
+    options:{ responsive:true, plugins:{ legend:{ position:'bottom' } }, scales:{ x:{ stacked:true }, y:{ stacked:true, beginAtZero:true } } }
   });
-  const ws = XLSX.utils.json_to_sheet(rows);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Forecast');
-  XLSX.writeFile(wb, 'RevenueForecast.xlsx');
-});
+}
+function renderCumChart(labels, cumulative, base){
+  const ctx = document.getElementById('cumChart').getContext('2d');
+  if(cumChart) cumChart.destroy();
+  cumChart = new Chart(ctx, {
+    type:'line',
+    data:{ labels, datasets:[{ label:'Cumulative Revenue', data:cumulative, borderColor:'#2563eb', fill:true, backgroundColor:'rgba(37,99,235,0.08)' }]},
+    options:{ responsive:true, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
+  });
+}
 
-// Export PDF (chart + summary + top rows)
-exportPdfBtn.addEventListener('click', async ()=>{
-  if(!forecastBody.innerHTML.trim()) return alert('Generate forecast before exporting.');
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
-  doc.setFontSize(18); doc.text('Revenue Forecast Report', 40, 40);
-  doc.setFontSize(11); doc.text(`Products: ${products.length} • Months: ${forecastMonths.value}`, 40, 62);
-  // chart
-  if(chart){
-    const dataUrl = chart.toBase64Image();
-    doc.addImage(dataUrl, 'PNG', 40, 80, 700, 240);
-  }
-  // table rows
-  let y = 340;
-  doc.setFontSize(9);
-  const trs = forecastBody.querySelectorAll('tr');
-  for(let i=0;i<trs.length;i++){
-    const cols = trs[i].querySelectorAll('td');
-    const line = `${i+1}. ${cols[0]?.innerText || ''} | ${cols[5]?.innerText || ''} | ${cols[6]?.innerText || ''} | ${cols[7]?.innerText || ''}`;
-    doc.text(line, 40, y);
-    y += 12;
-    if(y > 520){ doc.addPage(); y = 40; }
-  }
-  doc.setFontSize(11);
-  doc.text(`Projected last-month total: ${projectedLast.innerText}`, 40, y + 20);
-  doc.save('RevenueForecast.pdf');
-});
+/* helpers */
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function logAudit(msg){ const el = document.getElementById('auditLog'); el.innerHTML = `<div style="padding:6px;border-bottom:1px solid #f1f5f9"><small>${new Date().toISOString().slice(0,19).replace('T',' ')}</small><div>${escapeHtml(msg)}</div></div>` + el.innerHTML; }
 
-// Initialize: just render empty list
-renderProductsList();
+/* init + load */
+(async function startup(){
+  loadStreams();
+  await renderAll();
+})();
 
+function loadStreams(){ streams = JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); }
+
+/* go to dashboard */
+function goToDashboard(){ window.location.href = 'index.html'; }
 </script>
 </body>
 </html>
