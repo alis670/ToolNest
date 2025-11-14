@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Expense Tracker — Pro (Date Filter)</title>
+<title>Expense Tracker — Single Base Currency</title>
 
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -43,6 +43,8 @@ canvas{background:#fff;border-radius:8px;padding:8px}
 @media (max-width:1000px){ .app{grid-template-columns:1fr} .kpis{grid-template-columns:repeat(2,1fr)} .charts{grid-template-columns:1fr} }
 .filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .badge{display:inline-block;padding:6px 8px;border-radius:999px;background:#fff3f2;color:var(--danger);font-weight:700}
+label{display:block;margin-bottom:6px;font-weight:600}
+.readonly { background:#f8fafc; color:#0b1220; }
 </style>
 </head>
 <body>
@@ -53,33 +55,56 @@ canvas{background:#fff;border-radius:8px;padding:8px}
   <div class="card">
     <div class="header">
       <div>
-        <h1>Expense Tracker — Pro</h1>
-        <small class="muted">Full Date filters • Multi-currency • Charts • Budgets • Export/Import</small>
+        <h1>Expense Tracker — Single Base Currency</h1>
+        <small class="muted">Choose one base currency — all sections follow it automatically.</small>
       </div>
 
       <div style="min-width:180px">
-        <small class="muted">Display currency</small>
-        <select id="displayCurrency" style="width:100%;padding:8px;border-radius:8px"></select>
+        <small class="muted">Base currency</small>
+        <select id="baseCurrency" style="width:100%;padding:8px;border-radius:8px"></select>
       </div>
     </div>
 
     <!-- form -->
     <div style="display:grid;grid-template-columns:1fr 120px 120px 160px;gap:8px">
-      <div><label>Description</label><input id="desc" placeholder="e.g. Google Workspace"></div>
-      <div><label>Amount</label><input id="amount" type="number" min="0" step="0.01"></div>
-      <div><label>Currency</label><select id="currency"></select></div>
-      <div><label>Date</label><input id="date" type="date"></div>
+      <div>
+        <label>Description</label>
+        <input id="desc" placeholder="e.g. Google Workspace">
+      </div>
 
-      <div><label>Category</label>
+      <div>
+        <label>Amount</label>
+        <input id="amount" type="number" min="0" step="0.01">
+      </div>
+
+      <!-- Entry currency removed; entries will store original currency but shown/entered as Base Currency -->
+      <div>
+        <label>Currency (locked)</label>
+        <input id="entryCurrency" class="readonly" readonly>
+      </div>
+
+      <div>
+        <label>Date</label>
+        <input id="date" type="date">
+      </div>
+
+      <div>
+        <label>Category</label>
         <select id="category">
           <option>Uncategorized</option><option>Software</option><option>Marketing</option><option>Salaries</option>
           <option>Hosting</option><option>Office</option><option>Travel</option><option>Other</option>
         </select>
       </div>
 
-      <div><label>Type</label><select id="type"><option value="expense">Expense</option><option value="income">Income</option></select></div>
+      <div>
+        <label>Type</label>
+        <select id="type"><option value="expense">Expense</option><option value="income">Income</option></select>
+      </div>
 
-      <div><label>Recurring</label><select id="recurring"><option value="none">None</option><option value="monthly">Monthly</option></select></div>
+      <div>
+        <label>Recurring</label>
+        <select id="recurring"><option value="none">None</option><option value="monthly">Monthly</option></select>
+      </div>
 
       <div style="display:flex;align-items:end;gap:8px">
         <button id="addBtn" class="btn primary">Add</button>
@@ -167,38 +192,30 @@ canvas{background:#fff;border-radius:8px;padding:8px}
 
 </div>
 
-<!-- load currencies (user must provide loadCurrencies.js that defines populateCurrencyDropdown) -->
 <script src="loadCurrencies.js"></script>
-
 <script>
-/* ---------- Config & Storage ---------- */
+/* ---------- Storage & state ---------- */
 const STORAGE_KEY = 'et_pro_v3_entries';
 const BUDGET_KEY = 'et_pro_v3_budgets';
 const AUDIT_KEY = 'et_pro_v3_audit';
-
-/* ---------- State ---------- */
-let entries = [];      // {id,desc,amount,currency,date,category,type,recurring,displayAmount}
-let budgets = {};      // { "Category|YYYY-MM": amount }
-let audit = [];        // [{ts,msg}]
+let entries = []; let budgets = {}; let audit = [];
 let monthlyChart, categoryChart;
-let rateCache = {};    // { base: {ts, rates} }
+let rateCache = {};
 
-/* ---------- DOM refs ---------- */
-const displayCurrencyEl = document.getElementById('displayCurrency');
-const currencyEl = document.getElementById('currency');
-const entriesTbody = document.getElementById('entriesTbody');
-const auditLog = document.getElementById('auditLog');
-const budgetList = document.getElementById('budgetList');
-const alertsEl = document.getElementById('alerts');
+/* DOM refs */
+const baseCurrencyEl = document.getElementById('baseCurrency');
+const entryCurrencyInput = document.getElementById('entryCurrency');
+const displayCurrencyEl = document.getElementById('baseCurrency'); // same control
+const currencyEl = document.getElementById('currency'); // used only for fallback population in some cases
 
-/* ---------- Helpers ---------- */
+/* helpers */
 function uid(){ return 'id_'+Math.random().toString(36).slice(2,9); }
 function fmt(n){ return Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function nowISO(){ return new Date().toISOString().slice(0,19).replace('T',' '); }
 function saveAll(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); localStorage.setItem(BUDGET_KEY, JSON.stringify(budgets)); localStorage.setItem(AUDIT_KEY, JSON.stringify(audit.slice(0,500))); }
-function loadAll(){ entries = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); budgets = JSON.parse(localStorage.getItem(BUDGET_KEY)||'{}'); audit = JSON.parse(localStorage.getItem(AUDIT_KEY)||'[]'); }
+function loadAll(){ entries = JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); budgets = JSON.parse(localStorage.getItem(BUDGET_KEY)||'{}'); audit = JSON.parse(localStorage.getItem(AUDIT_KEY)||'[]'); }
 
-/* ---------- Currency loader (robust) ---------- */
+/* wait for populateCurrencyDropdown from loadCurrencies.js */
 async function waitForPopulate(timeout=3000){
   const start = Date.now();
   while(Date.now() - start < timeout){
@@ -208,21 +225,21 @@ async function waitForPopulate(timeout=3000){
   return false;
 }
 
-(async function initCurrencyDropdowns(){
+(async function initBaseCurrency(){
   const ok = await waitForPopulate(3000);
   if(ok){
-    populateCurrencyDropdown('currency');
-    populateCurrencyDropdown('displayCurrency');
-    setTimeout(()=>{ if(!displayCurrencyEl.value) displayCurrencyEl.value = document.getElementById('currency').value || 'USD'; renderAll(); }, 200);
+    populateCurrencyDropdown('baseCurrency'); // populate base currency dropdown
+    // set entryCurrency field to current selection
+    setTimeout(()=>{ const v = baseCurrencyEl.value || 'USD'; entryCurrencyInput.value = v; renderAll(); }, 200);
   } else {
-    // fallback minimal
-    const opt = (el, v) => { const o = document.createElement('option'); o.value=v; o.text=v; el.appendChild(o); };
-    opt(currencyEl,'USD'); opt(displayCurrencyEl,'USD');
+    // fallback
+    const o=document.createElement('option'); o.value='USD'; o.text='USD'; baseCurrencyEl.appendChild(o);
+    entryCurrencyInput.value = 'USD';
     renderAll();
   }
 })();
 
-/* ---------- Rates & conversion ---------- */
+/* rates */
 async function fetchRates(base='USD'){
   if(rateCache[base] && (Date.now() - rateCache[base].ts < 1000*60*15)) return rateCache[base].rates;
   try{
@@ -230,65 +247,62 @@ async function fetchRates(base='USD'){
     const data = await res.json();
     rateCache[base] = { ts: Date.now(), rates: data.rates || {} };
     return rateCache[base].rates;
-  }catch(e){
-    console.warn('rate fetch failed', e);
-    return {};
-  }
+  }catch(e){ console.warn('rates fail', e); return {}; }
 }
-async function convertTo(amount, from, to){
-  if(!from || !to) return amount;
-  if(from === to) return amount;
-  const rates = await fetchRates(to);
-  const r = rates[from];
+
+/* convert amount from originalCurrency -> baseCurrency */
+async function convertToBase(amount, originalCurrency, base){
+  if(!originalCurrency || !base) return amount;
+  if(originalCurrency === base) return amount;
+  const rates = await fetchRates(base);
+  const r = rates[originalCurrency];
   if(!r || r === 0) return amount;
   return amount / r;
 }
 
-/* ---------- Persistence ---------- */
+/* load/save */
 loadAll();
 
-/* ---------- Audit ---------- */
+/* audit */
 function log(msg){ audit.unshift({ts: nowISO(), msg}); if(audit.length>500) audit.pop(); saveAll(); renderAudit(); }
-function renderAudit(){ auditLog.innerHTML = audit.slice(0,50).map(a=>`<div style="padding:6px;border-bottom:1px solid #f1f5f9"><small>${a.ts}</small><div>${a.msg}</div></div>`).join(''); }
+function renderAudit(){ document.getElementById('auditLog').innerHTML = audit.slice(0,50).map(a=>`<div style="padding:6px;border-bottom:1px solid #f1f5f9"><small>${a.ts}</small><div>${a.msg}</div></div>`).join(''); }
 
-/* ---------- CRUD Entries ---------- */
+/* add entry (entry currency is implicitly base currency, and originalCurrency is stored as base) */
 document.getElementById('addBtn').addEventListener('click', async ()=>{
   const desc = document.getElementById('desc').value.trim();
   const amount = parseFloat(document.getElementById('amount').value);
-  const currency = document.getElementById('currency').value;
+  const base = baseCurrencyEl.value || 'USD';
   const date = document.getElementById('date').value || new Date().toISOString().slice(0,10);
   const category = document.getElementById('category').value;
   const type = document.getElementById('type').value;
   const recurring = document.getElementById('recurring').value;
-  if(!desc || !amount || !currency){ alert('Please fill description, amount and currency.'); return; }
-  const e = { id: uid(), desc, amount, currency, date, category, type, recurring, displayAmount: amount };
+  if(!desc || !amount){ alert('Please fill description and amount.'); return; }
+
+  // store originalAmount and originalCurrency (both equal to base on entry)
+  const e = { id: uid(), desc, originalAmount: amount, originalCurrency: base, date, category, type, recurring, displayAmount: amount };
   entries.unshift(e);
-  log(`Added ${type} ${amount} ${currency} — ${desc}`);
+  log(`Added ${type} ${amount} ${base} — ${desc}`);
   saveAll();
   await renderAll();
   document.getElementById('desc').value=''; document.getElementById('amount').value=''; document.getElementById('date').value='';
 });
 
+/* delete/edit */
 window.deleteEntry = async function(id){
   if(!confirm('Delete this entry?')) return;
-  entries = entries.filter(e => e.id !== id);
+  entries = entries.filter(e=>e.id !== id);
   log(`Deleted entry ${id}`);
-  saveAll();
-  await renderAll();
+  saveAll(); await renderAll();
 };
-
 window.editEntry = async function(id){
-  const e = entries.find(x=>x.id===id);
-  if(!e) return;
-  const newDesc = prompt('Description', e.desc); if(newDesc === null) return;
-  const newAmt = prompt('Amount', e.amount); if(newAmt === null) return;
-  e.desc = newDesc; e.amount = parseFloat(newAmt) || e.amount;
-  saveAll();
-  log(`Edited entry ${id}`);
-  await renderAll();
+  const e = entries.find(x=>x.id===id); if(!e) return;
+  const newDesc = prompt('Description', e.desc); if(newDesc===null) return;
+  const newAmt = prompt('Amount (in base currency)', e.originalAmount); if(newAmt===null) return;
+  e.desc = newDesc; e.originalAmount = Number(newAmt) || e.originalAmount;
+  saveAll(); log(`Edited entry ${id}`); await renderAll();
 };
 
-/* ---------- Budgets ---------- */
+/* budgets */
 document.getElementById('addBudget').addEventListener('click', ()=>{
   const cat = document.getElementById('budgetCategory').value;
   const amt = parseFloat(document.getElementById('budgetAmount').value);
@@ -303,13 +317,14 @@ function renderBudgets(){
   const month = new Date().toISOString().slice(0,7);
   const rows = Object.keys(budgets).filter(k=>k.endsWith('|'+month)).map(k=>{
     const cat = k.split('|')[0]; const b = budgets[k];
-    const spent = entries.filter(e=>e.category===cat && e.date.slice(0,7)===month).reduce((s,x)=>s + (x.type==='expense' ? x.displayAmount ?? x.amount : 0), 0);
+    // spent uses displayAmount (already in base currency)
+    const spent = entries.filter(e=>e.category===cat && e.date.slice(0,7)===month).reduce((s,x)=>s + (x.type==='expense' ? (x.displayAmount ?? x.originalAmount) : 0), 0);
     return `<div style="padding:8px;border-bottom:1px solid #f1f5f9"><strong>${cat}</strong>: ${fmt(spent)} / ${fmt(b)} ${spent>b?'<span class="badge">OVER</span>':''}</div>`;
   });
-  budgetList.innerHTML = rows.join('') || '<div class="muted">No budgets set for this month</div>';
+  document.getElementById('budgetList').innerHTML = rows.join('') || '<div class="muted">No budgets set for this month</div>';
 }
 
-/* ---------- Filters & Query (FULL DATE) ---------- */
+/* filters (full date) */
 function getFiltered(){
   const start = document.getElementById('startDate').value;
   const end = document.getElementById('endDate').value;
@@ -323,16 +338,24 @@ function getFiltered(){
     return true;
   });
 }
-document.getElementById('applyFilter').addEventListener('click', ()=> renderAll());
 
-/* ---------- Render: Table, KPIs, Charts ---------- */
+/* renderAll: computes displayAmount for each entry (converted to base currency if needed) */
 async function renderAll(){
-  const display = displayCurrencyEl.value || 'USD';
-  const rates = await fetchRates(display);
+  const base = baseCurrencyEl.value || 'USD';
+  entryCurrencyInput.value = base; // show locked currency in entry field
+  const rates = await fetchRates(base);
 
-  // compute displayAmount
+  // compute displayAmount: convert originalAmount from originalCurrency -> base
   for(const e of entries){
-    e.displayAmount = (rates && rates[e.currency]) ? (e.amount / rates[e.currency]) : e.amount;
+    // if originalCurrency equals base, displayAmount = originalAmount
+    if(!e.originalCurrency) e.originalCurrency = base;
+    if(e.originalCurrency === base){ e.displayAmount = e.originalAmount; }
+    else {
+      // convert originalAmount -> base
+      const r = rates[e.originalCurrency];
+      if(r && r !== 0) e.displayAmount = e.originalAmount / r;
+      else e.displayAmount = e.originalAmount; // fallback
+    }
   }
 
   renderTable();
@@ -343,52 +366,56 @@ async function renderAll(){
   renderAudit();
 }
 
+/* render table */
 function renderTable(){
   const list = getFiltered();
-  entriesTbody.innerHTML = '';
+  const tbody = document.getElementById('entriesTbody');
+  tbody.innerHTML = '';
   list.forEach(e=>{
     const tr = document.createElement('tr');
     tr.innerHTML = `<td>${e.date}</td>
       <td>${escapeHtml(e.desc)}</td>
       <td>${escapeHtml(e.category)}</td>
       <td>${escapeHtml(e.type)}</td>
-      <td style="text-align:right">${fmt(e.displayAmount ?? e.amount)}</td>
-      <td>${escapeHtml(e.currency)}</td>
+      <td style="text-align:right">${fmt(e.displayAmount ?? e.originalAmount)}</td>
+      <td>${escapeHtml(displayCurrencyEl.value || e.originalCurrency || 'USD')}</td>
       <td>${escapeHtml(e.recurring)}</td>
       <td style="text-align:right">
         <button class="ghost" onclick="editEntry('${e.id}')">Edit</button>
         <button class="danger" onclick="deleteEntry('${e.id}')">Delete</button>
       </td>`;
-    entriesTbody.appendChild(tr);
+    tbody.appendChild(tr);
   });
 }
 
+/* KPIs */
 function renderKPIs(){
   const list = getFiltered();
-  const income = list.filter(e=>e.type==='income').reduce((s,e)=>s + (e.displayAmount ?? e.amount),0);
-  const expense = list.filter(e=>e.type==='expense').reduce((s,e)=>s + (e.displayAmount ?? e.amount),0);
+  const income = list.filter(e=>e.type==='income').reduce((s,e)=>s + (e.displayAmount ?? e.originalAmount),0);
+  const expense = list.filter(e=>e.type==='expense').reduce((s,e)=>s + (e.displayAmount ?? e.originalAmount),0);
   const balance = income - expense;
-  const display = displayCurrencyEl.value || 'USD';
-  document.getElementById('kpiIncome').innerText = `${display} ${fmt(income)}`;
-  document.getElementById('kpiExpense').innerText = `${display} ${fmt(expense)}`;
-  document.getElementById('kpiBalance').innerText = `${display} ${fmt(balance)}`;
+  const base = baseCurrencyEl.value || 'USD';
+  document.getElementById('kpiIncome').innerText = `${base} ${fmt(income)}`;
+  document.getElementById('kpiExpense').innerText = `${base} ${fmt(expense)}`;
+  document.getElementById('kpiBalance').innerText = `${base} ${fmt(balance)}`;
 
   // sidebar KPIs
   const months = {};
-  entries.forEach(e=> { const m = e.date.slice(0,7); months[m] = months[m] || {income:0, expense:0}; const val = e.displayAmount ?? e.amount; if(e.type==='income') months[m].income += val; else months[m].expense += val; });
+  entries.forEach(e=> { const m = e.date.slice(0,7); months[m] = months[m] || {income:0, expense:0}; const val = e.displayAmount ?? e.originalAmount; if(e.type==='income') months[m].income += val; else months[m].expense += val; });
   const avgMonthly = Object.values(months).reduce((s,m)=>s + m.expense,0) / Math.max(1,Object.keys(months).length);
-  document.getElementById('avgMonthly').innerText = `${display} ${fmt(avgMonthly)}`;
+  document.getElementById('avgMonthly').innerText = `${base} ${fmt(avgMonthly)}`;
   const topCatObj = {};
-  entries.forEach(e=>{ if(e.type==='expense') topCatObj[e.category] = (topCatObj[e.category]||0) + (e.displayAmount ?? e.amount); });
+  entries.forEach(e=>{ if(e.type==='expense') topCatObj[e.category] = (topCatObj[e.category]||0) + (e.displayAmount ?? e.originalAmount); });
   const topCat = Object.entries(topCatObj).sort((a,b)=>b[1]-a[1])[0];
   document.getElementById('topCategory').innerText = topCat ? `${topCat[0]} (${fmt(topCat[1])})` : '-';
 }
 
+/* charts */
 async function renderCharts(){
   const list = getFiltered();
   const months = getLastNMonths(12);
-  const incomeData = months.map(m=> list.filter(e=>e.date.slice(0,7)===m && e.type==='income').reduce((s,e)=>s + (e.displayAmount ?? e.amount),0));
-  const expenseData = months.map(m=> list.filter(e=>e.date.slice(0,7)===m && e.type==='expense').reduce((s,e)=>s + (e.displayAmount ?? e.amount),0));
+  const incomeData = months.map(m=> list.filter(e=>e.date.slice(0,7)===m && e.type==='income').reduce((s,e)=>s + (e.displayAmount ?? e.originalAmount),0));
+  const expenseData = months.map(m=> list.filter(e=>e.date.slice(0,7)===m && e.type==='expense').reduce((s,e)=>s + (e.displayAmount ?? e.originalAmount),0));
 
   if(monthlyChart) monthlyChart.destroy();
   if(categoryChart) categoryChart.destroy();
@@ -401,11 +428,12 @@ async function renderCharts(){
   });
 
   const catMap = {};
-  list.filter(e=>e.type==='expense').forEach(e=> catMap[e.category] = (catMap[e.category]||0) + (e.displayAmount ?? e.amount));
+  list.filter(e=>e.type==='expense').forEach(e=> catMap[e.category] = (catMap[e.category]||0) + (e.displayAmount ?? e.originalAmount));
   const ctxC = document.getElementById('categoryChart').getContext('2d');
   categoryChart = new Chart(ctxC, { type:'pie', data:{ labels:Object.keys(catMap), datasets:[{ data:Object.values(catMap), backgroundColor: palette(Object.keys(catMap).length) }] }, options:{ responsive:true, plugins:{ legend:{ position:'right' } } } );
 }
 
+/* helpers */
 function getLastNMonths(n){
   const arr=[]; const now=new Date();
   for(let i=n-1;i>=0;i--){ const d=new Date(now.getFullYear(), now.getMonth()-i, 1); arr.push(d.toISOString().slice(0,7)); }
@@ -413,7 +441,7 @@ function getLastNMonths(n){
 }
 function palette(n){ const p=['#ef4444','#f59e0b','#10b981','#3b82f6','#6366f1','#8b5cf6','#06b6d4','#f97316','#ef4444','#06b6d4']; return Array.from({length:n},(_,i)=>p[i%p.length]); }
 
-/* ---------- Alerts (budgets & spikes) ---------- */
+/* alerts & budgets */
 function renderAlerts(){
   alertsEl.innerHTML = '';
   renderBudgets();
@@ -422,27 +450,27 @@ function renderAlerts(){
     const [cat,bm] = k.split('|');
     if(bm !== month) return;
     const limit = budgets[k];
-    const spent = entries.filter(e=>e.category===cat && e.date.slice(0,7)===month).reduce((s,x)=>s + (x.type==='expense' ? (x.displayAmount ?? x.amount) : 0),0);
+    const spent = entries.filter(e=>e.category===cat && e.date.slice(0,7)===month).reduce((s,x)=>s + (x.type==='expense' ? (x.displayAmount ?? x.originalAmount) : 0), 0);
     if(spent > limit){
       alertsEl.insertAdjacentHTML('beforeend', `<div style="padding:8px;border-radius:8px;background:#fff3f2;border:1px solid #fdecea"><strong>Budget Alert:</strong> ${cat} overspent: ${fmt(spent)} / ${fmt(limit)}</div>`);
     }
   });
 
   const lastMonth = (()=>{ const d = new Date(); d.setMonth(d.getMonth()-1); return d.toISOString().slice(0,7); })();
-  const lastOut = entries.filter(e=>e.date.slice(0,7)===lastMonth && e.type==='expense').reduce((s,e)=>s + (e.displayAmount ?? e.amount),0);
-  const lastIn = entries.filter(e=>e.date.slice(0,7)===lastMonth && e.type==='income').reduce((s,e)=>s + (e.displayAmount ?? e.amount),0);
+  const lastOut = entries.filter(e=>e.date.slice(0,7)===lastMonth && e.type==='expense').reduce((s,e)=>s + (e.displayAmount ?? e.originalAmount),0);
+  const lastIn = entries.filter(e=>e.date.slice(0,7)===lastMonth && e.type==='income').reduce((s,e)=>s + (e.displayAmount ?? e.originalAmount),0);
   if(lastOut > lastIn * 1.5 && lastIn > 0){
     alertsEl.insertAdjacentHTML('beforeend', `<div style="padding:8px;border-radius:8px;background:#fff7ed;border:1px solid #ffedd5"><strong>Warning:</strong> Last month's outflow ${fmt(lastOut)} exceeds 150% of inflow ${fmt(lastIn)}</div>`);
   }
 }
 
-/* ---------- Export / Import ---------- */
+/* export/import */
 document.getElementById('exportCsv').addEventListener('click', ()=> {
-  const display = displayCurrencyEl.value || 'USD';
-  const hdr = `date,desc,category,type,amount,currency,recurring\n`;
-  const lines = entries.map(e => `${e.date},"${(e.desc||'').replace(/"/g,'""')}",${e.category},${e.type},${(e.displayAmount ?? e.amount).toFixed(2)},${display},${e.recurring}`);
+  const base = baseCurrencyEl.value || 'USD';
+  const hdr = `date,desc,category,type,amount_in_base_currency,base_currency,recurring\n`;
+  const lines = entries.map(e => `${e.date},"${(e.desc||'').replace(/"/g,'""')}",${e.category},${e.type},${(e.displayAmount ?? e.originalAmount).toFixed(2)},${base},${e.recurring}`);
   const blob = new Blob([hdr + lines.join('\n')], { type:'text/csv' });
-  const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='expenses.csv'; a.click(); URL.revokeObjectURL(url);
+  const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='expenses_base_currency.csv'; a.click(); URL.revokeObjectURL(url);
 });
 document.getElementById('exportJson').addEventListener('click', ()=> {
   const blob = new Blob([JSON.stringify(entries,null,2)], { type:'application/json' });
@@ -456,15 +484,17 @@ document.getElementById('importFile').addEventListener('change', e=>{
     try{
       const data = JSON.parse(r.result);
       if(!Array.isArray(data)) return alert('Invalid JSON format (expected array)');
+      // imported entries are assumed to be in base currency; if they include originalCurrency, keep it.
       const sanitized = data.map(item => ({
         id: item.id || uid(),
         desc: item.desc || 'Imported',
-        amount: Number(item.amount) || 0,
-        currency: item.currency || (document.getElementById('currency').value || 'USD'),
+        originalAmount: Number(item.originalAmount ?? item.amount) || 0,
+        originalCurrency: item.originalCurrency || baseCurrencyEl.value || 'USD',
         date: item.date || new Date().toISOString().slice(0,10),
         category: item.category || 'Uncategorized',
         type: item.type || 'expense',
-        recurring: item.recurring || 'none'
+        recurring: item.recurring || 'none',
+        displayAmount: Number(item.displayAmount) || undefined
       }));
       entries = sanitized.concat(entries);
       log(`Imported ${sanitized.length} entries`);
@@ -475,20 +505,28 @@ document.getElementById('importFile').addEventListener('change', e=>{
   r.readAsText(f); e.target.value='';
 });
 
-/* ---------- Utilities ---------- */
+/* misc helpers */
 function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function round(n, d=2){ return Math.round(n * Math.pow(10,d))/Math.pow(10,d); }
+function getLastNMonths(n){ const arr=[]; const now=new Date(); for(let i=n-1;i>=0;i--){ const d=new Date(now.getFullYear(), now.getMonth()-i, 1); arr.push(d.toISOString().slice(0,7)); } return arr; }
 
-/* ---------- Init & events ---------- */
+/* events */
 document.getElementById('clearBtn').addEventListener('click', ()=>{ document.getElementById('desc').value=''; document.getElementById('amount').value=''; document.getElementById('date').value=''; });
 document.getElementById('applyFilter').addEventListener('click', ()=> renderAll());
-document.getElementById('displayCurrency').addEventListener('change', ()=> renderAll());
+baseCurrencyEl.addEventListener('change', async () => {
+  // when base currency changes, update entryCurrency input and recompute displayAmount for every entry
+  entryCurrencyInput.value = baseCurrencyEl.value;
+  await renderAll();
+});
 
-document.getElementById('startDate').value = ''; document.getElementById('endDate').value = '';
+/* initial */
+(async function startup(){ loadAll(); // default baseCurrency will be populated by loadCurrencies.js
+  // small delay so populate can run
+  setTimeout(()=>{ entryCurrencyInput.value = baseCurrencyEl.value || 'USD'; },250);
+  await renderAll(); renderBudgets(); renderAudit();
+})();
 
-(async function startup(){ loadAll(); await renderAll(); renderBudgets(); renderAudit(); })();
-
-function paletteColors(n){ const arr=['#ef4444','#f59e0b','#10b981','#3b82f6','#6366f1','#8b5cf6','#06b6d4','#f97316','#ef4444','#06b6d4']; return Array.from({length:n}, (_,i)=>arr[i%arr.length]); }
+function palette(n){ const p=['#ef4444','#f59e0b','#10b981','#3b82f6','#6366f1','#8b5cf6','#06b6d4','#f97316']; return Array.from({length:n},(_,i)=>p[i%p.length]); }
 function goToDashboard(){ window.location.href = 'index.html'; }
 </script>
 </body>
