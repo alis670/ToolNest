@@ -52,160 +52,8 @@ label{display:block;margin-bottom:6px;font-weight:600}
 
 <div class="app">
 
-  <!-- MAIN -->
-  <div class="card">
-    <div class="header">
-      <div>
-        <h1>Expense Tracker — Single Base Currency</h1>
-        <small class="muted">Choose one base currency — all sections follow it automatically.</small>
-      </div>
-
-      <div style="min-width:180px">
-        <small class="muted">Base currency</small>
-        <select id="baseCurrency" style="width:100%;padding:8px"></select>
-      </div>
-    </div>
-
-    <!-- form -->
-    <div style="display:grid;grid-template-columns:1fr 120px 120px 160px;gap:8px;align-items:end">
-      <div>
-        <label>Description</label>
-        <input id="desc" placeholder="e.g. Google Workspace">
-      </div>
-
-      <div>
-        <label>Amount</label>
-        <input id="amount" type="number" min="0" step="0.01">
-      </div>
-
-      <div>
-        <label>Date</label>
-        <input id="date" type="date">
-      </div>
-
-      <div>
-        <label>Category</label>
-        <select id="category">
-          <option>Uncategorized</option><option>Software</option><option>Marketing</option><option>Salaries</option>
-          <option>Hosting</option><option>Office</option><option>Travel</option><option>Other</option>
-        </select>
-      </div>
-
-      <div>
-        <label>Type</label>
-        <select id="type"><option value="expense">Expense</option><option value="income">Income</option></select>
-      </div>
-
-      <div>
-        <label>Recurring</label>
-        <select id="recurring"><option value="none">None</option><option value="monthly">Monthly</option></select>
-      </div>
-
-      <div class="flex-end">
-        <button id="addBtn" class="btn primary">Add</button>
-        <button id="clearBtn" class="btn ghost">Clear</button>
-      </div>
-    </div>
-
-    <!-- filters -->
-    <div class="filter-row" style="margin-top:12px">
-      <div><label>Start date 📅</label><input id="startDate" type="date"></div>
-      <div><label>End date 📅</label><input id="endDate" type="date"></div>
-      <div style="min-width:160px"><label>Category</label>
-        <select id="filterCategory">
-          <option value="">All</option>
-          <option>Uncategorized</option><option>Software</option><option>Marketing</option><option>Salaries</option>
-          <option>Hosting</option><option>Office</option><option>Travel</option><option>Other</option>
-        </select>
-      </div>
-      <div style="min-width:140px"><label>Search</label><input id="searchText" placeholder="search description"></div>
-      <div style="align-self:end"><button id="applyFilter" class="btn ghost">Apply</button></div>
-      <div style="margin-left:auto;align-self:end;display:flex;gap:8px;flex-wrap:wrap">
-        <button id="exportCsv" class="btn ghost">Export CSV</button>
-        <button id="exportJson" class="btn ghost">Export JSON</button>
-        <button id="importBtn" class="btn ghost">Import JSON</button>
-        <input id="importFile" type="file" accept=".json" style="display:none">
-      </div>
-    </div>
-
-    <!-- KPIs -->
-    <div class="kpis" style="margin-top:12px">
-      <div class="kpi"><h3>Total Balance</h3><p id="kpiBalance">0</p></div>
-      <div class="kpi"><h3>Total Income</h3><p id="kpiIncome">0</p></div>
-      <div class="kpi"><h3>Total Expense</h3><p id="kpiExpense">0</p></div>
-    </div>
-
-    <!-- charts -->
-    <div class="charts">
-      <canvas id="monthlyChart" height="220"></canvas>
-      <canvas id="categoryChart" height="220"></canvas>
-    </div>
-
-    <!-- table -->
-    <div class="table" style="margin-top:12px">
-      <table>
-        <thead>
-          <tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th style="text-align:right">Amount</th><th>Curr</th><th>Rec</th><th style="text-align:right">Actions</th></tr>
-        </thead>
-        <tbody id="entriesTbody"></tbody>
-      </table>
-    </div>
-
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
-      <div class="audit" id="auditLog"></div>
-      <div style="text-align:right">
-        <button onclick="goToDashboard()" class="btn ghost">⬅ Back to Dashboard</button>
-      </div>
-    </div>
-
-  </div>
-
-<!-- SIDEBAR -->
-<div class="card" style="display:flex;flex-direction:column;gap:12px;">
-  <h3 style="margin:0 0 8px">Budgets & Alerts</h3>
-
-  <div style="display:flex;flex-direction:column;gap:6px;">
-    <label>Set monthly budget (per category)</label>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      <select id="budgetCategory" style="flex:1; min-width:120px;">
-        <option>Software</option>
-        <option>Marketing</option>
-        <option>Salaries</option>
-        <option>Hosting</option>
-        <option>Office</option>
-        <option>Travel</option>
-        <option>Other</option>
-      </select>
-      <input id="budgetAmount" type="number" placeholder="amount" style="width:120px; flex:0 0 auto;">
-      <button id="addBudget" class="btn primary" style="flex:0 0 auto;">Save</button>
-    </div>
-  </div>
-
-  <div>
-    <h4 style="margin:6px 0">Active Budgets (this month)</h4>
-    <div id="budgetList" class="audit"></div>
-  </div>
-
-  <div>
-    <h4 style="margin:6px 0">Quick KPIs</h4>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;flex-wrap:wrap;">
-      <div style="background:#fbfdff;padding:8px;border-radius:8px;text-align:center; min-width:120px;">
-        <div class="muted">Avg Monthly Expense</div>
-        <div id="avgMonthly">0</div>
-      </div>
-      <div style="background:#fbfdff;padding:8px;border-radius:8px;text-align:center; min-width:120px;">
-        <div class="muted">Highest Category</div>
-        <div id="topCategory">-</div>
-      </div>
-    </div>
-  </div>
-
-  <div>
-    <h4 style="margin:6px 0">Recent Alerts</h4>
-    <div id="alerts" class="audit"></div>
-  </div>
-        </div>
-</div>
+  budgetCategory" style="flex:1; min-width:120px;">
+  
 
 <script src="loadCurrencies.js"></script>
 <script>
@@ -261,7 +109,144 @@ async function renderAll(){
   renderAlerts();
   renderAudit();
 }
+<!-- MAIN FORM -->
+<div class="card">
+  <div class="header">
+    <div>
+      <h1>Expense Tracker — Single Base Currency</h1>
+      <small class="muted">Choose one base currency — all sections follow it automatically.</small>
+    </div>
+    <div style="min-width:180px">
+      <small class="muted">Base currency</small>
+      <select id="baseCurrency" style="width:100%;padding:8px"></select>
+    </div>
+  </div>
 
+  <!-- form -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;align-items:end">
+    <div style="min-width:140px;">
+      <label>Description</label>
+      <input id="desc" placeholder="e.g. Google Workspace">
+    </div>
+
+    <div style="min-width:120px;">
+      <label>Amount</label>
+      <input id="amount" type="number" min="0" step="0.01">
+    </div>
+
+    <div style="min-width:140px;">
+      <label>Date</label>
+      <input id="date" type="date">
+    </div>
+
+    <div style="min-width:140px;">
+      <label>Category</label>
+      <select id="category">
+        <option>Uncategorized</option>
+        <option>Software</option>
+        <option>Marketing</option>
+        <option>Salaries</option>
+        <option>Hosting</option>
+        <option>Office</option>
+        <option>Travel</option>
+        <option>Other</option>
+      </select>
+    </div>
+
+    <div style="min-width:120px;">
+      <label>Type</label>
+      <select id="type">
+        <option value="expense">Expense</option>
+        <option value="income">Income</option>
+      </select>
+    </div>
+
+    <div style="min-width:120px;">
+      <label>Recurring</label>
+      <select id="recurring">
+        <option value="none">None</option>
+        <option value="monthly">Monthly</option>
+      </select>
+    </div>
+
+    <div style="display:flex;align-items:end;gap:8px;flex-wrap:wrap">
+      <button id="addBtn" class="btn primary">Add</button>
+      <button id="clearBtn" class="btn ghost">Clear</button>
+    </div>
+  </div>
+
+  <!-- filters -->
+  <div class="filter-row" style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;align-items:end">
+    <div><label>Start date 📅</label><input id="startDate" type="date"></div>
+    <div><label>End date 📅</label><input id="endDate" type="date"></div>
+    <div><label>Category</label><select id="filterCategory">
+      <option value="">All</option>
+      <option>Uncategorized</option>
+      <option>Software</option>
+      <option>Marketing</option>
+      <option>Salaries</option>
+      <option>Hosting</option>
+      <option>Office</option>
+      <option>Travel</option>
+      <option>Other</option>
+    </select></div>
+    <div><label>Search</label><input id="searchText" placeholder="search description"></div>
+    <div><button id="applyFilter" class="btn ghost">Apply</button></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button id="exportCsv" class="btn ghost">Export CSV</button>
+      <button id="exportJson" class="btn ghost">Export JSON</button>
+      <button id="importBtn" class="btn ghost">Import JSON</button>
+      <input id="importFile" type="file" accept=".json" style="display:none">
+    </div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="card" style="display:flex;flex-direction:column;gap:12px;">
+  <h3 style="margin:0 0 8px">Budgets & Alerts</h3>
+
+  <div style="display:flex;flex-direction:column;gap:6px;">
+    <label>Set monthly budget (per category)</label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <select id="budgetCategory" style="flex:1; min-width:120px;">
+        <option>Software</option>
+        <option>Marketing</option>
+        <option>Salaries</option>
+        <option>Hosting</option>
+        <option>Office</option>
+        <option>Travel</option>
+        <option>Other</option>
+      </select>
+      <input id="budgetAmount" type="number" placeholder="amount" style="width:120px; flex:0 0 auto;">
+      <button id="addBudget" class="btn primary" style="flex:0 0 auto;">Save</button>
+    </div>
+  </div>
+
+  <div>
+    <h4 style="margin:6px 0">Active Budgets (this month)</h4>
+    <div id="budgetList" class="audit"></div>
+  </div>
+
+  <div>
+    <h4 style="margin:6px 0">Quick KPIs</h4>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;flex-wrap:wrap;">
+      <div style="background:#fbfdff;padding:8px;border-radius:8px;text-align:center;">
+        <div class="muted">Avg Monthly Expense</div>
+        <div id="avgMonthly">0</div>
+      </div>
+      <div style="background:#fbfdff;padding:8px;border-radius:8px;text-align:center;">
+        <div class="muted">Highest Category</div>
+        <div id="topCategory">-</div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <h4 style="margin:6px 0">Recent Alerts</h4>
+    <div id="alerts" class="audit"></div>
+  </div>
+</div>
+  
 /* ---------- BACK TO DASHBOARD ---------- */
 function goToDashboard(){
   window.location.href='index.html';
