@@ -112,20 +112,22 @@ label{display:block;margin-bottom:6px;font-weight:600}
       </div>
     </div>
 
-    <!-- filters (FULL DATE) -->
-    <div class="filter-row" style="margin-top:12px">
-      <div><label>Start date 📅</label><input id="startDate" type="date"></div>
-      <div><label>End date 📅</label><input id="endDate" type="date"></div>
-      <div style="min-width:160px"><label>Category</label><select id="filterCategory"><option value="">All</option><option>Uncategorized</option><option>Software</option><option>Marketing</option><option>Salaries</option><option>Hosting</option><option>Office</option><option>Travel</option><option>Other</option></select></div>
-      <div style="min-width:140px"><label>Search</label><input id="searchText" placeholder="search description"></div>
-      <div style="align-self:end"><button id="applyFilter" class="btn ghost">Apply</button></div>
-      <div style="margin-left:auto;align-self:end;display:flex;gap:8px">
-        <button id="exportCsv" class="btn ghost">Export CSV</button>
-        <button id="exportJson" class="btn ghost">Export JSON</button>
-        <button id="importBtn" class="btn ghost">Import JSON</button>
-        <input id="importFile" type="file" accept=".json" style="display:none">
-      </div>
-    </div>
+    /* filters (MONTH) */
+function getFiltered(){
+  const start = document.getElementById('startDate').value; // YYYY-MM
+  const end = document.getElementById('endDate').value;     // YYYY-MM
+  const cat = document.getElementById('filterCategory').value;
+  const search = (document.getElementById('searchText').value||'').toLowerCase();
+
+  return entries.filter(e=>{
+    const entryMonth = e.date.slice(0,7); // YYYY-MM
+    if(cat && cat !== '' && e.category !== cat) return false;
+    if(start && entryMonth < start) return false;
+    if(end && entryMonth > end) return false;
+    if(search && !(e.desc.toLowerCase().includes(search) || (e.category||'').toLowerCase().includes(search))) return false;
+    return true;
+  });
+}
 
     <!-- KPIs -->
     <div class="kpis" style="margin-top:12px">
