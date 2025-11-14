@@ -1,167 +1,528 @@
-<!DOCTYPE html><html lang="en">
+<!doctype html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pro Expense Tracker — SaaS Model</title><!-- Chart.js --><script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script><style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Expense Tracker — Pro SaaS</title>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<style>
 :root{
-  --bg:#f6f8fb; --card:#fff; --muted:#6b7280; --accent:#2b6cb0;
-  --success:#10b981; --danger:#ef4444; --warning:#f59e0b; --radius:10px;
-  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;
+  --bg:#f6f8fb; --card:#fff; --muted:#6b7280; --accent:#2563eb;
+  --success:#10b981; --danger:#ef4444; --radius:12px;
+  font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,Arial;
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:#0f172a;padding:16px}
-.container{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 380px;gap:16px;align-items:start}
-.card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 8px 20px rgba(2,6,23,0.06)}
+body{margin:0;background:var(--bg);color:#0f172a;padding:18px}
+.app{max-width:1150px;margin:0 auto;display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start}
+.card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 10px 30px rgba(2,6,23,0.06)}
 .header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px}
-.hleft h1{margin:0;font-size:18px}
-.hleft p{margin:4px 0 0;color:var(--muted);font-size:13px}
-input, select, textarea{width:100%;padding:8px;border-radius:8px;border:1px solid #e6eef8;background:#fff;font-size:14px}
-textarea{min-height:70px}
-button{padding:8px 16px;border-radius:8px;border:0;cursor:pointer;font-weight:700}
-.btn.primary{background:var(--accent);color:#fff}
-.btn.ghost{background:#f1f5f9;border:1px solid #e6eef8}
-.btn.warn{background:var(--warning);color:#fff}
-.btn.danger{background:var(--danger);color:#fff}
-.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:10px}
-.kpi{background:#fbfdff;padding:10px;border-radius:8px;text-align:center}
+h1{margin:0;font-size:18px}
+small.muted{color:var(--muted)}
+.controls{display:flex;gap:8px;flex-wrap:wrap}
+input,select,textarea,button{font-family:inherit}
+input,select,textarea{padding:8px;border-radius:10px;border:1px solid #e6eef8;background:#fff}
+button{padding:8px 12px;border-radius:10px;border:0;cursor:pointer}
+.btn{font-weight:700}
+.primary{background:var(--accent);color:#fff}
+.ghost{background:#f1f5f9;border:1px solid #e6eef8}
+.danger{background:var(--danger);color:#fff}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.kpi{background:#fbfdff;padding:10px;border-radius:10px;text-align:center}
 .kpi h3{margin:0;font-size:13px}
 .kpi p{margin:6px 0 0;font-weight:800}
-.table{margin-top:12px;overflow:auto;border-radius:8px;border:1px solid #eef2ff}
+.table{margin-top:12px;overflow:auto;border-radius:10px;border:1px solid #eef2ff}
 table{width:100%;border-collapse:collapse;font-size:14px}
-th,td{padding:8px;border-bottom:1px solid #f1f5f9;text-align:left}
+th,td{padding:10px;border-bottom:1px solid #f1f5f9;text-align:left}
 th{background:#fbfdff;position:sticky;top:0}
-.alerts{margin-top:12px}
-.log{font-size:13px;color:var(--muted);margin-top:8px;max-height:160px;overflow:auto;padding-right:8px}
-@media(max-width:1024px){.container{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}}
-</style></head>
-<body><div class="container">  <!-- MAIN -->  <div class="card">
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+canvas{background:#fff;border-radius:8px;padding:8px}
+.audit{margin-top:12px;max-height:180px;overflow:auto;font-size:13px;color:var(--muted)}
+@media (max-width:1000px){ .app{grid-template-columns:1fr} .kpis{grid-template-columns:repeat(2,1fr)} .charts{grid-template-columns:1fr} }
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.badge{display:inline-block;padding:6px 8px;border-radius:999px;background:#fff3f2;color:var(--danger);font-weight:700}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- MAIN -->
+  <div class="card">
     <div class="header">
-      <div class="hleft">
-        <h1>Expense Tracker — Pro SaaS</h1>
-        <p>Track income, expenses, budgets, alerts, and reports.</p>
-      </div>
       <div>
-        <small>Display currency</small>
-        <select id="displayCurrency" style="padding:8px;border-radius:8px"></select>
+        <h1>Expense Tracker • Pro (SaaS-ready)</h1>
+        <small class="muted">Multi-currency • Budgets • Recurring • Charts • Export/Import</small>
       </div>
-    </div><!-- KPIs -->
-<div class="kpis" id="kpis">
-  <div class="kpi"><h3>Total Balance</h3><p id="kpiBalance">0</p></div>
-  <div class="kpi"><h3>Total Income</h3><p id="kpiIncome">0</p></div>
-  <div class="kpi"><h3>Total Expenses</h3><p id="kpiExpense">0</p></div>
-  <div class="kpi"><h3>Monthly Avg Expense</h3><p id="kpiAvgExp">0</p></div>
-  <div class="kpi"><h3>Highest Expense Cat</h3><p id="kpiTopCat">-</p></div>
-</div>
 
-<!-- entry form -->
-<div>
-  <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
-    <div style="flex:2"><label>Description</label><input id="desc" placeholder="e.g. Software Subscription"></div>
-    <div style="width:120px"><label>Amount</label><input id="amount" type="number" /></div>
-    <div style="width:140px"><label>Currency</label><select id="currency"></select></div>
-    <div style="width:150px"><label>Date</label><input id="date" type="date" /></div>
+      <div style="min-width:180px">
+        <small class="muted">Display currency</small>
+        <select id="displayCurrency" style="width:100%;padding:8px;border-radius:8px"></select>
+      </div>
+    </div>
+
+    <!-- form -->
+    <div style="display:grid;grid-template-columns:1fr 120px 140px 140px;gap:8px">
+      <div><label>Description</label><input id="desc" placeholder="e.g. Google Workspace"></div>
+      <div><label>Amount</label><input id="amount" type="number" min="0" step="0.01"></div>
+      <div><label>Currency</label><select id="currency"></select></div>
+      <div><label>Date</label><input id="date" type="date"></div>
+
+      <div><label>Category</label>
+        <select id="category">
+          <option>Uncategorized</option><option>Software</option><option>Marketing</option><option>Salaries</option>
+          <option>Hosting</option><option>Office</option><option>Travel</option><option>Other</option>
+        </select>
+      </div>
+
+      <div><label>Type</label><select id="type"><option value="expense">Expense</option><option value="income">Income</option></select></div>
+
+      <div><label>Recurring</label><select id="recurring"><option value="none">None</option><option value="monthly">Monthly</option></select></div>
+
+      <div style="display:flex;align-items:end;gap:8px">
+        <button id="addBtn" class="btn primary">Add</button>
+        <button id="clearBtn" class="btn ghost">Clear</button>
+      </div>
+    </div>
+
+    <!-- filters -->
+    <div class="filter-row" style="margin-top:12px">
+      <div><label>Start date</label><input id="startDate" type="date"></div>
+      <div><label>End date</label><input id="endDate" type="date"></div>
+      <div style="min-width:160px"><label>Category</label><select id="filterCategory"><option value="">All</option><option>Uncategorized</option><option>Software</option><option>Marketing</option><option>Salaries</option><option>Hosting</option><option>Office</option><option>Travel</option><option>Other</option></select></div>
+      <div style="min-width:140px"><label>Search</label><input id="searchText" placeholder="search description"></div>
+      <div style="align-self:end"><button id="applyFilter" class="btn ghost">Apply</button></div>
+      <div style="margin-left:auto;align-self:end;display:flex;gap:8px">
+        <button id="exportCsv" class="btn ghost">Export CSV</button>
+        <button id="exportJson" class="btn ghost">Export JSON</button>
+        <button id="importBtn" class="btn ghost">Import JSON</button>
+        <input id="importFile" type="file" accept=".json" style="display:none">
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpis" style="margin-top:12px">
+      <div class="kpi"><h3>Total Balance</h3><p id="kpiBalance">0</p></div>
+      <div class="kpi"><h3>Total Income</h3><p id="kpiIncome">0</p></div>
+      <div class="kpi"><h3>Total Expense</h3><p id="kpiExpense">0</p></div>
+    </div>
+
+    <!-- charts -->
+    <div class="charts">
+      <canvas id="monthlyChart" height="220"></canvas>
+      <canvas id="categoryChart" height="220"></canvas>
+    </div>
+
+    <!-- table -->
+    <div class="table" style="margin-top:12px">
+      <table>
+        <thead>
+          <tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th style="text-align:right">Amount</th><th>Curr</th><th>Rec</th><th style="text-align:right">Actions</th></tr>
+        </thead>
+        <tbody id="entriesTbody"></tbody>
+      </table>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+      <div class="audit" id="auditLog"></div>
+      <div style="text-align:right">
+        <button onclick="goToDashboard()" class="btn ghost">⬅ Back to Dashboard</button>
+      </div>
+    </div>
   </div>
-  <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
-    <div style="width:140px"><label>Category</label><select id="category"><option>Uncategorized</option><option>MRR</option><option>One-time</option><option>Salaries</option><option>Marketing</option><option>Office</option><option>Other</option></select></div>
-    <div style="width:140px"><label>Type</label><select id="type"><option value="income">Income</option><option value="expense">Expense</option></select></div>
-    <div style="width:160px"><label>Recurring</label><select id="recurring"><option value="none">None</option><option value="monthly">Monthly</option></select></div>
-    <div style="flex:1"></div>
-    <button class="btn primary" id="addBtn">Add</button>
-    <button class="btn ghost" id="clearBtn">Clear</button>
+
+  <!-- SIDEBAR -->
+  <div class="card">
+    <h3 style="margin:0 0 8px">Budgets & Alerts</h3>
+
+    <div>
+      <label>Set monthly budget (per category)</label>
+      <div style="display:flex;gap:8px;margin-top:6px">
+        <select id="budgetCategory" style="flex:1"><option>Software</option><option>Marketing</option><option>Salaries</option><option>Hosting</option><option>Office</option><option>Travel</option><option>Other</option></select>
+        <input id="budgetAmount" type="number" placeholder="amount" style="width:120px">
+        <button id="addBudget" class="btn primary">Save</button>
+      </div>
+    </div>
+
+    <div style="margin-top:12px">
+      <h4 style="margin:8px 0">Active Budgets (this month)</h4>
+      <div id="budgetList" class="audit"></div>
+    </div>
+
+    <div style="margin-top:12px">
+      <h4 style="margin:8px 0">Quick KPIs</h4>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="background:#fbfdff;padding:8px;border-radius:8px;text-align:center"><div class="muted">Avg Monthly Expense</div><div id="avgMonthly">0</div></div>
+        <div style="background:#fbfdff;padding:8px;border-radius:8px;text-align:center"><div class="muted">Highest Category</div><div id="topCategory">-</div></div>
+      </div>
+    </div>
+
+    <div style="margin-top:12px">
+      <h4 style="margin:8px 0">Recent Alerts</h4>
+      <div id="alerts" class="audit"></div>
+    </div>
   </div>
+
 </div>
 
-<!-- table -->
-<div class="table">
-  <table>
-    <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th>Amt</th><th>Curr</th><th>Rec</th><th style="text-align:right">Actions</th></tr></thead>
-    <tbody id="entriesTbody"></tbody>
-  </table>
-</div>
+<script src="loadCurrencies.js"></script>
+<script>
+/* Advanced Expense Tracker — Pro SaaS (single file) */
 
-<!-- alerts -->
-<div class="alerts" id="alerts"></div>
+/* ---------- Config & Storage ---------- */
+const STORAGE_KEY = 'et_pro_v2_entries';
+const BUDGET_KEY = 'et_pro_v2_budgets';
+const AUDIT_KEY = 'et_pro_v2_audit';
 
-<!-- audit log -->
-<div class="log" id="auditLog"></div>
+/* ---------- State ---------- */
+let entries = [];      // {id,desc,amount,currency,date,category,type,recurring}
+let budgets = {};      // { "Category|YYYY-MM": amount }
+let audit = [];        // [{ts,msg}]
+let monthlyChart, categoryChart;
+let rateCache = {};    // { base: {ts, rates} }
 
-<!-- export/import & dashboard -->
-<div style="display:flex;gap:8px;margin-top:12px;justify-content:space-between">
-  <div>
-    <button class="btn primary" id="exportCsv">Export CSV</button>
-    <button class="btn ghost" id="exportJson">Export JSON</button>
-    <input id="importFile" type="file" accept=".json" style="display:none" />
-    <button class="btn ghost" id="importBtn">Import JSON</button>
-  </div>
-  <button class="btn ghost" onclick="goToDashboard()">⬅ Back to Dashboard</button>
-</div>
+/* ---------- DOM refs ---------- */
+const displayCurrencyEl = document.getElementById('displayCurrency');
+const currencyEl = document.getElementById('currency');
+const entriesTbody = document.getElementById('entriesTbody');
+const auditLog = document.getElementById('auditLog');
+const budgetList = document.getElementById('budgetList');
+const alertsEl = document.getElementById('alerts');
 
-  </div></div><script src="loadCurrencies.js"></script><script>
-populateCurrencyDropdown('currency');
-populateCurrencyDropdown('displayCurrency');
-
-const STORAGE_KEY = 'toolnest_expense_tracker_v1';
-let entries = []; let audit = [];
-
-function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); localStorage.setItem(STORAGE_KEY+'_audit', JSON.stringify(audit.slice(-200))); }
-function load(){ entries = JSON.parse(localStorage.getItem(STORAGE_KEY))||[]; audit = JSON.parse(localStorage.getItem(STORAGE_KEY+'_audit'))||[]; renderAll(); }
+/* ---------- Utility helpers ---------- */
 function uid(){ return 'id_'+Math.random().toString(36).slice(2,9); }
 function fmt(n){ return Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
-function logAudit(msg){ audit.unshift({ts:new Date().toISOString(), msg}); if(audit.length>200) audit.pop(); save(); renderAudit(); }
-function renderAudit(){ document.getElementById('auditLog').innerHTML = audit.slice(0,50).map(a=>`<div style="padding:6px;border-bottom:1px solid #f1f5f9"><small>${a.ts.slice(0,19).replace('T',' ')}</small><div>${a.msg}</div></div>`).join(''); }
-function escapeHtml(s){ return String(s||'').replace(/[&<>"]',''); }
+function nowISO(){ return new Date().toISOString().slice(0,19).replace('T',' '); }
+function saveAll(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); localStorage.setItem(BUDGET_KEY, JSON.stringify(budgets)); localStorage.setItem(AUDIT_KEY, JSON.stringify(audit.slice(0,500))); }
+function loadAll(){ entries = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); budgets = JSON.parse(localStorage.getItem(BUDGET_KEY)||'{}'); audit = JSON.parse(localStorage.getItem(AUDIT_KEY)||'[]'); }
 
-load();
+/* ---------- Currency loader (robust) ---------- */
+async function waitForPopulate(timeout=3000){
+  // wait for populateCurrencyDropdown to be defined by loadCurrencies.js
+  const start = Date.now();
+  while(Date.now() - start < timeout){
+    if(typeof populateCurrencyDropdown === 'function') return true;
+    await new Promise(r=>setTimeout(r,100));
+  }
+  return false;
+}
 
-// add entry
-document.getElementById('addBtn').addEventListener('click',()=>{
-  const desc=document.getElementById('desc').value.trim();
-  const amount=parseFloat(document.getElementById('amount').value);
-  const currency=document.getElementById('currency').value;
-  const date=document.getElementById('date').value||new Date().toISOString().slice(0,10);
-  const category=document.getElementById('category').value;
-  const type=document.getElementById('type').value;
-  const recurring=document.getElementById('recurring').value;
-  if(!desc||!amount||!currency){ alert('Fill all required fields'); return; }
-  entries.unshift({id:uid(), desc, amount, currency, date, category, type, recurring});
-  logAudit(`Added ${type} ${amount} ${currency} (${desc})`);
-  save(); renderAll();
+(async function initCurrencyDropdowns(){
+  const ok = await waitForPopulate(4000);
+  if(ok){
+    populateCurrencyDropdown('currency');
+    populateCurrencyDropdown('displayCurrency');
+    // set default display currency to USD if not selected
+    setTimeout(()=>{ if(!displayCurrencyEl.value) displayCurrencyEl.value = document.getElementById('currency').value || 'USD'; renderAll(); }, 300);
+  } else {
+    // fallback minimal options
+    const opt = (el, v, t) => { const o = document.createElement('option'); o.value=v; o.text=t; el.appendChild(o); };
+    opt(currencyEl,'USD','USD ($)');
+    opt(displayCurrencyEl,'USD','USD ($)');
+    renderAll();
+  }
+})();
+
+/* ---------- Exchange rates ---------- */
+async function fetchRates(base='USD'){
+  if(rateCache[base] && (Date.now() - rateCache[base].ts < 1000*60*15)) return rateCache[base].rates;
+  try{
+    const res = await fetch(`https://api.exchangerate.host/latest?base=${encodeURIComponent(base)}`);
+    const data = await res.json();
+    rateCache[base] = { ts: Date.now(), rates: data.rates || {} };
+    return rateCache[base].rates;
+  }catch(e){
+    console.warn('rate fetch failed', e);
+    return {};
+  }
+}
+
+// convert amount from 'from' currency to 'to' currency: returns number
+async function convertTo(amount, from, to){
+  if(!from || !to) return amount;
+  if(from === to) return amount;
+  const rates = await fetchRates(to);
+  const r = rates[from];
+  if(!r || r === 0) return amount;
+  return amount / r;
+}
+
+/* ---------- Persistence & load ---------- */
+loadAll();
+
+/* ---------- Audit ---------- */
+function log(msg){ audit.unshift({ts: nowISO(), msg}); if(audit.length>500) audit.pop(); saveAll(); renderAudit(); }
+function renderAudit(){ auditLog.innerHTML = audit.slice(0,50).map(a=>`<div style="padding:6px;border-bottom:1px solid #f1f5f9"><small>${a.ts}</small><div>${a.msg}</div></div>`).join(''); }
+
+/* ---------- CRUD Entries ---------- */
+document.getElementById('addBtn').addEventListener('click', async ()=>{
+  const desc = document.getElementById('desc').value.trim();
+  const amount = parseFloat(document.getElementById('amount').value);
+  const currency = document.getElementById('currency').value;
+  const date = document.getElementById('date').value || new Date().toISOString().slice(0,10);
+  const category = document.getElementById('category').value;
+  const type = document.getElementById('type').value;
+  const recurring = document.getElementById('recurring').value;
+  if(!desc || !amount || !currency){ alert('Please fill description, amount and currency.'); return; }
+  const e = { id: uid(), desc, amount, currency, date, category, type, recurring };
+  entries.unshift(e);
+  log(`Added ${type} ${amount} ${currency} — ${desc}`);
+  saveAll();
+  await renderAll();
+  // clear inputs
   document.getElementById('desc').value=''; document.getElementById('amount').value=''; document.getElementById('date').value='';
 });
 
-function renderAll(){ renderTable(); renderKPIs(); renderAlerts(); renderAudit(); }
-function renderTable(){ const tbody=document.getElementById('entriesTbody'); tbody.innerHTML=''; entries.forEach(e=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td>${e.date}</td><td>${e.desc}</td><td>${e.category}</td><td>${e.type}</td><td>${fmt(e.amount)}</td><td>${e.currency}</td><td>${e.recurring}</td><td style="text-align:right"><button onclick="editEntry('${e.id}')">Edit</button> <button onclick="deleteEntry('${e.id}')">Delete</button></td>`; tbody.appendChild(tr); });}
-function editEntry(id){ const e=entries.find(x=>x.id===id); if(!e) return; const newDesc=prompt('Description', e.desc); if(newDesc===null) return; e.desc=newDesc; const newAmt=parseFloat(prompt('Amount', e.amount))||e.amount; e.amount=newAmt; save(); logAudit(`Edited entry ${id}`); renderAll(); }
-function deleteEntry(id){ if(!confirm('Delete entry?')) return; entries=entries.filter(e=>e.id!==id); logAudit(`Deleted entry ${id}`); save(); renderAll(); }
+window.deleteEntry = async function(id){
+  if(!confirm('Delete this entry?')) return;
+  entries = entries.filter(e => e.id !== id);
+  log(`Deleted entry ${id}`);
+  saveAll();
+  await renderAll();
+};
+
+window.editEntry = async function(id){
+  const e = entries.find(x=>x.id===id);
+  if(!e) return;
+  const newDesc = prompt('Description', e.desc); if(newDesc === null) return;
+  const newAmt = prompt('Amount', e.amount); if(newAmt === null) return;
+  e.desc = newDesc; e.amount = parseFloat(newAmt) || e.amount;
+  saveAll();
+  log(`Edited entry ${id}`);
+  await renderAll();
+};
+
+/* ---------- Budgets ---------- */
+document.getElementById('addBudget').addEventListener('click', ()=>{
+  const cat = document.getElementById('budgetCategory').value;
+  const amt = parseFloat(document.getElementById('budgetAmount').value);
+  if(!cat || !amt || amt<=0){ alert('Enter valid category and amount'); return; }
+  const key = `${cat}|${new Date().toISOString().slice(0,7)}`;
+  budgets[key] = amt;
+  log(`Budget set: ${cat} = ${amt}`);
+  saveAll(); renderBudgets(); renderAlerts();
+});
+
+function renderBudgets(){
+  const month = new Date().toISOString().slice(0,7);
+  const rows = Object.keys(budgets).filter(k=>k.endsWith('|'+month)).map(k=>{
+    const cat = k.split('|')[0]; const b = budgets[k];
+    const spent = entries.filter(e=>e.category===cat && e.date.slice(0,7)===month).reduce((s,x)=>s + (x.type==='expense' ? x.amount : 0), 0);
+    return `<div style="padding:8px;border-bottom:1px solid #f1f5f9"><strong>${cat}</strong>: ${fmt(spent)} / ${fmt(b)} ${spent>b?'<span class="badge">OVER</span>':''}</div>`;
+  });
+  budgetList.innerHTML = rows.join('') || '<div class="muted">No budgets set for this month</div>';
+}
+
+/* ---------- Filters & Query ---------- */
+function getFiltered(){
+  const start = document.getElementById('startDate').value;
+  const end = document.getElementById('endDate').value;
+  const cat = document.getElementById('filterCategory').value;
+  const search = (document.getElementById('searchText').value||'').toLowerCase();
+  return entries.filter(e=>{
+    if(cat && cat !== '' && e.category !== cat) return false;
+    if(start && e.date < start) return false;
+    if(end && e.date > end) return false;
+    if(search && !(e.desc.toLowerCase().includes(search) || (e.category||'').toLowerCase().includes(search))) return false;
+    return true;
+  });
+}
+
+document.getElementById('applyFilter').addEventListener('click', ()=> renderAll());
+
+/* ---------- Charts & KPIs ---------- */
+async function renderAll(){
+  // convert display amounts for KPI/chart calculations
+  const display = displayCurrencyEl.value || 'USD';
+  const rates = await fetchRates(display);
+
+  // compute displayAmount for each entry
+  for(const e of entries){
+    e.displayAmount = (rates && rates[e.currency]) ? (e.amount / rates[e.currency]) : e.amount;
+  }
+
+  renderTable();
+  renderKPIs();
+  await renderCharts();
+  renderBudgets();
+  renderAlerts();
+  renderAudit();
+}
+
+function renderTable(){
+  const list = getFiltered();
+  entriesTbody.innerHTML = '';
+  list.forEach(e=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${e.date}</td>
+      <td>${escapeHtml(e.desc)}</td>
+      <td>${escapeHtml(e.category)}</td>
+      <td>${escapeHtml(e.type)}</td>
+      <td style="text-align:right">${fmt(e.displayAmount ?? e.amount)}</td>
+      <td>${escapeHtml(e.currency)}</td>
+      <td>${escapeHtml(e.recurring)}</td>
+      <td style="text-align:right">
+        <button class="ghost" onclick="editEntry('${e.id}')">Edit</button>
+        <button class="danger" onclick="deleteEntry('${e.id}')">Delete</button>
+      </td>`;
+    entriesTbody.appendChild(tr);
+  });
+}
 
 function renderKPIs(){
-  const display=document.getElementById('displayCurrency').value||'USD';
-  let totalIncome=0,totalExp=0;
-  entries.forEach(e=>{ if(e.type==='income') totalIncome+=e.amount; else totalExp+=e.amount; });
-  document.getElementById('kpiBalance').innerText=`${display} ${fmt(totalIncome-totalExp)}`;
-  document.getElementById('kpiIncome').innerText=`${display} ${fmt(totalIncome)}`;
-  document.getElementById('kpiExpense').innerText=`${display} ${fmt(totalExp)}`;
-  const monthlyAvg=entries.filter(e=>e.type==='expense').reduce((s,e)=>s+e.amount,0)/Math.max(1,new Date().getMonth()+1);
-  document.getElementById('kpiAvgExp').innerText=`${display} ${fmt(monthlyAvg)}`;
-  const topCat=entries.filter(e=>e.type==='expense').reduce((acc,e)=>{acc[e.category]=(acc[e.category]||0)+e.amount; return acc;},{})
-  ;const top=Object.entries(topCat).sort((a,b)=>b[1]-a[1])[0];
-  document.getElementById('kpiTopCat').innerText=top?top[0]:'-';
+  const list = getFiltered();
+  const income = list.filter(e=>e.type==='income').reduce((s,e)=>s + (e.displayAmount ?? e.amount),0);
+  const expense = list.filter(e=>e.type==='expense').reduce((s,e)=>s + (e.displayAmount ?? e.amount),0);
+  const balance = income - expense;
+  const display = displayCurrencyEl.value || 'USD';
+  document.getElementById('kpiIncome').innerText = `${display} ${fmt(income)}`;
+  document.getElementById('kpiExpense').innerText = `${display} ${fmt(expense)}`;
+  document.getElementById('kpiBalance').innerText = `${display} ${fmt(balance)}`;
+
+  // quick sidebar KPIs
+  const months = {};
+  entries.forEach(e=> { const m = e.date.slice(0,7); months[m] = months[m] || {income:0, expense:0}; const val = e.displayAmount ?? e.amount; if(e.type==='income') months[m].income += val; else months[m].expense += val; });
+  const avgMonthly = Object.values(months).reduce((s,m)=>s + m.expense,0) / Math.max(1,Object.keys(months).length);
+  document.getElementById('avgMonthly').innerText = `${display} ${fmt(avgMonthly)}`;
+  const topCatObj = {};
+  entries.forEach(e=>{ if(e.type==='expense') topCatObj[e.category] = (topCatObj[e.category]||0) + (e.displayAmount ?? e.amount); });
+  const topCat = Object.entries(topCatObj).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('topCategory').innerText = topCat ? `${topCat[0]} (${fmt(topCat[1])})` : '-';
 }
 
-function renderAlerts(){ const alerts=document.getElementById('alerts'); alerts.innerHTML=''; const lastMonth=(new Date(new Date().getFullYear(),new Date().getMonth()-1,1)).toISOString().slice(0,7);
-  const last=entries.filter(e=>e.date.slice(0,7)===lastMonth && e.type==='expense'); const sumOut=last.reduce((s,e)=>s+e.amount,0);
-  const sumIn=entries.filter(e=>e.date.slice(0,7)===lastMonth && e.type==='income').reduce((s,e)=>s+e.amount,0);
-  if(sumOut>sumIn*1.5) alerts.innerHTML=`<div style="padding:8px;border-radius:8px;background:#fff3f2;border:1px solid #fdecea"><strong>Warning:</strong> Last month's outflow (${fmt(sumOut)}) is > 150% of inflow (${fmt(sumIn)}).</div>`;
+async function renderCharts(){
+  const list = getFiltered();
+  // monthly chart (last 12 months)
+  const months = getLastNMonths(12);
+  const incomeData = months.map(m=> list.filter(e=>e.date.slice(0,7)===m && e.type==='income').reduce((s,e)=>s + (e.displayAmount ?? e.amount),0));
+  const expenseData = months.map(m=> list.filter(e=>e.date.slice(0,7)===m && e.type==='expense').reduce((s,e)=>s + (e.displayAmount ?? e.amount),0));
+
+  // destroy existing charts
+  if(monthlyChart) monthlyChart.destroy();
+  if(categoryChart) categoryChart.destroy();
+
+  const ctxM = document.getElementById('monthlyChart').getContext('2d');
+  monthlyChart = new Chart(ctxM, {
+    type:'bar',
+    data:{ labels: months, datasets: [{ label:'Income', data: incomeData, backgroundColor:'#10b981' }, { label:'Expense', data: expenseData, backgroundColor:'#ef4444' }] },
+    options:{ responsive:true, plugins:{ legend:{ position:'bottom' } }, scales:{ y:{ beginAtZero:true } } }
+  });
+
+  // category chart
+  const catMap = {};
+  list.filter(e=>e.type==='expense').forEach(e=> catMap[e.category] = (catMap[e.category]||0) + (e.displayAmount ?? e.amount));
+  const ctxC = document.getElementById('categoryChart').getContext('2d');
+  categoryChart = new Chart(ctxC, { type:'pie', data:{ labels:Object.keys(catMap), datasets:[{ data:Object.values(catMap), backgroundColor: palette(Object.keys(catMap).length) }] }, options:{ responsive:true, plugins:{ legend:{ position:'right' } } } );
 }
 
-// export/import
-document.getElementById('exportCsv').addEventListener('click',()=>{ const hdr='date,desc,category,type,amount,currency,recurring\n'; const lines=entries.map(e=>`${e.date},"${e.desc}",${e.category},${e.type},${e.amount},${e.currency},${e.recurring}`); const blob=new Blob([hdr+lines.join('\n')],{type:'text/csv'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='expense_tracker.csv'; a.click(); URL.revokeObjectURL(url); });
-document.getElementById('exportJson').addEventListener('click',()=>{ const blob=new Blob([JSON.stringify(entries,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='expense_tracker.json'; a.click(); URL.revokeObjectURL(url); });
-document.getElementById('importBtn').addEventListener('click',()=>document.getElementById('importFile').click());
-document.getElementById('importFile').addEventListener('change',e=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ const data=JSON.parse(r.result); if(Array.isArray(data)){ entries=data.concat(entries); save(); renderAll(); alert('Imported'); } else alert('Invalid JSON'); } catch(err){ alert('Import error:'+err.message);} }; r.readAsText(f); e.target.value=''; });
+function getLastNMonths(n){
+  const arr=[]; const now=new Date();
+  for(let i=n-1;i>=0;i--){ const d=new Date(now.getFullYear(), now.getMonth()-i, 1); arr.push(d.toISOString().slice(0,7)); }
+  return arr;
+}
+function palette(n){ const p=['#ef4444','#f59e0b','#10b981','#3b82f6','#6366f1','#8b5cf6','#06b6d4','#f97316','#ef4444','#06b6d4']; return Array.from({length:n},(_,i)=>p[i%p.length]); }
 
-// clear
-document.getElementById('clearBtn').addEventListener('click',()=>{ document.getElementById('desc').value=''; document.getElementById('amount').value=''; document.getElementById('date').value=''; });
-function goToDashboard(){ window.location.href='index.html'; }
-</script></body>
+/* ---------- Alerts (budgets & spikes) ---------- */
+function renderAlerts(){
+  alertsEl.innerHTML = '';
+  renderBudgets();
+  // budget overspend alerts
+  const month = new Date().toISOString().slice(0,7);
+  Object.keys(budgets).forEach(k=>{
+    const [cat,bm] = k.split('|');
+    if(bm !== month) return;
+    const limit = budgets[k];
+    const spent = entries.filter(e=>e.category===cat && e.date.slice(0,7)===month).reduce((s,x)=>s + (x.type==='expense' ? (x.displayAmount ?? x.amount) : 0),0);
+    if(spent > limit){
+      alertsEl.insertAdjacentHTML('beforeend', `<div style="padding:8px;border-radius:8px;background:#fff3f2;border:1px solid #fdecea"><strong>Budget Alert:</strong> ${cat} overspent: ${fmt(spent)} / ${fmt(limit)}</div>`);
+    }
+  });
+
+  // spike alert example: last month outflow > 150% of income
+  const lastMonth = (()=>{ const d = new Date(); d.setMonth(d.getMonth()-1); return d.toISOString().slice(0,7); })();
+  const lastOut = entries.filter(e=>e.date.slice(0,7)===lastMonth && e.type==='expense').reduce((s,e)=>s + (e.displayAmount ?? e.amount),0);
+  const lastIn = entries.filter(e=>e.date.slice(0,7)===lastMonth && e.type==='income').reduce((s,e)=>s + (e.displayAmount ?? e.amount),0);
+  if(lastOut > lastIn * 1.5 && lastIn > 0){
+    alertsEl.insertAdjacentHTML('beforeend', `<div style="padding:8px;border-radius:8px;background:#fff7ed;border:1px solid #ffedd5"><strong>Warning:</strong> Last month's outflow ${fmt(lastOut)} exceeds 150% of inflow ${fmt(lastIn)}</div>`);
+  }
+}
+
+/* ---------- Budgets rendering ---------- */
+function renderBudgets(){
+  const month = new Date().toISOString().slice(0,7);
+  const rows = [];
+  Object.keys(budgets).forEach(k=>{
+    const [cat,bm] = k.split('|');
+    if(bm !== month) return;
+    const limit = budgets[k];
+    const spent = entries.filter(e=>e.category===cat && e.date.slice(0,7)===month).reduce((s,x)=>s + (x.type==='expense' ? (x.displayAmount ?? x.amount) : 0),0);
+    rows.push(`<div style="padding:8px;border-bottom:1px solid #f1f5f9"><strong>${cat}</strong> — Spent: ${fmt(spent)} / ${fmt(limit)} ${spent>limit?'<span class="badge">OVER</span>':''}</div>`);
+  });
+  budgetList.innerHTML = rows.join('') || '<div class="muted">No budgets for this month</div>';
+}
+
+/* ---------- Export / Import ---------- */
+document.getElementById('exportCsv').addEventListener('click', ()=> {
+  const display = displayCurrencyEl.value || 'USD';
+  const hdr = `date,desc,category,type,amount,currency,recurring\\n`;
+  const lines = entries.map(e => `${e.date},"${e.desc.replace(/"/g,'""')}",${e.category},${e.type},${(e.displayAmount ?? e.amount).toFixed(2)},${display},${e.recurring}`);
+  const blob = new Blob([hdr + lines.join('\\n')], { type:'text/csv' });
+  const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='expenses.csv'; a.click(); URL.revokeObjectURL(url);
+});
+document.getElementById('exportJson').addEventListener('click', ()=> {
+  const blob = new Blob([JSON.stringify(entries,null,2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='expenses.json'; a.click(); URL.revokeObjectURL(url);
+});
+document.getElementById('importBtn').addEventListener('click', ()=> document.getElementById('importFile').click());
+document.getElementById('importFile').addEventListener('change', e=>{
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ()=> {
+    try{
+      const data = JSON.parse(r.result);
+      if(!Array.isArray(data)) return alert('Invalid JSON format (expected array)');
+      // merge imported entries safely (ensure required fields)
+      const sanitized = data.map(item => ({
+        id: item.id || uid(),
+        desc: item.desc || 'Imported',
+        amount: Number(item.amount) || 0,
+        currency: item.currency || (document.getElementById('currency').value || 'USD'),
+        date: item.date || new Date().toISOString().slice(0,10),
+        category: item.category || 'Uncategorized',
+        type: item.type || 'expense',
+        recurring: item.recurring || 'none'
+      }));
+      entries = sanitized.concat(entries);
+      log(`Imported ${sanitized.length} entries`);
+      saveAll(); renderAll();
+      alert('Import complete');
+    }catch(err){ alert('Import failed: ' + err.message); }
+  };
+  r.readAsText(f); e.target.value='';
+});
+
+/* ---------- Helpers & misc ---------- */
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function round(n, d=2){ return Math.round(n * Math.pow(10,d))/Math.pow(10,d); }
+
+/* ---------- Init & event wiring ---------- */
+document.getElementById('clearBtn').addEventListener('click', ()=>{ document.getElementById('desc').value=''; document.getElementById('amount').value=''; document.getElementById('date').value=''; });
+document.getElementById('applyFilter').addEventListener('click', ()=> renderAll());
+document.getElementById('displayCurrency').addEventListener('change', ()=> renderAll());
+
+document.getElementById('startDate').value = ''; document.getElementById('endDate').value = '';
+
+/* Load stored data and initial render */
+(async function startup(){ loadAll(); await renderAll(); renderBudgets(); renderAudit(); })();
+
+/* ---------- Small palette for charts (re-usable) ---------- */
+function paletteColors(n){ const arr=['#ef4444','#f59e0b','#10b981','#3b82f6','#6366f1','#8b5cf6','#06b6d4','#f97316','#ef4444','#06b6d4']; return Array.from({length:n}, (_,i)=>arr[i%arr.length]); }
+
+/* ---------- Final helpers ---------- */
+function goToDashboard(){ window.location.href = 'index.html'; }
+
+</script>
+</body>
 </html>
