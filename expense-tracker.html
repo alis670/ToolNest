@@ -324,20 +324,22 @@ function renderBudgets(){
   document.getElementById('budgetList').innerHTML = rows.join('') || '<div class="muted">No budgets set for this month</div>';
 }
 
-/* filters (full date) */
+/* filters (MONTH) */
 function getFiltered(){
-  const start = document.getElementById('startDate').value;
-  const end = document.getElementById('endDate').value;
+  const start = document.getElementById('startDate').value; // YYYY-MM
+  const end = document.getElementById('endDate').value;     // YYYY-MM
   const cat = document.getElementById('filterCategory').value;
   const search = (document.getElementById('searchText').value||'').toLowerCase();
+
   return entries.filter(e=>{
+    const entryMonth = e.date.slice(0,7); // YYYY-MM
     if(cat && cat !== '' && e.category !== cat) return false;
-    if(start && e.date < start) return false;
-    if(end && e.date > end) return false;
+    if(start && entryMonth < start) return false;
+    if(end && entryMonth > end) return false;
     if(search && !(e.desc.toLowerCase().includes(search) || (e.category||'').toLowerCase().includes(search))) return false;
     return true;
   });
-}
+  }
 
 /* renderAll: computes displayAmount for each entry (converted to base currency if needed) */
 async function renderAll(){
