@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Revenue Forecast Tool — ToolNest</title>
+<title>Revenue Forecast Tool — ToolNest (Start & End Date)</title>
 
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -22,7 +22,7 @@ body{margin:0;background:var(--bg);color:#0f172a;padding:18px}
 h1{margin:0;font-size:18px}
 small.muted{color:var(--muted)}
 input,select,button,textarea{font-family:inherit}
-input,select,textarea{padding:8px;border-radius:8px;border:1px solid #e6eef8;background:#fff}
+input,select,textarea{padding:8px;border-radius:8px;border:1px solid #e6eef8;background:#fff;width:100%}
 button{padding:8px 12px;border-radius:8px;border:0;cursor:pointer}
 .btn{font-weight:700}
 .primary{background:var(--accent);color:#fff}
@@ -35,13 +35,14 @@ button{padding:8px 12px;border-radius:8px;border:0;cursor:pointer}
 .table{margin-top:12px;overflow:auto;border-radius:8px;border:1px solid #eef2ff}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{padding:8px;border-bottom:1px solid #f1f5f9;text-align:left}
-th{background:#fbfdff;position:sticky;top:0}
+th{background:#fbfdff;position:sticky;top:0;z-index:1}
 .charts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
 canvas{background:#fff;border-radius:8px;padding:8px}
 .audit{margin-top:12px;max-height:180px;overflow:auto;font-size:13px;color:var(--muted)}
 .filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 label{display:block;margin-bottom:6px;font-weight:600}
-@media (max-width:1000px){ .app{grid-template-columns:1fr} .kpis{grid-template-columns:repeat(2,1fr)} .charts{grid-template-columns:1fr} }
+@media (max-width:1100px){ .app{grid-template-columns:1fr} .kpis{grid-template-columns:repeat(2,1fr)} .charts{grid-template-columns:1fr} }
+.small{font-size:12px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -52,10 +53,10 @@ label{display:block;margin-bottom:6px;font-weight:600}
     <div class="header">
       <div>
         <h1>Revenue Forecast Tool</h1>
-        <small class="muted">Add revenue streams and project monthly forecasts. Pick base currency to unify reporting.</small>
+        <small class="muted">Add revenue streams, pick start & end dates, run scenario forecasts. Base currency unifies reporting.</small>
       </div>
 
-      <div style="min-width:180px">
+      <div style="min-width:220px">
         <small class="muted">Base currency</small>
         <select id="baseCurrency" style="width:100%;padding:8px;border-radius:8px"></select>
       </div>
@@ -63,46 +64,22 @@ label{display:block;margin-bottom:6px;font-weight:600}
 
     <!-- ADD STREAM FORM -->
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;align-items:end">
-      <div>
-        <label>Stream name</label>
-        <input id="streamName" placeholder="e.g. SaaS Subscriptions">
-      </div>
-      <div>
-        <label>Amount</label>
-        <input id="streamAmount" type="number" step="0.01" min="0" placeholder="1000">
-      </div>
-      <div>
-        <label>Currency</label>
-        <select id="streamCurrency"></select>
-      </div>
-      <div>
-        <label>Frequency</label>
-        <select id="streamFreq"><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option><option value="yearly">Yearly</option><option value="one-time">One-time</option></select>
-      </div>
-      <div>
-        <label>Start date</label>
-        <input id="streamStart" type="date">
-      </div>
+      <div><label>Stream name</label><input id="streamName" placeholder="e.g. SaaS Subscriptions"></div>
+      <div><label>Amount</label><input id="streamAmount" type="number" step="0.01" min="0" placeholder="1000"></div>
+      <div><label>Currency</label><select id="streamCurrency"></select></div>
+      <div><label>Frequency</label><select id="streamFreq"><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option><option value="yearly">Yearly</option><option value="one-time">One-time</option></select></div>
+      <div><label>Start date</label><input id="streamStart" type="date"></div>
       <div style="display:flex;gap:8px;align-items:end;flex-wrap:wrap">
         <button id="addStreamBtn" class="btn primary">Add stream</button>
         <button id="clearStreamBtn" class="btn ghost">Clear</button>
       </div>
     </div>
 
-    <!-- SCENARIO & FORECAST SETTINGS -->
-    <div style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;align-items:end">
-      <div>
-        <label>Projection months</label>
-        <input id="projMonths" type="number" min="1" max="60" value="12">
-      </div>
-      <div>
-        <label>Scenario growth %</label>
-        <input id="scenarioPct" type="number" step="0.1" value="0">
-      </div>
-      <div>
-        <label>Apply scenario to</label>
-        <select id="scenarioApply"><option value="all">All streams</option><option value="recurring">Only recurring</option></select>
-      </div>
+    <!-- Forecast time window & scenario -->
+    <div style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;align-items:end">
+      <div><label>Forecast Start Date</label><input id="forecastStart" type="date"></div>
+      <div><label>Forecast End Date</label><input id="forecastEnd" type="date"></div>
+      <div><label>Scenario growth % (annual)</label><input id="scenarioPct" type="number" step="0.1" value="0"></div>
       <div style="display:flex;gap:8px;align-items:end">
         <button id="runForecast" class="btn primary">Run Forecast</button>
         <button id="resetForecast" class="btn ghost">Reset</button>
@@ -110,10 +87,10 @@ label{display:block;margin-bottom:6px;font-weight:600}
     </div>
 
     <!-- KPIs -->
-    <div class="kpis">
-      <div class="kpi"><h3>Monthly MRR (base)</h3><p id="kpiMRR">0</p></div>
-      <div class="kpi"><h3>Annualized Revenue (base)</h3><p id="kpiARR">0</p></div>
-      <div class="kpi"><h3>Projected (months)</h3><p id="kpiProjTotal">0</p></div>
+    <div class="kpis" style="margin-top:12px">
+      <div class="kpi"><h3>Projected Period Total</h3><p id="kpiTotal">0</p></div>
+      <div class="kpi"><h3>Projected Monthly Avg</h3><p id="kpiMonthly">0</p></div>
+      <div class="kpi"><h3>Projected ARR (annualized)</h3><p id="kpiARR">0</p></div>
     </div>
 
     <!-- STREAMS TABLE -->
@@ -121,7 +98,7 @@ label{display:block;margin-bottom:6px;font-weight:600}
       <table>
         <thead>
           <tr>
-            <th>Stream</th><th>Amount</th><th>Curr</th><th>Freq</th><th>Start</th><th>Converted</th><th style="text-align:right">Actions</th>
+            <th>Stream</th><th>Amount</th><th>Curr</th><th>Freq</th><th>Start</th><th>Converted (base)</th><th style="text-align:right">Actions</th>
           </tr>
         </thead>
         <tbody id="streamsTbody"></tbody>
@@ -130,11 +107,11 @@ label{display:block;margin-bottom:6px;font-weight:600}
 
     <!-- CHARTS -->
     <div class="charts">
-      <canvas id="stackChart" height="220"></canvas>
-      <canvas id="cumChart" height="220"></canvas>
+      <canvas id="stackChart" height="240"></canvas>
+      <canvas id="cumChart" height="240"></canvas>
     </div>
 
-    <!-- EXPORT / AUDIT -->
+    <!-- EXPORT / IMPORT / AUDIT -->
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:8px;flex-wrap:wrap">
       <div style="display:flex;gap:8px;align-items:center">
         <button id="exportCsv" class="btn ghost">Export CSV</button>
@@ -153,14 +130,20 @@ label{display:block;margin-bottom:6px;font-weight:600}
   <!-- SIDEBAR -->
   <div class="card">
     <h3 style="margin:0 0 8px">Forecast Summary</h3>
-    <div id="summary" class="audit">No forecast run yet.</div>
+    <div id="summary" class="small">No forecast run yet.</div>
+    <div style="margin-top:12px">
+      <h4 style="margin:6px 0">Quick Inputs</h4>
+      <div class="small">Start & End dates define the forecast window. Scenario growth is applied annually, compounded across months.</div>
+    </div>
   </div>
 </div>
 
+<!-- currencies loader (user must provide loadCurrencies.js) -->
 <script src="loadCurrencies.js"></script>
+
 <script>
 /* ---------- State ---------- */
-const STORAGE_KEY = 'tn_rev_forecast_v1';
+const STORAGE_KEY = 'tn_rev_forecast_v2';
 let streams = []; // {id, name, amount, currency, freq, start}
 let rateCache = {};
 let stackChart, cumChart;
@@ -169,17 +152,18 @@ let stackChart, cumChart;
 const baseCurrencyEl = document.getElementById('baseCurrency');
 const streamCurrencyEl = document.getElementById('streamCurrency');
 
-/* helpers */
+/* small helpers */
 function uid(){ return 'id_'+Math.random().toString(36).slice(2,9); }
 function fmt(n){ return Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function nowISO(){ return new Date().toISOString().slice(0,19).replace('T',' '); }
 function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(streams)); }
 function load(){ streams = JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); }
 
-/* wait for populateCurrencyDropdown */
+/* wait for populateCurrencyDropdown from loadCurrencies.js */
 async function waitForPopulate(timeout=3000){
   const start=Date.now();
   while(Date.now()-start<timeout){
-    if(typeof populateCurrencyDropdown==='function') return true;
+    if(typeof populateCurrencyDropdown === 'function') return true;
     await new Promise(r=>setTimeout(r,100));
   }
   return false;
@@ -193,12 +177,12 @@ async function waitForPopulate(timeout=3000){
     populateCurrencyDropdown('streamCurrency');
     setTimeout(()=>{ if(!baseCurrencyEl.value) baseCurrencyEl.value='USD'; renderAll(); },200);
   } else {
-    const o = document.createElement('option'); o.value='USD'; o.text='USD'; baseCurrencyEl.appendChild(o); streamCurrencyEl.appendChild(o.cloneNode(true));
+    const o=document.createElement('option'); o.value='USD'; o.text='USD'; baseCurrencyEl.appendChild(o); streamCurrencyEl.appendChild(o.cloneNode(true));
     renderAll();
   }
 })();
 
-/* fetch rates */
+/* fetch rates cached */
 async function fetchRates(base='USD'){
   if(rateCache[base] && (Date.now()-rateCache[base].ts < 1000*60*15)) return rateCache[base].rates;
   try{
@@ -209,7 +193,7 @@ async function fetchRates(base='USD'){
   }catch(e){ console.warn('rates fail', e); return {}; }
 }
 
-/* convert amount in 'from' to base */
+/* conversion helper: amount in 'from' -> base */
 async function convertToBase(amount, from, base){
   if(!from || !base) return amount;
   if(from === base) return amount;
@@ -219,7 +203,7 @@ async function convertToBase(amount, from, base){
   return amount / r;
 }
 
-/* Add stream */
+/* add stream */
 document.getElementById('addStreamBtn').addEventListener('click', async ()=>{
   const name = document.getElementById('streamName').value.trim();
   const amount = parseFloat(document.getElementById('streamAmount').value) || 0;
@@ -227,16 +211,21 @@ document.getElementById('addStreamBtn').addEventListener('click', async ()=>{
   const freq = document.getElementById('streamFreq').value;
   const start = document.getElementById('streamStart').value || new Date().toISOString().slice(0,10);
 
-  if(!name || amount<=0){ alert('Name and positive amount required'); return; }
+  if(!name || amount<=0){ alert('Stream name and positive amount required'); return; }
 
   streams.unshift({ id: uid(), name, amount, currency, freq, start });
   save(); logAudit(`Added stream ${name} ${amount} ${currency} (${freq})`);
   await renderAll();
-  // clear
+  // clear form
   document.getElementById('streamName').value=''; document.getElementById('streamAmount').value=''; document.getElementById('streamStart').value='';
 });
 
-/* Edit / Delete */
+/* clear */
+document.getElementById('clearStreamBtn').addEventListener('click', ()=> {
+  document.getElementById('streamName').value=''; document.getElementById('streamAmount').value=''; document.getElementById('streamStart').value='';
+});
+
+/* edit / delete */
 function deleteStream(id){ if(!confirm('Delete stream?')) return; streams = streams.filter(s=>s.id!==id); save(); renderAll(); logAudit(`Deleted stream ${id}`); }
 function editStream(id){
   const s = streams.find(x=>x.id===id); if(!s) return;
@@ -246,24 +235,58 @@ function editStream(id){
   save(); renderAll(); logAudit(`Edited stream ${s.name}`);
 }
 
-/* Run forecast */
+/* frequency -> monthly equivalent */
+function freqToMonthly(amount, freq){
+  if(freq === 'monthly') return amount;
+  if(freq === 'quarterly') return amount / 3;
+  if(freq === 'yearly') return amount / 12;
+  if(freq === 'one-time') return amount; // treated as one-month event
+  return amount;
+}
+
+/* build months array between startDate and endDate inclusive (YYYY-MM) */
+function buildMonthsBetween(startISO, endISO){
+  // startISO / endISO are 'YYYY-MM-DD' or empty
+  let start = startISO ? new Date(startISO) : new Date();
+  let end = endISO ? new Date(endISO) : new Date(start.getFullYear(), start.getMonth()+11, 1);
+  // normalize to 1st of month
+  start = new Date(start.getFullYear(), start.getMonth(), 1);
+  end = new Date(end.getFullYear(), end.getMonth(), 1);
+  if(end < start) return [];
+  const labels = [];
+  const cur = new Date(start);
+  while(cur <= end){
+    labels.push(cur.toISOString().slice(0,7));
+    cur.setMonth(cur.getMonth()+1);
+  }
+  return labels;
+}
+
+/* run forecast button */
 document.getElementById('runForecast').addEventListener('click', async ()=>{
+  const start = document.getElementById('forecastStart').value;
+  const end = document.getElementById('forecastEnd').value;
+  if(!start || !end){ alert('Please select Forecast Start Date and End Date'); return; }
+  if(new Date(end) < new Date(start)){ alert('End Date must be the same or after Start Date'); return; }
   await renderForecast();
 });
-document.getElementById('resetForecast').addEventListener('click', async ()=>{
+
+/* reset */
+document.getElementById('resetForecast').addEventListener('click', () => {
+  document.getElementById('forecastStart').value = '';
+  document.getElementById('forecastEnd').value = '';
   document.getElementById('scenarioPct').value = 0;
-  document.getElementById('projMonths').value = 12;
   renderAll();
 });
 
-/* Export / Import */
-document.getElementById('exportJson').addEventListener('click', ()=> {
+/* export/import */
+document.getElementById('exportJson').addEventListener('click', ()=>{
   const blob = new Blob([JSON.stringify(streams,null,2)], { type:'application/json' });
   const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='revenue_streams.json'; a.click(); URL.revokeObjectURL(url);
 });
-document.getElementById('exportCsv').addEventListener('click', ()=> {
+document.getElementById('exportCsv').addEventListener('click', ()=>{
   const hdr = 'id,name,amount,currency,freq,start\n';
-  const lines = streams.map(s=>`${s.id},"${s.name.replace(/"/g,'""')}",${s.amount},${s.currency},${s.freq},${s.start}`);
+  const lines = streams.map(s=>`${s.id},"${(s.name||'').replace(/"/g,'""')}",${s.amount},${s.currency},${s.freq},${s.start}`);
   const blob = new Blob([hdr + lines.join('\n')], { type:'text/csv' });
   const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='revenue_streams.csv'; a.click(); URL.revokeObjectURL(url);
 });
@@ -274,163 +297,182 @@ document.getElementById('importFile').addEventListener('change', e=>{
   r.onload = ()=> {
     try{
       const data = JSON.parse(r.result);
-      if(!Array.isArray(data)) return alert('Invalid JSON');
+      if(!Array.isArray(data)) return alert('Invalid JSON (expected array)');
       streams = data.concat(streams);
       save(); renderAll(); alert('Imported');
-    } catch(err){ alert('Import error: '+err.message); }
+    }catch(err){ alert('Import error: '+err.message); }
   };
   r.readAsText(f); e.target.value='';
 });
 
-/* Render list + KPIs */
+/* compute forecast and render everything */
 async function renderAll(){
+  load();
   const base = baseCurrencyEl.value || 'USD';
   const rates = await fetchRates(base);
 
-  // compute converted value for each stream for single unit (i.e., amount as provided) -> converted monthly contribution
+  // compute converted (per unit) for each stream (converted to base)
   for(const s of streams){
     if(!s.currency) s.currency = base;
     if(s.currency === base){ s.converted = s.amount; }
     else {
       const r = rates[s.currency];
-      s.converted = r && r!==0 ? s.amount / r : s.amount;
+      s.converted = (r && r !== 0) ? s.amount / r : s.amount;
     }
   }
 
-  // fill table
+  // table
   const tbody = document.getElementById('streamsTbody');
-  tbody.innerHTML = streams.map(s=>{
-    return `<tr>
-      <td>${escapeHtml(s.name)}</td>
-      <td>${fmt(s.amount)}</td>
-      <td>${escapeHtml(s.currency)}</td>
-      <td>${escapeHtml(s.freq)}</td>
-      <td>${s.start}</td>
-      <td>${fmt(s.converted)} ${base}</td>
-      <td style="text-align:right">
-        <button class="btn ghost" onclick="editStream('${s.id}')">Edit</button>
-        <button class="btn danger" onclick="deleteStream('${s.id}')">Delete</button>
-      </td>
-    </tr>`;
-  }).join('');
+  tbody.innerHTML = streams.map(s=>`<tr>
+    <td>${escapeHtml(s.name)}</td>
+    <td>${fmt(s.amount)}</td>
+    <td>${escapeHtml(s.currency)}</td>
+    <td>${escapeHtml(s.freq)}</td>
+    <td>${s.start}</td>
+    <td>${fmt(s.converted)} ${base}</td>
+    <td style="text-align:right">
+      <button class="btn ghost" onclick="editStream('${s.id}')">Edit</button>
+      <button class="btn danger" onclick="deleteStream('${s.id}')">Delete</button>
+    </td>
+  </tr>`).join('');
 
-  // quick KPIs: MRR (sum of monthly equivalents), ARR, proj total
-  const monthlyValues = streams.map(s=> freqToMonthly(s.converted, s.freq) );
-  const MRR = monthlyValues.reduce((a,b)=>a+b,0);
-  const months = parseInt(document.getElementById('projMonths').value)||12;
-  const scenarioPct = parseFloat(document.getElementById('scenarioPct').value)||0;
-  const applyTo = document.getElementById('scenarioApply').value;
-
-  // compute projected series
-  const forecast = await buildForecast(months, scenarioPct, applyTo, base);
-  const projTotal = forecast.netSeries.reduce((a,b)=>a+b,0);
-
-  document.getElementById('kpiMRR').innerText = `${fmt(MRR)} ${base}`;
-  document.getElementById('kpiARR').innerText = `${fmt(MRR*12)} ${base}`;
-  document.getElementById('kpiProjTotal').innerText = `${fmt(projTotal)} ${base}`;
-
-  // charts: show last X months (labels from forecast) and stacked by streams
-  renderStackChart(forecast.labels, forecast.byStream, base);
-  renderCumChart(forecast.labels, forecast.cumulative, base);
-
-  // summary
-  document.getElementById('summary').innerHTML = `<div>Projection: ${months} months • Scenario: ${scenarioPct}% applied to ${applyTo}</div>
-    <div style="margin-top:8px">Total projected revenue: <strong>${fmt(projTotal)} ${base}</strong></div>`;
-}
-
-/* freq conversion helper: convert amount per freq to monthly equivalent */
-function freqToMonthly(amount, freq){
-  if(freq === 'monthly') return amount;
-  if(freq === 'quarterly') return amount / 3;
-  if(freq === 'yearly') return amount / 12;
-  if(freq === 'one-time') return amount; // treat one-time as single month (user decides)
-  return amount;
-}
-
-/* build forecast: returns { labels[], byStream: [{label, data[] }], netSeries[], cumulative[] } */
-async function buildForecast(months=12, scenarioPct=0, applyTo='all', base='USD'){
-  const rates = await fetchRates(base);
-  const labels = [];
-  const start = new Date();
-  for(let i=1;i<=months;i++){
-    const d = new Date(start.getFullYear(), start.getMonth()+i, 1);
-    labels.push(d.toISOString().slice(0,7));
+  // If a valid forecast window is set, compute forecast automatically (otherwise empty KPIs)
+  const fStart = document.getElementById('forecastStart').value;
+  const fEnd = document.getElementById('forecastEnd').value;
+  if(fStart && fEnd && new Date(fEnd) >= new Date(fStart)){
+    await renderForecast(); // will update KPIs & charts & summary
+  } else {
+    document.getElementById('kpiTotal').innerText = '—';
+    document.getElementById('kpiMonthly').innerText = '—';
+    document.getElementById('kpiARR').innerText = '—';
+    if(stackChart){ stackChart.destroy(); stackChart = null; }
+    if(cumChart){ cumChart.destroy(); cumChart = null; }
+    document.getElementById('summary').innerText = 'Select Forecast Start Date and End Date, then click Run Forecast.';
   }
+}
 
-  // prepare per-stream monthly contributions across the months
-  const byStream = [];
-  const netSeries = new Array(months).fill(0);
+/* render forecast */
+async function renderForecast(){
+  const base = baseCurrencyEl.value || 'USD';
+  const scenarioPct = parseFloat(document.getElementById('scenarioPct').value) || 0;
+  const start = document.getElementById('forecastStart').value;
+  const end = document.getElementById('forecastEnd').value;
+  if(!start || !end){ alert('Please set start and end dates'); return; }
+  if(new Date(end) < new Date(start)){ alert('End must be after or equal to start'); return; }
+
+  const months = buildMonthsBetween(start, end); // array like ['2025-11','2025-12',...]
+  if(months.length === 0){ alert('No months in range'); return; }
+
+  // get rates once
+  const rates = await fetchRates(base);
+
+  // Prepare per-stream monthly arrays
+  const byStream = []; // {label, data: []}
+  const netSeries = new Array(months.length).fill(0);
+
   for(const s of streams){
-    const arr = new Array(months).fill(0);
-    // monthly equivalent
-    const monthly = freqToMonthly(s.converted, s.freq);
-    // start month index
-    const sIdx = (()=>{ const sd = new Date(s.start); const monthsDiff = (start.getFullYear()-sd.getFullYear())*12 + (start.getMonth()-sd.getMonth()); return Math.max(0, -monthsDiff); })();
-    // simpler: we'll assume stream applies from its start if start <= future month
-    for(let m=0;m<months;m++){
-      // compare label to start
-      const label = labels[m] + '-01';
-      if(new Date(s.start) <= new Date(label)){
-        arr[m] = monthly;
+    // monthly equivalent converted to base
+    const conv = await convertToBase(s.amount, s.currency || base, base);
+    const monthlyBase = freqToMonthly(conv, s.freq);
+
+    // produce an array across months
+    const arr = new Array(months.length).fill(0);
+    for(let i=0;i<months.length;i++){
+      // check if stream.start <= month (treat start date as inclusive)
+      const monthLabel = months[i] + '-01';
+      if(new Date(s.start) <= new Date(monthLabel)){
+        arr[i] = monthlyBase;
       }
     }
-    // apply scenario if needed
-    const applyScenario = (applyTo === 'all') || (applyTo === 'recurring' && s.freq !== 'one-time');
-    if(applyScenario && scenarioPct){
-      for(let m=0;m<months;m++){
-        // apply monthly compounded growth across months relative to month 0
-        const growthFactor = Math.pow(1 + (scenarioPct/100), m/12); // annualized smoothing
-        arr[m] = arr[m] * growthFactor;
+
+    // apply scenario growth (annual %), convert to per-month compounding
+    if(scenarioPct !== 0){
+      // scenario applies multiplicatively each month as (1 + annual%)^(monthIndex/12)
+      for(let i=0;i<arr.length;i++){
+        if(arr[i] > 0){
+          const factor = Math.pow(1 + (scenarioPct/100), i/12);
+          arr[i] = arr[i] * factor;
+        }
       }
     }
-    // accumulate
-    for(let m=0;m<months;m++) netSeries[m] += arr[m];
+
+    // accumulate netSeries
+    for(let i=0;i<arr.length;i++) netSeries[i] += arr[i];
     byStream.push({ label: s.name, data: arr });
   }
 
-  // cumulative
+  // cumulative series
   const cumulative = [];
   let cum = 0;
-  for(let m=0;m<months;m++){ cum += netSeries[m]; cumulative.push(cum); }
+  for(let i=0;i<netSeries.length;i++){ cum += netSeries[i]; cumulative.push(cum); }
 
-  return { labels, byStream, netSeries, cumulative };
+  // KPIs
+  const totalProjected = netSeries.reduce((a,b)=>a+b,0);
+  const avgMonthly = netSeries.length ? (totalProjected / netSeries.length) : 0;
+  const ARR = avgMonthly * 12;
+
+  document.getElementById('kpiTotal').innerText = `${fmt(totalProjected)} ${base}`;
+  document.getElementById('kpiMonthly').innerText = `${fmt(avgMonthly)} ${base}`;
+  document.getElementById('kpiARR').innerText = `${fmt(ARR)} ${base}`;
+
+  // render charts
+  renderStackChart(months, byStream);
+  renderCumChart(months, cumulative);
+
+  // summary
+  document.getElementById('summary').innerHTML = `<div>Forecast window: <strong>${months[0]} → ${months[months.length-1]}</strong></div>
+    <div style="margin-top:8px">Scenario (annual): <strong>${scenarioPct}%</strong> • Months: <strong>${months.length}</strong></div>
+    <div style="margin-top:8px"><strong>Total projected:</strong> ${fmt(totalProjected)} ${base}</div>`;
 }
 
-/* Charts rendering */
-function renderStackChart(labels, byStream, base){
+/* render charts */
+function renderStackChart(labels, byStream){
   const ctx = document.getElementById('stackChart').getContext('2d');
   if(stackChart) stackChart.destroy();
-  const datasets = byStream.map((s,i)=>({ label: s.label, data: s.data, stack: 'stack1' }));
+  const datasets = byStream.map((s,i)=>{
+    const color = palette(i);
+    return { label: s.label, data: s.data, backgroundColor: color, stack: 's1' };
+  });
   stackChart = new Chart(ctx, {
-    type:'bar',
-    data:{ labels, datasets },
-    options:{ responsive:true, plugins:{ legend:{ position:'bottom' } }, scales:{ x:{ stacked:true }, y:{ stacked:true, beginAtZero:true } } }
+    type: 'bar',
+    data: { labels, datasets },
+    options: { responsive:true, plugins:{ legend:{ position:'bottom' } }, scales:{ x:{ stacked:true }, y:{ stacked:true, beginAtZero:true } } }
   });
 }
-function renderCumChart(labels, cumulative, base){
+function renderCumChart(labels, cumulative){
   const ctx = document.getElementById('cumChart').getContext('2d');
   if(cumChart) cumChart.destroy();
   cumChart = new Chart(ctx, {
-    type:'line',
-    data:{ labels, datasets:[{ label:'Cumulative Revenue', data:cumulative, borderColor:'#2563eb', fill:true, backgroundColor:'rgba(37,99,235,0.08)' }]},
-    options:{ responsive:true, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
+    type: 'line',
+    data: { labels, datasets: [{ label:'Cumulative', data:cumulative, borderColor:'#2563eb', fill:true, backgroundColor:'rgba(37,99,235,0.08)' }] },
+    options: { responsive:true, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
   });
 }
 
-/* helpers */
-function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function logAudit(msg){ const el = document.getElementById('auditLog'); el.innerHTML = `<div style="padding:6px;border-bottom:1px solid #f1f5f9"><small>${new Date().toISOString().slice(0,19).replace('T',' ')}</small><div>${escapeHtml(msg)}</div></div>` + el.innerHTML; }
+/* palette simple */
+function palette(i){ const p=['#ef4444','#f59e0b','#10b981','#3b82f6','#6366f1','#8b5cf6','#06b6d4','#f97316','#ef4444']; return p[i % p.length]; }
 
-/* init + load */
+/* helpers */
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function logAudit(msg){ const el = document.getElementById('auditLog'); el.innerHTML = `<div style="padding:6px;border-bottom:1px solid #f1f5f9"><small>${nowISO()}</small><div>${escapeHtml(msg)}</div></div>` + el.innerHTML; }
+
+/* load/save */
+function load(){
+  streams = JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');
+}
+function goToDashboard(){ window.location.href = 'index.html'; }
+
+/* initial load */
 (async function startup(){
-  loadStreams();
+  load();
+  // if user hasn't set forecast dates, default to next 12 months
+  const today = new Date();
+  const nextYear = new Date(today.getFullYear()+1, today.getMonth(), 1);
+  document.getElementById('forecastStart').value = document.getElementById('forecastStart').value || (new Date(today.getFullYear(), today.getMonth(), 1)).toISOString().slice(0,10);
+  document.getElementById('forecastEnd').value = document.getElementById('forecastEnd').value || nextYear.toISOString().slice(0,10);
   await renderAll();
 })();
 
-function loadStreams(){ streams = JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); }
-
-/* go to dashboard */
-function goToDashboard(){ window.location.href = 'index.html'; }
 </script>
 </body>
 </html>
