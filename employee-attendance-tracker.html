@@ -2,158 +2,431 @@
 
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Employee Attendance Tracker</title><style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Employee Attendance & Salary Tracker — ToolNest</title>
+<style>
 :root{
   --bg:#f6f8fb; --card:#fff; --muted:#6b7280; --accent:#2563eb;
-  --success:#10b981; --danger:#ef4444; --radius:10px;
-  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;
+  --success:#10b981; --danger:#ef4444; --warn:#f59e0b; --radius:12px;
+  font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:#0f172a;padding:18px}
-.app{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start}
-.card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 10px 30px rgba(2,6,23,0.06)}
-.header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
-h1{margin:0;font-size:18px}
+body{margin:0;background:var(--bg);color:#0b1220;padding:18px}
+.container{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start}
+.card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 8px 24px rgba(2,6,23,0.06)}
+.header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+h1{margin:0;font-size:20px}
 small.muted{color:var(--muted)}
-input,select,textarea,button{font-family:inherit}
-input,select,textarea{padding:8px;border-radius:8px;border:1px solid #e6eef8;background:#fff}
-button{padding:8px 12px;border-radius:8px;border:0;cursor:pointer}
-.btn{font-weight:700}
-.primary{background:var(--accent);color:#fff}
-.ghost{background:#f1f5f9;border:1px solid #e6eef8}
-.danger{background:var(--danger);color:#fff}
-.table{margin-top:12px;overflow:auto;border-radius:8px;border:1px solid #eef2ff}
-table{width:100%;border-collapse:collapse;font-size:14px}
-th,td{padding:8px;border-bottom:1px solid #f1f5f9;text-align:left}
-th{background:#fbfdff;position:sticky;top:0}
-.flex-end{display:flex;align-items:end;gap:8px;flex-wrap:wrap}
-.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:12px}
-.day{padding:12px;border-radius:6px;text-align:center;background:#f1f5f9;cursor:pointer}
-.day.present{background:#10b981;color:#fff}
-.day.absent{background:#ef4444;color:#fff}
-.day.late{background:#f59e0b;color:#fff}
-@media (max-width:1000px){.app{grid-template-columns:1fr}} 
-</style></head>
-<body><div class="app">
+.input, select, button{font-family:inherit}
+.input, select{padding:10px;border-radius:10px;border:1px solid #e6eef8;background:#fff;width:100%}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.flex{display:flex;gap:8px;align-items:center}
+.btn{padding:8px 12px;border-radius:10px;border:0;cursor:pointer}
+.btn.primary{background:var(--accent);color:#fff;font-weight:700}
+.btn.ghost{background:#f1f5f9;border:1px solid #e6eef8}
+.btn.warn{background:var(--warn);color:#fff}
+.btn.danger{background:var(--danger);color:#fff}
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.calendar-wrap{display:flex;gap:16px;flex-wrap:wrap}
+.calendar{flex:1;min-width:320px}
+.controls{display:flex;gap:8px;align-items:center}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:12px}
+.cell{border:1px solid #eef2f7;border-radius:8px;min-height:72px;padding:8px;background:#fff;display:flex;flex-direction:column}
+.cell .date{font-size:13px;margin-bottom:6px;color:#374151}
+.badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px}
+.badge.present{background:var(--success);color:#fff}
+.badge.absent{background:var(--danger);color:#fff}
+.badge.late{background:var(--warn);color:#000}
+.empty{background:transparent;border:0}
+.employee-list{display:flex;flex-direction:column;gap:6px}
+.emp-item{padding:8px;border-radius:8px;border:1px solid #eef2f7;background:#fff;cursor:pointer}
+.emp-item.active{outline:2px solid rgba(37,99,235,0.12)}
+.kv{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed #f1f5f9}
+.footer-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+@media(max-width:1024px){.container{grid-template-columns:1fr} .calendar-wrap{flex-direction:column}}
+</style>
+</head>
+<body><div class="container">
   <!-- MAIN -->
-  <div class="card">
+  <div class="card" id="mainCard">
     <div class="header">
       <div>
-        <h1>Employee Attendance Tracker</h1>
+        <h1>Employee Attendance & Salary Tracker</h1>
+        <small class="muted">Mark attendance, track overtime, bonus and auto-calc salary.</small>
       </div>
-      <div style="min-width:180px">
-        <label>Select Month</label>
-        <input type="month" id="monthPicker">
+      <div style="min-width:220px">
+        <label style="display:block;font-size:13px;margin-bottom:6px">Select Month</label>
+        <input id="monthSelect" type="month" class="input">
       </div>
     </div><!-- Add Employee -->
-<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-bottom:12px">
+<div style="margin-top:12px" class="row">
   <div>
     <label>Employee Name</label>
-    <input id="empName" placeholder="Enter name">
+    <input id="empName" class="input" placeholder="e.g. John Doe">
   </div>
   <div>
     <label>Department</label>
-    <input id="empDept" placeholder="Enter department">
+    <input id="empDept" class="input" placeholder="e.g. Sales">
   </div>
-  <div class="flex-end">
-    <button id="addEmp" class="btn primary">Add Employee</button>
+  <div>
+    <label>Salary Type</label>
+    <select id="empSalaryType" class="input">
+      <option value="monthly">Fixed Monthly</option>
+      <option value="weekly">Weekly</option>
+      <option value="hourly">Hourly</option>
+    </select>
+  </div>
+  <div>
+    <label>Currency + Basic Salary</label>
+    <div style="display:flex;gap:8px">
+      <select id="empCurrency" class="input" style="max-width:120px"></select>
+      <input id="empBasic" type="number" class="input" placeholder="Base salary" style="flex:1">
+    </div>
+  </div>
+  <div>
+    <label>Overtime Rate (per hour)</label>
+    <input id="empOvertime" type="number" class="input" placeholder="Overtime rate">
+  </div>
+  <div style="display:flex;align-items:end">
+    <button id="addEmployeeBtn" class="btn primary">Add Employee</button>
   </div>
 </div>
 
 <!-- Filters -->
 <div class="filter-row">
-  <div><label>Filter Employee</label><input id="filterEmp" placeholder="Search"></div>
-  <div><label>Filter Department</label><input id="filterDept" placeholder="Search"></div>
-  <div class="flex-end">
-    <button id="applyFilter" class="btn ghost">Apply Filter</button>
+  <div style="min-width:200px">
+    <select id="filterEmployee" class="input">
+      <option value="">Filter by Employee</option>
+    </select>
+  </div>
+  <div style="min-width:160px">
+    <input id="filterDept" class="input" placeholder="Filter by Department">
+  </div>
+  <div style="flex:1"></div>
+  <div style="min-width:120px">
+    <button id="clearFilters" class="btn ghost">Clear</button>
   </div>
 </div>
 
-<!-- Calendar -->
-<div id="calendar" class="calendar"></div>
+<!-- Calendar + sidebar small on mobile -->
+<div class="calendar-wrap">
+  <div class="calendar card" style="padding:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <strong id="monthTitle">Month</strong>
+      <div class="controls">
+        <select id="employeeSelectCompact" class="input" style="min-width:220px"></select>
+      </div>
+    </div>
 
-<!-- Attendance Legend -->
-<div style="margin-top:12px;display:flex;gap:12px;flex-wrap:wrap">
-  <div class="day present">Present</div>
-  <div class="day absent">Absent</div>
-  <div class="day late">Late</div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:12px;font-weight:600;color:var(--muted)">
+      <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+    </div>
+
+    <div id="calendarGrid" class="calendar-grid"></div>
+
+    <div class="footer-actions">
+      <button id="downloadPayrollCsv" class="btn ghost">Download CSV</button>
+      <button id="downloadPayrollJson" class="btn ghost">Download JSON</button>
+    </div>
+  </div>
+
+  <!-- Salary Details / Right Sidebar -->
+  <div class="card" style="min-width:300px">
+    <h3>Salary Details</h3>
+    <div id="salaryDetails">
+      <div class="kv"><div>Employee</div><div id="sdName">-</div></div>
+      <div class="kv"><div>Department</div><div id="sdDept">-</div></div>
+      <div class="kv"><div>Salary Type</div><div id="sdType">-</div></div>
+      <div class="kv"><div>Base Salary</div><div id="sdBase">-</div></div>
+      <div class="kv"><div>Overtime</div><div id="sdOvertime">-</div></div>
+      <div class="kv"><div>Bonus</div><div id="sdBonus">-</div></div>
+      <div class="kv"><div>Late Deduction</div><div id="sdLate">-</div></div>
+      <div class="kv"><div><strong>Total Payable</strong></div><div id="sdTotal"><strong>-</strong></div></div>
+    </div>
+
+    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+      <button id="downloadSlipPdf" class="btn primary">Download PDF</button>
+      <button id="downloadSlipCsv" class="btn ghost">Download CSV</button>
+    </div>
+  </div>
 </div>
 
-<!-- Export -->
-<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
-  <button id="exportCsv" class="btn ghost">Export CSV</button>
-  <button id="exportJson" class="btn ghost">Export JSON</button>
-  <button id="exportPdf" class="btn ghost">Export PDF</button>
-</div>
-
-  </div>  <!-- SIDEBAR -->  <div class="card" style="display:flex;flex-direction:column;gap:12px">
+  </div>  <!-- RIGHT SIDEBAR - Employee list, budgets etc -->  <div class="card">
     <h3>Employees</h3>
-    <div id="empList" class="audit" style="max-height:500px;overflow:auto"></div>
+    <div id="employeesContainer" class="employee-list" style="margin-top:8px"></div><div style="margin-top:12px">
+  <h4 style="margin:6px 0">Quick Controls</h4>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button id="clearAllBtn" class="btn danger">Clear All</button>
+    <button id="exportAllJson" class="btn ghost">Export All JSON</button>
+  </div>
+</div>
+
   </div>
 </div><script>
-let employees=[];
-let monthSelected=new Date().toISOString().slice(0,7);
+/* ---------------------------------------
+   Employee Attendance & Salary Tracker
+   Fully client-side, uses localStorage
+   --------------------------------------- */
 
-const monthPicker=document.getElementById('monthPicker');
-monthPicker.value=monthSelected;
-monthPicker.addEventListener('change',()=>{monthSelected=monthPicker.value; renderCalendar();});
+// State
+let employees = JSON.parse(localStorage.getItem('emps_v1')||'[]');
+let selectedEmpId = null;
+let selectedMonth = (new Date()).toISOString().slice(0,7);
 
-document.getElementById('addEmp').addEventListener('click',()=>{
-  const name=document.getElementById('empName').value.trim();
-  const dept=document.getElementById('empDept').value.trim();
-  if(!name || !dept) return alert('Enter name & department');
-  const emp={id:Date.now(),name,dept,attendance:{}};
+// DOM refs
+const monthSelect = document.getElementById('monthSelect');
+const monthTitle = document.getElementById('monthTitle');
+const calendarGrid = document.getElementById('calendarGrid');
+const employeesContainer = document.getElementById('employeesContainer');
+const employeeSelectCompact = document.getElementById('employeeSelectCompact');
+const empCurrency = document.getElementById('empCurrency');
+const filterEmployee = document.getElementById('filterEmployee');
+
+// populate month input
+monthSelect.value = selectedMonth;
+monthSelect.addEventListener('change', ()=>{ selectedMonth = monthSelect.value; render(); });
+
+// currency population (tries populateCurrencyDropdown from external file)
+function populateCurrencyFallback(el){
+  const list = [{code:'USD'},{code:'EUR'},{code:'GBP'},{code:'PKR'},{code:'INR'}];
+  el.innerHTML = '';
+  list.forEach(c=>{ const o=document.createElement('option'); o.value=c.code; o.textContent=c.code; el.appendChild(o); });
+}
+if(typeof populateCurrencyDropdown === 'function'){
+  // expects function populateCurrencyDropdown(id)
+  try{ populateCurrencyDropdown('empCurrency'); } catch(e){ populateCurrencyFallback(empCurrency); }
+} else populateCurrencyFallback(empCurrency);
+
+// helpers
+function save(){ localStorage.setItem('emps_v1', JSON.stringify(employees)); }
+function uid(){ return 'e_'+Math.random().toString(36).slice(2,9); }
+
+// Add employee
+document.getElementById('addEmployeeBtn').addEventListener('click', ()=>{
+  const name = document.getElementById('empName').value.trim();
+  const dept = document.getElementById('empDept').value.trim();
+  const type = document.getElementById('empSalaryType').value;
+  const currency = document.getElementById('empCurrency').value;
+  const base = Number(document.getElementById('empBasic').value) || 0;
+  const overtimeRate = Number(document.getElementById('empOvertime').value) || 0;
+  if(!name) return alert('Enter employee name');
+  const emp = { id: uid(), name, dept, type, currency, base, overtimeRate, bonus:0, attendance: {} };
   employees.push(emp);
-  document.getElementById('empName').value='';
-  document.getElementById('empDept').value='';
-  renderEmployees();
-  renderCalendar();
+  save(); render();
+  document.getElementById('empName').value=''; document.getElementById('empDept').value=''; document.getElementById('empBasic').value=''; document.getElementById('empOvertime').value='';
 });
 
-function renderEmployees(){
-  const container=document.getElementById('empList');
-  container.innerHTML=employees.map(e=>`<div>${e.name} - ${e.dept}</div>`).join('');
+// render employees list and selects
+function renderEmployeesList(){
+  employeesContainer.innerHTML='';
+  employeeSelectCompact.innerHTML = '<option value="">Select employee</option>';
+  filterEmployee.innerHTML = '<option value="">Filter by Employee</option>';
+  employees.forEach(e=>{
+    const div = document.createElement('div'); div.className='emp-item'; div.dataset.id=e.id; div.innerHTML = `<strong>${e.name}</strong><div style="font-size:12px;color:var(--muted)">${e.dept}</div>`;
+    if(e.id===selectedEmpId) div.classList.add('active');
+    div.addEventListener('click', ()=>{ selectedEmpId = e.id; render(); });
+    employeesContainer.appendChild(div);
+
+    const o = document.createElement('option'); o.value=e.id; o.textContent=e.name; employeeSelectCompact.appendChild(o);
+    const o2 = document.createElement('option'); o2.value=e.id; o2.textContent=e.name; filterEmployee.appendChild(o2);
+  });
 }
 
+// handle selection via compact select
+employeeSelectCompact.addEventListener('change', ()=>{ selectedEmpId = employeeSelectCompact.value || null; render(); });
+
+// clear filters
+document.getElementById('clearFilters').addEventListener('click', ()=>{ document.getElementById('filterDept').value=''; filterEmployee.value=''; render(); });
+
+// render calendar for selected month
 function renderCalendar(){
-  const cal=document.getElementById('calendar');
-  cal.innerHTML='';
-  if(!monthSelected) return;
-  const [year,month]=monthSelected.split('-').map(Number);
-  const daysInMonth=new Date(year,month,0).getDate();
+  calendarGrid.innerHTML='';
+  if(!selectedMonth) return;
+  const [y,m] = selectedMonth.split('-').map(Number);
+  const firstDay = new Date(y,m-1,1).getDay();
+  const days = new Date(y,m,0).getDate();
+
+  // add empties
+  for(let i=0;i<firstDay;i++){ const d=document.createElement('div'); d.className='empty'; calendarGrid.appendChild(d); }
+
+  for(let d=1;d<=days;d++){
+    const dt = `${selectedMonth}-${String(d).padStart(2,'0')}`;
+    const cell = document.createElement('div'); cell.className='cell'; cell.dataset.date = dt;
+    const dateDiv = document.createElement('div'); dateDiv.className='date'; dateDiv.textContent = d;
+    cell.appendChild(dateDiv);
+
+    // Per employee display: show badge for selected employee only
+    const badgeWrap = document.createElement('div'); badgeWrap.style.marginTop='auto';
+    if(selectedEmpId){
+      const emp = employees.find(x=>x.id===selectedEmpId);
+      const a = emp.attendance[dt];
+      if(a){ const sp = document.createElement('span'); sp.className = 'badge ' + (a.status==='present'? 'present' : a.status==='absent' ? 'absent' : 'late');
+        sp.textContent = a.status.charAt(0).toUpperCase()+a.status.slice(1) + (a.status==='late' && a.minutes ? (' ('+a.minutes+'m)') : ''); badgeWrap.appendChild(sp);
+      } else {
+        // show quick buttons
+        const btnP = document.createElement('button'); btnP.className='btn ghost'; btnP.textContent='Present'; btnP.addEventListener('click',()=>setAttendance(dt,'present'));
+        const btnA = document.createElement('button'); btnA.className='btn ghost'; btnA.textContent='Absent'; btnA.addEventListener('click',()=>setAttendance(dt,'absent'));
+        const btnL = document.createElement('button'); btnL.className='btn ghost'; btnL.textContent='Late'; btnL.addEventListener('click',()=>askLate(dt));
+        const wrap = document.createElement('div'); wrap.style.display='flex'; wrap.style.gap='6px'; wrap.style.flexWrap='wrap'; wrap.appendChild(btnP); wrap.appendChild(btnA); wrap.appendChild(btnL);
+        badgeWrap.appendChild(wrap);
+      }
+    } else {
+      const hint = document.createElement('div'); hint.style.color='var(--muted)'; hint.style.fontSize='13px'; hint.textContent='Select an employee'; badgeWrap.appendChild(hint);
+    }
+    cell.appendChild(badgeWrap);
+    calendarGrid.appendChild(cell);
+  }
+}
+
+function setAttendance(date,status,minutes=0,overtime=0){
+  if(!selectedEmpId) return alert('Select an employee first');
+  const emp = employees.find(e=>e.id===selectedEmpId);
+  emp.attendance[date] = { status, minutes: minutes || 0, overtime: overtime || 0 };
+  save(); render();
+}
+
+function askLate(date){
+  const mins = prompt('Minutes late? (e.g. 10)');
+  const minutes = Number(mins) || 0;
+  const ot = prompt('Overtime hours (optional)');
+  const overtime = Number(ot) || 0;
+  setAttendance(date,'late',minutes,overtime);
+}
+
+// calculate salary for selected employee and month
+function calcSalaryFor(emp, month){
+  // month format YYYY-MM
+  const [y,m] = month.split('-').map(Number);
+  const daysInMonth = new Date(y,m,0).getDate();
+  // working days = weekdays count
+  let workingDays = 0;
+  for(let d=1;d<=daysInMonth;d++){ const wd=new Date(y,m-1,d).getDay(); if(wd!==0 && wd!==6) workingDays++; }
+
+  // totals
+  let totalOvertimeHours = 0; let totalMinutesLate=0; let absentDays=0; let presentDays=0;
   for(let d=1;d<=daysInMonth;d++){
-    const dayDiv=document.createElement('div');
-    dayDiv.className='day';
-    dayDiv.textContent=d;
-    dayDiv.addEventListener('click',()=>markAttendance(d));
-    cal.appendChild(dayDiv);
+    const dt = `${month}-${String(d).padStart(2,'0')}`;
+    const a = emp.attendance[dt];
+    if(!a) continue;
+    if(a.status==='present') presentDays++;
+    if(a.status==='absent') absentDays++;
+    if(a.status==='late'){ totalMinutesLate += (a.minutes||0); presentDays++; }
+    if(a.overtime) totalOvertimeHours += (a.overtime||0);
   }
+
+  // base calculations
+  const currency = emp.currency || 'USD';
+  let base = Number(emp.base) || 0;
+  let overtimePay = totalOvertimeHours * (Number(emp.overtimeRate)||0);
+  let bonus = Number(emp.bonus||0)||0;
+
+  // late deduction logic
+  let lateDeduction = 0;
+  if(emp.type==='hourly'){
+    // hourly: deduction = hourlyRate * minutesLate/60
+    lateDeduction = (emp.base) * (totalMinutesLate/60);
+  } else if(emp.type==='weekly'){
+    // approximate weekly => compute daily from weekly
+    const weeksInMonth = Math.max(1, Math.round(daysInMonth/7));
+    const weekly = base; const daily = weekly/5; // assume 5 workdays
+    lateDeduction = (daily/ (8*60)) * totalMinutesLate; // daily pay distributed over minutes
+  } else {
+    // monthly
+    const daily = (base / Math.max(1, workingDays));
+    lateDeduction = (daily / (8*60)) * totalMinutesLate;
+  }
+
+  // absent deduction: full day(s)
+  let absentDeduction = 0;
+  if(emp.type==='hourly'){
+    absentDeduction = 0; // hourly employees only paid for hours worked (we didn't track hours), ignore
+  } else if(emp.type==='weekly'){
+    const weekly = base; const daily = weekly/5; absentDeduction = daily * absentDays;
+  } else {
+    const daily = (base / Math.max(1, workingDays)); absentDeduction = daily * absentDays;
+  }
+
+  // total payable
+  const totalPayable = (emp.type==='hourly' ? base : base) + overtimePay + bonus - lateDeduction - absentDeduction;
+
+  return { currency, base, overtimePay, bonus, lateDeduction, absentDeduction, totalPayable, presentDays, absentDays, totalOvertimeHours };
 }
 
-function markAttendance(day){
-  const status=prompt('Mark Present / Absent / Late');
-  let lateMinutes=0;
-  if(status && status.toLowerCase()==='late'){
-    lateMinutes=prompt('Minutes late?')||0;
-  }
-  employees.forEach(e=>{e.attendance[`${monthSelected}-${day}`]={status,status,status==='late'?lateMinutes:0};});
+// render salary details
+function renderSalaryDetails(){
+  const sd = (id=>{
+    if(!id) return null; return employees.find(e=>e.id===id);
+  })(selectedEmpId);
+  if(!sd){ document.getElementById('sdName').textContent='-'; document.getElementById('sdDept').textContent='-'; document.getElementById('sdType').textContent='-'; document.getElementById('sdBase').textContent='-'; document.getElementById('sdOvertime').textContent='-'; document.getElementById('sdBonus').textContent='-'; document.getElementById('sdLate').textContent='-'; document.getElementById('sdTotal').textContent='-'; return; }
+  document.getElementById('sdName').textContent = sd.name;
+  document.getElementById('sdDept').textContent = sd.dept;
+  document.getElementById('sdType').textContent = sd.type;
+  const month = selectedMonth;
+  const out = calcSalaryFor(sd, month);
+  const fmt = v=> (out.currency||'') + ' ' + Number(v||0).toFixed(2);
+  document.getElementById('sdBase').textContent = fmt(out.base);
+  document.getElementById('sdOvertime').textContent = fmt(out.overtimePay);
+  document.getElementById('sdBonus').textContent = fmt(out.bonus);
+  document.getElementById('sdLate').textContent = '-'+fmt(out.lateDeduction + out.absentDeduction);
+  document.getElementById('sdTotal').textContent = fmt(out.totalPayable);
+}
+
+// render all UI
+function render(){
+  renderEmployeesList();
+  monthTitle.textContent = new Date(selectedMonth+'-01').toLocaleString(undefined,{month:'long',year:'numeric'});
+  // populate compact select
+  employeeSelectCompact.innerHTML = '<option value="">Select employee</option>';
+  employees.forEach(e=>{ const o = document.createElement('option'); o.value=e.id; o.text = e.name; employeeSelectCompact.appendChild(o); });
+  if(selectedEmpId) employeeSelectCompact.value = selectedEmpId;
   renderCalendar();
+  renderSalaryDetails();
+  // update filter select
 }
 
-renderEmployees();
-renderCalendar();
+// downloads
+function downloadPayrollCSV(){
+  const rows = [['employeeId','employeeName','date','status','minutesLate','overtimeHours']];
+  employees.forEach(emp=>{
+    Object.entries(emp.attendance||{}).forEach(([date,a])=>{
+      rows.push([emp.id,emp.name,date,a.status,a.minutes||0,a.overtime||0]);
+    });
+  });
+  const csv = rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv],{type:'text/csv'}); const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='payroll_attendance.csv'; a.click(); URL.revokeObjectURL(url);
+}
+function downloadPayrollJSON(){ const j = JSON.stringify(employees,null,2); const blob=new Blob([j],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='payroll.json'; a.click(); URL.revokeObjectURL(url); }
+
+document.getElementById('downloadPayrollCsv').addEventListener('click', downloadPayrollCSV);
+document.getElementById('downloadPayrollJson').addEventListener('click', downloadPayrollJSON);
+
+document.getElementById('downloadSlipCsv').addEventListener('click', ()=>{
+  if(!selectedEmpId) return alert('Select employee'); const emp = employees.find(e=>e.id===selectedEmpId); const out = calcSalaryFor(emp, selectedMonth);
+  const csv = 'label,value\nEmployee,'+emp.name+'\nDepartment,'+emp.dept+'\nBase,'+out.base+'\nOvertime,'+out.overtimePay+'\nBonus,'+out.bonus+'\nDeductions,'+(out.lateDeduction+out.absentDeduction)+'\nTotal,'+out.totalPayable;
+  const blob=new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='salary_slip_'+emp.name+'.csv'; a.click(); URL.revokeObjectURL(url);
+});
+
+document.getElementById('downloadSlipPdf').addEventListener('click', ()=>{
+  // simple printable window for PDF via print
+  if(!selectedEmpId) return alert('Select employee'); const emp = employees.find(e=>e.id===selectedEmpId); const out = calcSalaryFor(emp, selectedMonth);
+  const html = `<div style="font-family:Arial;padding:20px"><h2>Salary Slip</h2><div>Employee: ${emp.name}</div><div>Period: ${selectedMonth}</div><div>Base: ${emp.currency} ${out.base.toFixed(2)}</div><div>Overtime: ${emp.currency} ${out.overtimePay.toFixed(2)}</div><div>Bonus: ${emp.currency} ${out.bonus.toFixed(2)}</div><div>Deductions: ${emp.currency} ${(out.lateDeduction+out.absentDeduction).toFixed(2)}</div><h3>Total: ${emp.currency} ${out.totalPayable.toFixed(2)}</h3></div>`;
+  const w = window.open('', '_blank'); w.document.write(html); w.document.close(); w.print();
+});
+
+// clear all
+document.getElementById('clearAllBtn').addEventListener('click', ()=>{ if(confirm('Clear all data?')){ employees=[]; save(); render(); } });
+
+// export all json
+document.getElementById('exportAllJson').addEventListener('click', ()=>{ const j=JSON.stringify(employees,null,2); const blob=new Blob([j],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='employees_all.json'; a.click(); URL.revokeObjectURL(url); });
+
+// delete employee on double click (small helper)
+employeesContainer.addEventListener('dblclick', (e)=>{
+  const el = e.target.closest('.emp-item'); if(!el) return; const id = el.dataset.id; if(confirm('Delete this employee?')){ employees = employees.filter(x=>x.id!==id); if(selectedEmpId===id) selectedEmpId=null; save(); render(); }
+});
+
+// initial render
+render();
+
 </script></body>
 </html>
-<!-- Added Manual Salary Input -->
-<div class="salary-input" style="margin-top:20px;display:flex;flex-direction:column;gap:10px;">
-  <label for="manualSalary">Enter Base Salary (Manual)</label>
-  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-    <select id="salaryCurrency" style="min-width:120px;">
-      <!-- populated from currencies.js -->
-    </select>
-    <input id="manualSalary" type="number" placeholder="Enter Salary" style="flex:1;min-width:160px;">
-  </div>
-</div>
