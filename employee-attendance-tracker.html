@@ -1,216 +1,178 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Employee Attendance Tracker</title>
+
+<!-- jsPDF CDN for PDF export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
 :root{
   --bg:#f6f8fb; --card:#fff; --muted:#6b7280; --accent:#2563eb;
-  --present:#10b981; --absent:#ef4444; --late:#f59e0b;
-  --radius:10px; font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;
+  --success:#10b981; --danger:#ef4444; --radius:10px;
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;
 }
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:#0f172a;padding:18px}
-.app{max-width:1150px;margin:0 auto;display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start}
-.card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 10px 30px rgba(2,6,23,0.06)}
-.header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
-h1{margin:0;font-size:18px}
-small.muted{color:var(--muted)}
-input,select,button{font-family:inherit}
-input,select{padding:8px;border-radius:8px;border:1px solid #e6eef8;background:#fff}
-button{padding:8px 12px;border-radius:8px;border:0;cursor:pointer}
-.btn{font-weight:700}
-.primary{background:var(--accent);color:#fff}
-.ghost{background:#f1f5f9;border:1px solid #e6eef8}
-.table{margin-top:12px;overflow:auto;border-radius:8px;border:1px solid #eef2ff}
-table{width:100%;border-collapse:collapse;font-size:14px}
-th,td{padding:8px;border-bottom:1px solid #f1f5f9;text-align:left}
-th{background:#fbfdff;position:sticky;top:0}
-.calendar{margin-top:16px}
-.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-.calendar-day{background:#fff;border-radius:8px;padding:8px;min-height:60px;position:relative;display:flex;flex-direction:column;justify-content:flex-start;cursor:pointer}
-.calendar-day.present{background:var(--present);color:#fff}
-.calendar-day.absent{background:var(--absent);color:#fff}
-.calendar-day.late{background:var(--late);color:#fff}
-.calendar-day span.date-number{font-weight:700;margin-bottom:4px}
-.legend{display:flex;gap:8px;margin-top:8px}
-.legend div{padding:4px 8px;border-radius:8px;color:#fff;font-weight:700}
-.legend .present{background:var(--present)}
-.legend .absent{background:var(--absent)}
-.legend .late{background:var(--late)}
-@media (max-width:1000px){.app{grid-template-columns:1fr} .calendar-grid{grid-template-columns:repeat(7,1fr)}}
-label{display:block;margin-bottom:4px;font-weight:600}
-.flex{display:flex;gap:8px;flex-wrap:wrap;align-items:end}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:#0f172a;padding:18px;}
+.card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 10px 30px rgba(2,6,23,0.06);}
+h1,h2,h3,h4{margin:0;}
+h2{font-size:20px;margin-bottom:12px;}
+input,select,textarea,button{font-family:inherit;}
+input,select,textarea{padding:8px;border-radius:8px;border:1px solid #e6eef8;background:#fff;width:100%;}
+button{padding:8px 12px;border-radius:8px;border:0;cursor:pointer;font-weight:700;}
+.btn.primary{background:var(--accent);color:#fff;}
+.btn.ghost{background:#f1f5f9;border:1px solid #e6eef8;}
+.table{overflow-x:auto;margin-top:12px;border-radius:8px;border:1px solid #eef2ff;}
+table{width:100%;border-collapse:collapse;font-size:14px;}
+th,td{padding:8px;border-bottom:1px solid #f1f5f9;text-align:left;min-width:100px;}
+th{background:#fbfdff;position:sticky;top:0;}
+.filter-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;align-items:end;margin-bottom:12px;}
+@media (max-width:1000px){.filter-row{grid-template-columns:1fr 1fr;}}
+.flex-end{display:flex;align-items:end;gap:8px;flex-wrap:wrap;}
 </style>
 </head>
 <body>
 
-<div class="app">
+<div class="card">
+  <h2>Employee Attendance Tracker</h2>
 
-  <!-- MAIN -->
-  <div class="card">
-    <div class="header">
-      <div>
-        <h1>Employee Attendance Tracker</h1>
-        <small class="muted">Add employees, departments, and mark attendance manually.</small>
-      </div>
+  <!-- Filters -->
+  <div class="filter-row">
+    <div>
+      <label>Month (YYYY-MM)</label>
+      <input type="month" id="filterMonth">
     </div>
-
-    <!-- Add Attendance -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;align-items:end;margin-bottom:12px">
-      <div><label>Date</label><input type="date" id="attDate"></div>
-      <div><label>Employee</label><input type="text" id="attEmployee" placeholder="Employee name"></div>
-      <div><label>Department</label><input type="text" id="attDepartment" placeholder="Department"></div>
-      <div><label>Status</label>
-        <select id="attStatus">
-          <option>Present</option>
-          <option>Absent</option>
-          <option>Late</option>
-        </select>
-      </div>
-      <div><label>Notes</label><input type="text" id="attNotes"></div>
-      <div class="flex">
-        <button id="addAttendance" class="btn primary">Add</button>
-        <button id="clearForm" class="btn ghost">Clear</button>
-      </div>
+    <div>
+      <label>Employee Name</label>
+      <input type="text" id="filterEmployee" placeholder="Employee Name">
     </div>
-
-    <!-- Filters -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;align-items:end;margin-bottom:12px">
-      <div><label>Month</label><input type="month" id="filterMonth"></div>
-      <div><label>Employee</label><input type="text" id="filterEmployee" placeholder="Employee name"></div>
-      <div><label>Department</label><input type="text" id="filterDepartment" placeholder="Department"></div>
-      <div class="flex">
-        <button id="applyFilter" class="btn ghost">Apply Filter</button>
-      </div>
+    <div>
+      <label>Department</label>
+      <input type="text" id="filterDepartment" placeholder="Department">
     </div>
-
-    <!-- Attendance Table -->
-    <div class="table">
-      <table>
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Employee</th>
-            <th>Department</th>
-            <th>Status</th>
-            <th>Notes</th>
-          </tr>
-        </thead>
-        <tbody id="attendanceTbody"></tbody>
-      </table>
-    </div>
-
-    <!-- Calendar -->
-    <div class="calendar">
-      <div class="calendar-grid" id="calendarGrid"></div>
-      <div class="legend">
-        <div class="present">Present</div>
-        <div class="absent">Absent</div>
-        <div class="late">Late</div>
-      </div>
+    <div>
+      <button id="applyFilter" class="btn ghost" style="width:100%;">Apply Filter</button>
     </div>
   </div>
 
-  <!-- Sidebar Summary -->
-  <div class="card">
-    <h3>Attendance Summary</h3>
-    <div id="summaryContent"></div>
+  <!-- Download buttons -->
+  <div class="flex-end">
+    <button id="exportCsv" class="btn ghost">Export CSV</button>
+    <button id="exportJson" class="btn ghost">Export JSON</button>
+    <button id="exportPdf" class="btn ghost">Export PDF</button>
   </div>
 
+  <!-- Attendance Table -->
+  <div class="table">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Employee</th>
+          <th>Department</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody id="attendanceTbody">
+        <!-- Dynamic rows go here -->
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <script>
-let attendanceData=[];
+let attendanceData = [
+  {date:'2025-11-01',employee:'John Doe',department:'Sales',status:'Present',notes:''},
+  {date:'2025-11-01',employee:'Jane Smith',department:'HR',status:'Absent',notes:''}
+];
 
-// Add Attendance
-document.getElementById('addAttendance').addEventListener('click',()=>{
-  const date=document.getElementById('attDate').value;
-  const employee=document.getElementById('attEmployee').value.trim();
-  const department=document.getElementById('attDepartment').value.trim();
-  const status=document.getElementById('attStatus').value;
-  const notes=document.getElementById('attNotes').value.trim();
-  if(!date || !employee || !department) return alert('Date, Employee, Department required');
-  attendanceData.push({date, employee, department, status, notes});
-  renderAll();
-});
-
-// Clear Form
-document.getElementById('clearForm').addEventListener('click',()=>{
-  document.getElementById('attDate').value='';
-  document.getElementById('attEmployee').value='';
-  document.getElementById('attDepartment').value='';
-  document.getElementById('attStatus').value='Present';
-  document.getElementById('attNotes').value='';
-});
-
-// Apply Filter
-document.getElementById('applyFilter').addEventListener('click',renderAll);
-
-function getFilteredData(){
-  const month=document.getElementById('filterMonth').value;
-  const employee=document.getElementById('filterEmployee').value.trim().toLowerCase();
-  const department=document.getElementById('filterDepartment').value.trim().toLowerCase();
-  return attendanceData.filter(a=>{
-    let keep=true;
-    if(month && !a.date.startsWith(month)) keep=false;
-    if(employee && !a.employee.toLowerCase().includes(employee)) keep=false;
-    if(department && !a.department.toLowerCase().includes(department)) keep=false;
-    return keep;
-  });
-}
-
-// Render Table
-function renderTable(){
-  const tbody=document.getElementById('attendanceTbody');
-  tbody.innerHTML='';
-  getFilteredData().forEach(a=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${a.date}</td><td>${a.employee}</td><td>${a.department}</td><td>${a.status}</td><td>${a.notes}</td>`;
+// Render table rows
+function renderTable() {
+  const tbody = document.getElementById('attendanceTbody');
+  tbody.innerHTML = '';
+  const filtered = getFiltered();
+  filtered.forEach((a,index)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="date" value="${a.date}" onchange="updateRow(${index}, 'date', this.value)"></td>
+      <td><input type="text" value="${a.employee}" onchange="updateRow(${index}, 'employee', this.value)"></td>
+      <td><input type="text" value="${a.department}" onchange="updateRow(${index}, 'department', this.value)"></td>
+      <td>
+        <select onchange="updateRow(${index}, 'status', this.value)">
+          <option ${a.status==='Present'?'selected':''}>Present</option>
+          <option ${a.status==='Absent'?'selected':''}>Absent</option>
+          <option ${a.status==='Late'?'selected':''}>Late</option>
+        </select>
+      </td>
+      <td><input type="text" value="${a.notes}" onchange="updateRow(${index}, 'notes', this.value)"></td>
+    `;
     tbody.appendChild(tr);
   });
 }
 
-// Render Calendar
-function renderCalendar(){
-  const grid=document.getElementById('calendarGrid');
-  grid.innerHTML='';
-  const monthInput=document.getElementById('filterMonth').value;
-  if(!monthInput) return;
-  const [year,month]=monthInput.split('-').map(Number);
-  const firstDay=new Date(year,month-1,1).getDay();
-  const daysInMonth=new Date(year,month,0).getDate();
-  for(let i=0;i<firstDay;i++){grid.appendChild(document.createElement('div'));}
-  for(let d=1;d<=daysInMonth;d++){
-    const dateStr=`${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const dayData=getFilteredData().filter(a=>a.date===dateStr);
-    const div=document.createElement('div'); div.className='calendar-day';
-    if(dayData.length>0){
-      if(dayData.every(x=>x.status==='Present')) div.classList.add('present');
-      else if(dayData.every(x=>x.status==='Absent')) div.classList.add('absent');
-      else div.classList.add('late');
-      div.title=dayData.map(x=>`${x.employee}: ${x.status}${x.notes?(' - '+x.notes):''}`).join('\n');
-    }
-    div.innerHTML=`<span class="date-number">${d}</span>`;
-    grid.appendChild(div);
-  }
+// Update a row
+function updateRow(index, field, value){
+  const filtered = getFiltered();
+  const item = filtered[index];
+  if(item) item[field] = value;
 }
 
-// Render Summary
-function renderSummary(){
-  const summary=document.getElementById('summaryContent');
-  const filtered=getFilteredData();
-  const total=filtered.length;
-  const present=filtered.filter(a=>a.status==='Present').length;
-  const absent=filtered.filter(a=>a.status==='Absent').length;
-  const late=filtered.filter(a=>a.status==='Late').length;
-  summary.innerHTML=`<p>Total Records: ${total}</p><p>Present: ${present}</p><p>Absent: ${absent}</p><p>Late: ${late}</p>`;
+// Filtered data
+function getFiltered(){
+  const month = document.getElementById('filterMonth').value;
+  const emp = document.getElementById('filterEmployee').value.trim().toLowerCase();
+  const dep = document.getElementById('filterDepartment').value.trim().toLowerCase();
+  return attendanceData.filter(a=>{
+    return (!month || a.date.startsWith(month)) &&
+           (!emp || a.employee.toLowerCase().includes(emp)) &&
+           (!dep || a.department.toLowerCase().includes(dep));
+  });
 }
 
-// Render All
-function renderAll(){renderTable(); renderCalendar(); renderSummary();}
+document.getElementById('applyFilter').addEventListener('click', renderTable);
+
+// --- Export CSV ---
+document.getElementById('exportCsv').addEventListener('click', ()=>{
+  const filtered = getFiltered();
+  const csv = [
+    ['Date','Employee','Department','Status','Notes'],
+    ...filtered.map(a=>[a.date,a.employee,a.department,a.status,a.notes])
+  ].map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
+  const blob = new Blob([csv],{type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='attendance.csv'; a.click();
+  URL.revokeObjectURL(url);
+});
+
+// --- Export JSON ---
+document.getElementById('exportJson').addEventListener('click', ()=>{
+  const data = getFiltered();
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='attendance.json'; a.click();
+  URL.revokeObjectURL(url);
+});
+
+// --- Export PDF ---
+document.getElementById('exportPdf').addEventListener('click', ()=>{
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const data = getFiltered();
+  doc.setFontSize(12);
+  doc.text("Employee Attendance Tracker", 14, 14);
+  let y=22;
+  data.forEach(a=>{
+    doc.text(`${a.date} | ${a.employee} | ${a.department} | ${a.status} | ${a.notes}`, 14, y);
+    y+=8;
+  });
+  doc.save('attendance.pdf');
+});
+
+// Initial render
+renderTable();
 </script>
 
 </body>
