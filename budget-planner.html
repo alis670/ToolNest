@@ -1,176 +1,708 @@
-<!DOCTYPE html><html lang="en">
+    <!doctype html>
+<html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Budget Planner – ToolNest</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Budget Planner — ToolNest (Pro)</title>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- html2canvas + jsPDF for PDF export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #f5f7fa;
-    margin: 0;
-    padding: 0;
-  }
-  .container {
-    max-width: 1100px;
-    margin: auto;
-    padding: 20px;
-  }
-  h2 {
-    margin-bottom: 16px;
-  }
-  .card {
-    background: #fff;
-    padding: 16px;
-    border-radius: 12px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    margin-bottom: 20px;
-  }
-  .row3 {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 12px;
-    margin-bottom: 12px;
-  }
-  label {
-    font-size: 14px;
-    font-weight: 600;
-    display: block;
-    margin-bottom: 4px;
-  }
-  input, select {
-    width: 100%;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #d2d6dc;
-    font-size: 14px;
-  }
-  .btn {
-    padding: 10px 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    border: none;
-    font-weight: 600;
-  }
-  .primary { background:#2563eb; color:#fff; }
-  .ghost { background:#eef2f7; }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  th, td {
-    padding: 10px;
-    border-bottom: 1px solid #e5e7eb;
-    text-align: left;
-    font-size: 14px;
-  }
-  th {
-    background: #f0f3f7;
-  }
+:root{
+  --bg:#f6f8fb; --card:#fff; --muted:#6b7280; --accent:#2563eb;
+  --success:#10b981; --danger:#ef4444; --radius:10px;
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:#0f172a;padding:18px;transition:background .2s,color .2s}
+.dark{--bg:#0b1220;--card:#071226;--muted:#94a3b8;--accent:#60a5fa;--success:#34d399;--danger:#fb7185;color:#e6eef8}
+.app{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 380px;gap:16px;align-items:start}
+.card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 10px 30px rgba(2,6,23,0.06)}
+.header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+h1{margin:0;font-size:18px}
+small.muted{color:var(--muted)}
+input,select,button,textarea{font-family:inherit}
+input,select,textarea{padding:8px;border-radius:8px;border:1px solid #e6eef8;background:#fff;width:100%}
+.dark input,.dark select,.dark textarea{background:#0b122c;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
+button{padding:8px 12px;border-radius:8px;border:0;cursor:pointer}
+.btn{font-weight:700}
+.primary{background:var(--accent);color:#fff}
+.ghost{background:#f1f5f9;border:1px solid #e6eef8}
+.danger{background:var(--danger);color:#fff}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.kpi{background:#fbfdff;padding:12px;border-radius:8px;text-align:center}
+.kpi h3{margin:0;font-size:13px}
+.kpi p{margin:6px 0 0;font-weight:800}
+.table{margin-top:12px;overflow:auto;border-radius:8px;border:1px solid #eef2ff}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:8px;border-bottom:1px solid #f1f5f9;text-align:left}
+th{background:#fbfdff;position:sticky;top:0;z-index:1}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+canvas{background:transparent;border-radius:8px;padding:8px}
+.audit{margin-top:12px;max-height:220px;overflow:auto;font-size:13px;color:var(--muted)}
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+label{display:block;margin-bottom:6px;font-weight:600}
+@media (max-width:1100px){ .app{grid-template-columns:1fr} .kpis{grid-template-columns:repeat(2,1fr)} .charts{grid-template-columns:1fr} }
+.small{font-size:12px;color:var(--muted)}
+.row3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;align-items:end}
+.flex-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.badge{display:inline-block;padding:6px 8px;border-radius:999px;background:#fff3f2;color:var(--danger);font-weight:700}
+.goal-progress{height:10px;background:#f1f5f9;border-radius:6px;overflow:hidden}
+.goal-progress > i{display:block;height:100%}
+.controls-top{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.space-right{margin-right:8px}
 </style>
 </head>
 <body>
-<div class="container">
-  <h2>💰 Budget Planner – ToolNest</h2>  <!-- Add Budget Form -->  <div class="card">
-    <h3>Add Budget Item</h3>
-    <div class="row3">
+
+<div class="app" id="appRoot">
+  <!-- MAIN -->
+  <div class="card">
+    <div class="header">
       <div>
-        <label>Category</label>
-        <select id="category">
-          <option>Marketing</option>
-          <option>Software</option>
-          <option>Travel</option>
-          <option>Office</option>
-          <option>Utilities</option>
-          <option>Miscellaneous</option>
-        </select>
+        <h1>Budget Planner — ToolNest (Pro)</h1>
+        <small class="muted">Pro: goals, recurring projections, editable budgets, PDF export, currency support.</small>
       </div>
-      <div>
-        <label>Amount</label>
-        <input type="number" id="amount" placeholder="Enter amount" />
-      </div>
-      <div>
-        <label>Month</label>
-        <input type="month" id="month" />
+
+      <div class="controls-top">
+        <div style="min-width:160px">
+          <small class="muted">Base currency</small>
+          <select id="baseCurrency" style="width:100%;padding:8px;border-radius:8px"></select>
+        </div>
+        <button id="toggleDark" class="btn ghost space-right">Dark</button>
+        <button id="exportPdf" class="btn ghost">Download PDF</button>
       </div>
     </div>
-    <button class="btn primary" id="addBudget">Add Budget</button>
-  </div>  <!-- Budget Table -->  <div class="card">
-    <h3>Budget Overview</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Category</th>
-          <th>Amount</th>
-          <th>Month</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="budgetTable"></tbody>
-    </table>
-  </div>  <!-- Summary -->  <div class="card">
-    <h3>Summary</h3>
-    <div class="row3">
-      <div>
-        <label>Total Budget</label>
-        <input id="totalBudget" disabled />
+
+    <!-- Add Transaction -->
+    <div class="card" style="margin-bottom:12px">
+      <h3 style="margin:0 0 10px">Add Transaction</h3>
+      <div class="row3">
+        <div>
+          <label>Type</label>
+          <select id="txType"><option value="expense">Expense</option><option value="income">Income</option></select>
+        </div>
+
+        <div>
+          <label>Category</label>
+          <select id="txCategory">
+            <option>Housing</option><option>Utilities</option><option>Food</option><option>Transport</option><option>Health</option><option>Insurance</option><option>Debt</option><option>Education</option><option>Entertainment</option><option>Subscriptions</option><option>Shopping</option><option>Business</option><option>Miscellaneous</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Amount (orig)</label>
+          <input id="txAmount" type="number" step="0.01" min="0" placeholder="0.00">
+        </div>
+
+        <div>
+          <label>Frequency</label>
+          <select id="txFreq"><option value="monthly">Monthly</option><option value="weekly">Weekly</option><option value="one-time">One-time</option><option value="yearly">Yearly</option></select>
+        </div>
+
+        <div>
+          <label>Original Currency</label>
+          <select id="txCurrency"></select>
+        </div>
+
+        <div>
+          <label>Date</label>
+          <input id="txDate" type="date">
+        </div>
+
+        <div style="grid-column:1 / -1;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-start;margin-top:6px">
+          <button id="addTx" class="btn primary">Add Transaction</button>
+          <button id="clearTx" class="btn ghost">Clear</button>
+          <button id="projectRecurring" class="btn ghost">Project Recurring (12 mo)</button>
+        </div>
       </div>
-      <div>
-        <label>Highest Category</label>
-        <input id="highestCategory" disabled />
+    </div>
+
+    <!-- Budgets -->
+    <div class="card">
+      <h3 style="margin:0 0 10px">Category Budgets (monthly)</h3>
+      <div class="row3">
+        <div>
+          <label>Category</label>
+          <select id="budgetCategory">
+            <option>Housing</option><option>Utilities</option><option>Food</option><option>Transport</option><option>Health</option><option>Insurance</option><option>Debt</option><option>Education</option><option>Entertainment</option><option>Subscriptions</option><option>Shopping</option><option>Business</option><option>Miscellaneous</option>
+          </select>
+        </div>
+        <div>
+          <label>Monthly Budget Amount (base)</label>
+          <input id="budgetAmount" type="number" step="0.01" min="0" placeholder="0.00">
+        </div>
+        <div>
+          <label>Month</label>
+          <input id="budgetMonth" type="month">
+        </div>
+
+        <div style="grid-column:1 / -1;display:flex;gap:8px;justify-content:flex-start;flex-wrap:wrap;margin-top:6px">
+          <button id="saveBudget" class="btn primary">Save Budget</button>
+          <button id="clearBudget" class="btn ghost">Clear</button>
+          <button id="editBudgetsList" class="btn ghost">Manage Budgets</button>
+        </div>
       </div>
-      <div>
-        <label>Average Monthly Budget</label>
-        <input id="avgBudget" disabled />
+    </div>
+
+    <!-- Goals -->
+    <div class="card" style="margin-top:12px">
+      <h3 style="margin:0 0 10px">Savings & Goals</h3>
+      <div class="row3">
+        <div>
+          <label>Goal name</label>
+          <input id="goalName" placeholder="Emergency fund / Vacation">
+        </div>
+        <div>
+          <label>Target amount (base)</label>
+          <input id="goalTarget" type="number" step="0.01" min="0">
+        </div>
+        <div>
+          <label>Monthly contribution (base)</label>
+          <input id="goalMonthly" type="number" step="0.01" min="0">
+        </div>
+        <div style="grid-column:1 / -1;display:flex;gap:8px;margin-top:6px">
+          <button id="addGoal" class="btn primary">Add Goal</button>
+          <button id="clearGoal" class="btn ghost">Clear</button>
+        </div>
       </div>
+
+      <div id="goalsList" style="margin-top:10px"></div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpis" style="margin-top:12px">
+      <div class="kpi"><h3>Total Income (12mo)</h3><p id="kTotalIncome">0</p></div>
+      <div class="kpi"><h3>Total Expense (12mo)</h3><p id="kTotalExpense">0</p></div>
+      <div class="kpi"><h3>Net (12mo)</h3><p id="kNet">0</p></div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts">
+      <canvas id="monthChart" height="240"></canvas>
+      <canvas id="catChart" height="240"></canvas>
+    </div>
+
+    <!-- Transactions table -->
+    <div class="table" style="margin-top:12px">
+      <table>
+        <thead>
+          <tr><th>Date</th><th>Type</th><th>Category</th><th style="text-align:right">Amount (base)</th><th>Orig Curr</th><th>Freq</th><th style="text-align:right">Actions</th></tr>
+        </thead>
+        <tbody id="txTbody"></tbody>
+      </table>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:8px;flex-wrap:wrap">
+      <div class="small">Data stored locally (localStorage). Base currency converts via exchangerate.host.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button id="exportCsv" class="btn ghost">Export CSV</button>
+        <button id="exportJson" class="btn ghost">Export JSON</button>
+        <button id="exportPdfBtn" class="btn ghost">Export PDF (report)</button>
+        <input id="importFile" type="file" accept=".json" style="display:none">
+        <button id="importBtn" class="btn ghost">Import JSON</button>
+        <button id="clearAll" class="btn danger">Clear All</button>
+      </div>
+    </div>
+
+    <div class="audit" id="auditLog"></div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="card">
+    <h3 style="margin:0 0 8px">Budgets & Alerts</h3>
+
+    <div style="margin-bottom:10px">
+      <label>View month</label>
+      <select id="viewMonth" style="width:100%;margin-top:6px"></select>
+    </div>
+
+    <div id="budgetList" class="audit"></div>
+
+    <div style="margin-top:12px">
+      <h4 style="margin:6px 0">Alerts</h4>
+      <div id="alerts" class="audit"></div>
     </div>
   </div>
-</div><script>
-  const table = document.getElementById("budgetTable");
-  const totalBudget = document.getElementById("totalBudget");
-  const highestCategory = document.getElementById("highestCategory");
-  const avgBudget = document.getElementById("avgBudget");
-  let items = [];
 
-  document.getElementById("addBudget").onclick = () => {
-    const cat = category.value;
-    const amt = Number(amount.value);
-    const mon = month.value;
+</div>
 
-    if (!cat || !amt || !mon) return alert("All fields required");
+<script src="loadCurrencies.js"></script>
+<script>
+/* ---------- STORAGE KEYS & STATE ---------- */
+const TX_KEY = 'tn_pro_budget_tx_v1';
+const BUDGET_KEY = 'tn_pro_budget_monthly_v1';
+const GOAL_KEY = 'tn_pro_goals_v1';
+const AUDIT_KEY = 'tn_pro_audit_v1';
 
-    const entry = {cat, amt, mon};
-    items.push(entry);
-    render();
+let transactions = []; // {id,type,category,amount,origCurrency,date,freq,amountBase}
+let budgets = {}; // "category|YYYY-MM" => amount (base)
+let goals = []; // {id,name,target,monthly,progress}
+let audit = [];
+let rateCache = {};
+let monthChart, catChart;
+
+/* DOM refs */
+const baseCurrencyEl = document.getElementById('baseCurrency');
+const txCurrencyEl = document.getElementById('txCurrency');
+const viewMonthEl = document.getElementById('viewMonth');
+const appRoot = document.getElementById('appRoot');
+
+/* helpers */
+function uid(){ return 'id_'+Math.random().toString(36).slice(2,9); }
+function fmt(n){ return Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function now(){ return new Date().toISOString().slice(0,19).replace('T',' '); }
+function saveAll(){ localStorage.setItem(TX_KEY, JSON.stringify(transactions)); localStorage.setItem(BUDGET_KEY, JSON.stringify(budgets)); localStorage.setItem(GOAL_KEY, JSON.stringify(goals)); localStorage.setItem(AUDIT_KEY, JSON.stringify(audit.slice(0,500))); }
+function loadAll(){ transactions = JSON.parse(localStorage.getItem(TX_KEY)||'[]'); budgets = JSON.parse(localStorage.getItem(BUDGET_KEY)||'{}'); goals = JSON.parse(localStorage.getItem(GOAL_KEY)||'[]'); audit = JSON.parse(localStorage.getItem(AUDIT_KEY)||'[]'); }
+
+/* wait for populateCurrencyDropdown from loadCurrencies.js */
+async function waitForPopulate(timeout=3000){
+  const start=Date.now();
+  while(Date.now()-start<timeout){
+    if(typeof populateCurrencyDropdown==='function') return true;
+    await new Promise(r=>setTimeout(r,100));
+  }
+  return false;
+}
+
+/* initialize currencies and UI */
+(async function init(){
+  const ok = await waitForPopulate(3000);
+  if(ok){
+    populateCurrencyDropdown('baseCurrency');
+    populateCurrencyDropdown('txCurrency');
+    setTimeout(()=> {
+      if(!baseCurrencyEl.value) baseCurrencyEl.value = 'USD';
+      if(!txCurrencyEl.value) txCurrencyEl.value = baseCurrencyEl.value || 'USD';
+      populateViewMonths();
+      loadAll();
+      renderAll();
+    }, 200);
+  } else {
+    // fallback to USD
+    const o = document.createElement('option'); o.value='USD'; o.text='USD';
+    baseCurrencyEl.appendChild(o);
+    txCurrencyEl.appendChild(o.cloneNode(true));
+    populateViewMonths();
+    loadAll();
+    renderAll();
+  }
+})();
+
+/* fetch rates (cached) */
+async function fetchRates(base='USD'){
+  if(rateCache[base] && (Date.now() - rateCache[base].ts < 1000*60*15)) return rateCache[base].rates;
+  try{
+    const res = await fetch(`https://api.exchangerate.host/latest?base=${encodeURIComponent(base)}`);
+    const d = await res.json();
+    rateCache[base] = { ts: Date.now(), rates: d.rates || {} };
+    return rateCache[base].rates;
+  }catch(e){ console.warn('rates fail', e); return {}; }
+}
+
+/* convert orig -> base */
+async function convertToBase(amount, orig, base){
+  if(!orig || !base) return amount;
+  if(orig === base) return Number(amount);
+  const rates = await fetchRates(base);
+  const r = rates[orig];
+  if(!r || r === 0) return Number(amount);
+  return Number(amount) / r;
+}
+
+/* frequency -> monthly conversion */
+function freqToMonthly(amount, freq){
+  if(freq === 'monthly') return amount;
+  if(freq === 'weekly') return amount * 4.345; // average weeks/month
+  if(freq === 'yearly') return amount / 12;
+  if(freq === 'one-time') return amount; // treat as single-month amount for month it occurs in
+  return amount;
+}
+
+/* view months populate */
+function populateViewMonths(){
+  const nowDate = new Date();
+  const options = [];
+  for(let i=-6;i<=12;i++){
+    const d = new Date(nowDate.getFullYear(), nowDate.getMonth()+i, 1);
+    const v = d.toISOString().slice(0,7);
+    options.push(v);
+  }
+  viewMonthEl.innerHTML = options.map(o=>`<option value="${o}">${o}</option>`).join('');
+}
+
+/* Add Transaction */
+document.getElementById('addTx').addEventListener('click', async ()=>{
+  const type = document.getElementById('txType').value;
+  const category = document.getElementById('txCategory').value;
+  const amount = parseFloat(document.getElementById('txAmount').value);
+  const freq = document.getElementById('txFreq').value;
+  const origCurrency = txCurrencyEl.value || baseCurrencyEl.value || 'USD';
+  const date = document.getElementById('txDate').value || new Date().toISOString().slice(0,10);
+
+  if(!category || !amount || isNaN(amount) || amount <= 0){ alert('Enter valid category and amount'); return; }
+
+  const base = baseCurrencyEl.value || 'USD';
+  const amountBase = await convertToBase(amount, origCurrency, base);
+
+  const tx = { id: uid(), type, category, amount: Number(amount), origCurrency, amountBase: Number(amountBase), date, freq, created: now() };
+  transactions.unshift(tx);
+  audit.unshift({ts:now(), msg:`Added ${type} ${fmt(amount)} ${origCurrency} (${category})`});
+  saveAll();
+  await renderAll();
+
+  // clear inputs
+  document.getElementById('txAmount').value = '';
+  document.getElementById('txDate').value = '';
+});
+
+/* Project recurring into next N months (adds one-time projected txs) */
+document.getElementById('projectRecurring').addEventListener('click', async ()=>{
+  if(!confirm('This will create monthly projected entries for existing recurring items for next 12 months. Continue?')) return;
+  const base = baseCurrencyEl.value || 'USD';
+  const nowDate = new Date();
+  const recurring = transactions.filter(t => t.freq !== 'one-time');
+  for(const r of recurring){
+    // for months 0..11 add entries
+    for(let i=0;i<12;i++){
+      const d = new Date(nowDate.getFullYear(), nowDate.getMonth()+i, 1);
+      const dateStr = d.toISOString().slice(0,10);
+      const monthlyAmount = freqToMonthly(r.amount, r.freq);
+      const amountBase = await convertToBase(monthlyAmount, r.origCurrency, base);
+      const tx = { id: uid(), type: r.type, category: r.category, amount: monthlyAmount, origCurrency: r.origCurrency, amountBase: Number(amountBase), date: dateStr, freq: 'one-time', projectedFrom: r.id };
+      transactions.unshift(tx);
+    }
+  }
+  audit.unshift({ts:now(), msg:`Projected recurring into next 12 months`});
+  saveAll(); renderAll();
+});
+
+/* Add Budget */
+document.getElementById('saveBudget').addEventListener('click', ()=>{
+  const cat = document.getElementById('budgetCategory').value;
+  const amt = parseFloat(document.getElementById('budgetAmount').value);
+  const month = document.getElementById('budgetMonth').value;
+  if(!cat || !amt || !month) return alert('Enter category, amount and month');
+  const key = `${cat}|${month}`;
+  budgets[key] = Number(amt);
+  audit.unshift({ts:now(), msg:`Set budget ${cat} ${fmt(amt)} for ${month}`});
+  saveAll();
+  renderAll();
+  document.getElementById('budgetAmount').value = '';
+});
+
+/* Manage budgets (inline list + edit) */
+document.getElementById('editBudgetsList').addEventListener('click', ()=>{
+  // simple prompt-based manage: show keys and allow delete or edit via UI - keep simple
+  const keys = Object.keys(budgets);
+  if(!keys.length) return alert('No budgets to manage');
+  const k = prompt('Enter budget key to edit or delete (exact).\nAvailable keys:\n' + keys.join('\n'));
+  if(!k) return;
+  if(!budgets.hasOwnProperty(k)) return alert('Invalid key');
+  const action = prompt('Enter "delete" to remove, or enter new amount to update', 'delete');
+  if(action === null) return;
+  if(action.toLowerCase() === 'delete'){ delete budgets[k]; audit.unshift({ts:now(), msg:`Deleted budget ${k}`}); saveAll(); renderAll(); return; }
+  const newAmt = Number(action);
+  if(isNaN(newAmt)) return alert('Invalid amount');
+  budgets[k] = newAmt; audit.unshift({ts:now(), msg:`Updated budget ${k} => ${fmt(newAmt)}`}); saveAll(); renderAll();
+});
+
+/* Goals */
+document.getElementById('addGoal').addEventListener('click', ()=>{
+  const name = document.getElementById('goalName').value.trim();
+  const target = parseFloat(document.getElementById('goalTarget').value);
+  const monthly = parseFloat(document.getElementById('goalMonthly').value) || 0;
+  if(!name || !target || isNaN(target)) return alert('Enter valid goal name and target');
+  const g = { id: uid(), name, target: Number(target), monthly: Number(monthly), progress: 0 };
+  goals.unshift(g);
+  audit.unshift({ts:now(), msg:`Added goal ${name} target ${fmt(target)}`});
+  saveAll(); renderAll();
+  document.getElementById('goalName').value=''; document.getElementById('goalTarget').value=''; document.getElementById('goalMonthly').value='';
+});
+
+/* Goal actions: save & delete (delegated) */
+function deleteGoal(id){ if(!confirm('Delete goal?')) return; goals = goals.filter(g=>g.id!==id); audit.unshift({ts:now(), msg:`Deleted goal ${id}`}); saveAll(); renderAll(); }
+window.deleteGoal = deleteGoal;
+
+function editGoal(id){
+  const g = goals.find(x=>x.id===id); if(!g) return;
+  const name = prompt('Goal name', g.name); if(name===null) return;
+  const target = prompt('Target amount', g.target); if(target===null) return;
+  const monthly = prompt('Monthly contribution', g.monthly); if(monthly===null) return;
+  g.name = name; g.target = Number(target)||g.target; g.monthly = Number(monthly)||g.monthly;
+  audit.unshift({ts:now(), msg:`Edited goal ${g.name}`}); saveAll(); renderAll();
+}
+window.editGoal = editGoal;
+
+/* Export / Import / Clear */
+document.getElementById('exportJson').addEventListener('click', ()=>{
+  const payload = { transactions, budgets, goals };
+  const blob = new Blob([JSON.stringify(payload,null,2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='budget_pro_export.json'; a.click(); URL.revokeObjectURL(url);
+});
+document.getElementById('exportCsv').addEventListener('click', ()=>{
+  const hdr = 'id,type,category,amount,origCurrency,amountBase,date,freq\n';
+  const rows = transactions.map(t=>`${t.id},${t.type},"${t.category}",${t.amount},${t.origCurrency},${t.amountBase},${t.date},${t.freq}`);
+  const blob = new Blob([hdr + rows.join('\n')], { type:'text/csv' });
+  const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='transactions.csv'; a.click(); URL.revokeObjectURL(url);
+});
+document.getElementById('importBtn').addEventListener('click', ()=> document.getElementById('importFile').click());
+document.getElementById('importFile').addEventListener('change', e=>{
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ()=> {
+    try{
+      const data = JSON.parse(r.result);
+      if(data.transactions && Array.isArray(data.transactions)) transactions = data.transactions.concat(transactions);
+      if(data.budgets && typeof data.budgets === 'object') budgets = Object.assign({}, budgets, data.budgets);
+      if(data.goals && Array.isArray(data.goals)) goals = data.goals.concat(goals);
+      audit.unshift({ts:now(), msg:`Imported data (${f.name})`});
+      saveAll(); renderAll(); alert('Import complete');
+    }catch(err){ alert('Import error: '+err.message); }
   };
+  r.readAsText(f); e.target.value='';
+});
+document.getElementById('clearAll').addEventListener('click', ()=> {
+  if(!confirm('Clear all transactions, budgets and goals?')) return;
+  transactions = []; budgets = {}; goals = []; audit.unshift({ts:now(), msg:'Cleared all data'}); saveAll(); renderAll();
+});
 
-  function render() {
-    table.innerHTML = "";
-    items.forEach((x, i) => {
-      table.innerHTML += `
-        <tr>
-          <td>${x.cat}</td>
-          <td>${x.amt}</td>
-          <td>${x.mon}</td>
-          <td><button class='btn ghost' onclick='del(${i})'>Delete</button></td>
-        </tr>`;
-    });
+/* Edit / Delete transaction functions (delegated) */
+function deleteTx(id){
+  if(!confirm('Delete transaction?')) return;
+  transactions = transactions.filter(t=>t.id !== id);
+  audit.unshift({ts:now(), msg:`Deleted tx ${id}`});
+  saveAll(); renderAll();
+}
+window.deleteTx = deleteTx;
 
-    // Summary
-    const sum = items.reduce((a,b)=>a+b.amt,0);
-    totalBudget.value = sum;
+function editTx(id){
+  const t = transactions.find(x=>x.id===id); if(!t) return;
+  const newAmt = prompt('Amount (original currency)', t.amount);
+  if(newAmt === null) return;
+  t.amount = Number(newAmt) || t.amount;
+  const newDate = prompt('Date (YYYY-MM-DD)', t.date);
+  if(newDate !== null) t.date = newDate;
+  audit.unshift({ts:now(), msg:`Edited tx ${id}`});
+  saveAll(); renderAll();
+}
+window.editTx = editTx;
 
-    if (items.length) {
-      const grouped = {};
-      items.forEach(x => grouped[x.cat] = (grouped[x.cat]||0) + x.amt);
-      const top = Object.entries(grouped).sort((a,b)=>b[1]-a[1])[0];
-      highestCategory.value = top[0] + " (" + top[1] + ")";
-      avgBudget.value = (sum / items.length).toFixed(2);
+/* Render everything: conversions, KPIs, charts, budgets, alerts, goals */
+async function renderAll(){
+  loadAll();
+  const base = baseCurrencyEl.value || 'USD';
+  const rates = await fetchRates(base);
+
+  // recompute amountBase
+  for(const t of transactions){
+    if(!t.origCurrency) t.origCurrency = base;
+    if(t.origCurrency === base){ t.amountBase = Number(t.amount); }
+    else {
+      const r = rates[t.origCurrency];
+      t.amountBase = (r && r !== 0) ? Number(t.amount) / r : Number(t.amount);
     }
   }
 
-  function del(i) {
-    items.splice(i,1);
-    render();
+  // Transactions table (all)
+  const tbody = document.getElementById('txTbody');
+  tbody.innerHTML = '';
+  for(const t of transactions){
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${t.date}</td>
+      <td>${escapeHtml(t.type)}</td>
+      <td>${escapeHtml(t.category)}</td>
+      <td style="text-align:right">${fmt(t.amountBase)} ${base}</td>
+      <td>${escapeHtml(t.origCurrency)}</td>
+      <td>${escapeHtml(t.freq)}</td>
+      <td style="text-align:right">
+        <button class="btn ghost" onclick="editTx('${t.id}')">Edit</button>
+        <button class="btn danger" onclick="deleteTx('${t.id}')">Delete</button>
+      </td>`;
+    tbody.appendChild(tr);
   }
-</script></body>
+
+  // KPIs over last 12 months:
+  const months12 = getLastNMonths(12);
+  const totalIncome = months12.reduce((s,m)=> s + transactions.filter(t=>t.type==='income' && t.date.slice(0,7)===m).reduce((a,b)=>a + (b.amountBase||0),0), 0);
+  const totalExpense = months12.reduce((s,m)=> s + transactions.filter(t=>t.type==='expense' && t.date.slice(0,7)===m).reduce((a,b)=>a + (b.amountBase||0),0), 0);
+  document.getElementById('kTotalIncome').innerText = `${base} ${fmt(totalIncome)}`;
+  document.getElementById('kTotalExpense').innerText = `${base} ${fmt(totalExpense)}`;
+  document.getElementById('kNet').innerText = `${base} ${fmt(totalIncome - totalExpense)}`;
+
+  // Charts:
+  const months = months12;
+  const incomeData = months.map(m => transactions.filter(t=>t.type==='income' && t.date.slice(0,7)===m).reduce((s,t)=>s + (t.amountBase||0),0));
+  const expenseData = months.map(m => transactions.filter(t=>t.type==='expense' && t.date.slice(0,7)===m).reduce((s,t)=>s + (t.amountBase||0),0));
+
+  if(monthChart) monthChart.destroy();
+  monthChart = new Chart(document.getElementById('monthChart').getContext('2d'), {
+    type:'bar',
+    data:{ labels: months, datasets: [{ label:'Income', data: incomeData, backgroundColor:'#10b981' }, { label:'Expense', data: expenseData, backgroundColor:'#ef4444' }] },
+    options:{ responsive:true, plugins:{ legend:{ position:'bottom' } }, scales:{ y:{ beginAtZero:true } } }
+  });
+
+  // Category pie for selected viewMonth
+  const viewMonth = viewMonthEl.value || new Date().toISOString().slice(0,7);
+  const catMap = {};
+  transactions.filter(t => t.date.slice(0,7) === viewMonth && t.type === 'expense').forEach(t=>{
+    catMap[t.category] = (catMap[t.category]||0) + (t.amountBase||0);
+  });
+  if(catChart) catChart.destroy();
+  catChart = new Chart(document.getElementById('catChart').getContext('2d'),{
+    type:'pie',
+    data:{ labels: Object.keys(catMap), datasets:[{ data:Object.values(catMap), backgroundColor: palette(Object.keys(catMap).length) }] },
+    options:{ responsive:true, plugins:{ legend:{ position:'right' } } }
+  });
+
+  // Budgets list
+  renderBudgetList(viewMonth, base);
+
+  // Goals list + progress
+  renderGoals(base);
+
+  // Alerts
+  renderAlerts(viewMonth, base);
+
+  // audit log
+  const auditEl = document.getElementById('auditLog');
+  auditEl.innerHTML = audit.slice(0,100).map(a=>`<div style="padding:6px;border-bottom:1px solid #f1f5f9"><small>${a.ts}</small><div>${escapeHtml(a.msg)}</div></div>`).join('');
+}
+
+/* Render budget list for month */
+function renderBudgetList(month, base){
+  const el = document.getElementById('budgetList');
+  const rows = [];
+  for(const key of Object.keys(budgets)){
+    const [cat,kMonth] = key.split('|');
+    if(kMonth !== month) continue;
+    const b = budgets[key];
+    const spent = transactions.filter(t => t.category === cat && t.date.slice(0,7) === month && t.type === 'expense').reduce((s,t)=>s + (t.amountBase||0),0);
+    const pct = b > 0 ? Math.round((spent / b) * 100) : 0;
+    rows.push(`<div style="padding:8px;border-bottom:1px solid #f8fafc">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><strong>${escapeHtml(cat)}</strong><div class="small">Budget: ${base} ${fmt(b)} • Spent: ${base} ${fmt(spent)}</div></div>
+        <div style="text-align:right">
+          ${pct}% <div style="margin-top:6px"><button class="btn ghost" onclick="editBudget('${key}')">Edit</button> <button class="btn danger" onclick="deleteBudget('${key}')">Delete</button></div>
+        </div>
+      </div>
+      <div style="margin-top:6px;height:8px;background:#f1f5f9;border-radius:6px;overflow:hidden"><div style="width:${Math.min(pct,100)}%;height:100%;background:${spent> b? 'var(--danger)' : 'var(--accent)'}"></div></div>
+    </div>`);
+  }
+  el.innerHTML = rows.join('') || '<div class="small">No budgets set for this month</div>';
+}
+
+/* Edit / delete budget */
+function editBudget(key){
+  const current = budgets[key];
+  const val = prompt('Enter new monthly budget amount (base) for ' + key, current);
+  if(val === null) return;
+  const num = Number(val);
+  if(isNaN(num)) return alert('Invalid number');
+  budgets[key] = num; audit.unshift({ts:now(), msg:`Updated budget ${key} => ${fmt(num)}`}); saveAll(); renderAll();
+}
+window.editBudget = editBudget;
+
+function deleteBudget(key){
+  if(!confirm('Delete budget?')) return;
+  delete budgets[key]; audit.unshift({ts:now(), msg:`Deleted budget ${key}`}); saveAll(); renderAll();
+}
+window.deleteBudget = deleteBudget;
+
+/* Render goals */
+function renderGoals(base){
+  const el = document.getElementById('goalsList');
+  if(!goals.length){ el.innerHTML = '<div class="small">No goals added</div>'; return; }
+  const rows = goals.map(g=>{
+    // compute progress from sum of monthly contributions (we'll approximate by sum of monthly contributions so far)
+    // Simplified: progress by contributions logged as 'income' type with category matching goal name (or tracked separately)
+    const progress = g.progress || 0;
+    const pct = Math.min(100, Math.round((progress / g.target) * 100));
+    return `<div style="padding:8px;border-bottom:1px solid #f8fafc">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><strong>${escapeHtml(g.name)}</strong><div class="small">Target: ${base} ${fmt(g.target)} • Monthly: ${base} ${fmt(g.monthly)}</div></div>
+        <div style="text-align:right">
+          ${pct}% <div style="margin-top:6px"><button class="btn ghost" onclick="editGoal('${g.id}')">Edit</button> <button class="btn danger" onclick="deleteGoal('${g.id}')">Delete</button></div>
+        </div>
+      </div>
+      <div style="margin-top:6px;height:10px;background:#f1f5f9;border-radius:6px;overflow:hidden"><i style="display:block;height:100%;width:${pct}%;background:var(--accent)"></i></div>
+    </div>`;
+  });
+  el.innerHTML = rows.join('');
+}
+
+/* Alerts rendering */
+function renderAlerts(month, base){
+  const alertsEl = document.getElementById('alerts');
+  alertsEl.innerHTML = '';
+  // budget overspend alerts
+  for(const key of Object.keys(budgets)){
+    const [cat,kMonth] = key.split('|');
+    if(kMonth !== month) continue;
+    const limit = budgets[key];
+    const spent = transactions.filter(t=>t.category===cat && t.type==='expense' && t.date.slice(0,7)===month).reduce((s,t)=>s + (t.amountBase||0),0);
+    if(spent > limit){
+      alertsEl.insertAdjacentHTML('beforeend', `<div style="padding:8px;border-radius:8px;background:#fff3f2;border:1px solid #fdecea"><strong>Budget overspent:</strong> ${escapeHtml(cat)} — Spent ${base} ${fmt(spent)} / ${fmt(limit)}</div>`);
+    }
+  }
+  // spike alert example
+  const months = getLastNMonths(6);
+  const avg = months.reduce((s,m)=> s + transactions.filter(t=>t.date.slice(0,7)===m && t.type==='expense').reduce((a,b)=>a+(b.amountBase||0),0) ,0) / Math.max(1,months.length);
+  const thisSpent = transactions.filter(t=>t.date.slice(0,7)===month && t.type==='expense').reduce((s,t)=>s + (t.amountBase||0),0);
+  if(avg > 0 && thisSpent > avg * 1.5){
+    alertsEl.insertAdjacentHTML('beforeend', `<div style="padding:8px;border-radius:8px;background:#fff7ed;border:1px solid #ffedd5"><strong>Warning:</strong> This month's expense (${fmt(thisSpent)}) > 150% of recent average (${fmt(avg)}).</div>`);
+  }
+}
+
+/* utilities */
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function getLastNMonths(n){ const arr=[]; const now=new Date(); for(let i=n-1;i>=0;i--){ const d=new Date(now.getFullYear(), now.getMonth()-i, 1); arr.push(d.toISOString().slice(0,7)); } return arr; }
+function palette(n){ const p=['#ef4444','#f59e0b','#10b981','#3b82f6','#6366f1','#8b5cf6','#06b6d4','#f97316']; return Array.from({length:n},(_,i)=>p[i%p.length]); }
+
+/* view month change */
+viewMonthEl.addEventListener('change', ()=> renderAll());
+baseCurrencyEl.addEventListener('change', async ()=> { await renderAll(); });
+
+/* Dark toggle */
+document.getElementById('toggleDark').addEventListener('click', ()=>{
+  document.body.classList.toggle('dark');
+  document.getElementById('toggleDark').innerText = document.body.classList.contains('dark') ? 'Light' : 'Dark';
+});
+
+/* Export PDF (page snapshot) */
+document.getElementById('exportPdfBtn').addEventListener('click', async ()=>{
+  const node = document.querySelector('.app');
+  // temporarily expand styles for better print
+  const origBg = document.body.style.background;
+  try{
+    const canvas = await html2canvas(node, {scale:1.5, useCORS:true});
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('landscape','pt','a4');
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+    pdf.save('budget_report.pdf');
+  }catch(err){ alert('PDF export failed: '+ err.message); }
+});
+
+/* Export PDF via top control (full page) */
+document.getElementById('exportPdf').addEventListener('click', ()=> document.getElementById('exportPdfBtn').click());
+
+/* Initial startup */
+(async function startup(){
+  populateViewMonths();
+  loadAll();
+  // ensure default currencies
+  setTimeout(()=>{ if(!baseCurrencyEl.value) baseCurrencyEl.value='USD'; if(!txCurrencyEl.value) txCurrencyEl.value = baseCurrencyEl.value || 'USD'; renderAll(); }, 300);
+})();
+
+</script>
+</body>
 </html>
