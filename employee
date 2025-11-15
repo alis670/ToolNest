@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Employee Attendance Tracker</title>
+
+<style>
+:root{
+  --bg:#f6f8fb; --card:#fff; --muted:#6b7280; --accent:#2563eb;
+  --present:#10b981; --absent:#ef4444; --late:#f59e0b;
+  --radius:10px; font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:#0f172a;padding:18px}
+.app{max-width:1150px;margin:0 auto;display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start}
+.card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 10px 30px rgba(2,6,23,0.06)}
+.header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+h1{margin:0;font-size:18px}
+small.muted{color:var(--muted)}
+input,select,button{font-family:inherit}
+input,select{padding:8px;border-radius:8px;border:1px solid #e6eef8;background:#fff}
+button{padding:8px 12px;border-radius:8px;border:0;cursor:pointer}
+.btn{font-weight:700}
+.primary{background:var(--accent);color:#fff}
+.ghost{background:#f1f5f9;border:1px solid #e6eef8}
+.table{margin-top:12px;overflow:auto;border-radius:8px;border:1px solid #eef2ff}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:8px;border-bottom:1px solid #f1f5f9;text-align:left}
+th{background:#fbfdff;position:sticky;top:0}
+.calendar{margin-top:16px}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.calendar-day{background:#fff;border-radius:8px;padding:8px;min-height:60px;position:relative;cursor:default;display:flex;flex-direction:column;justify-content:flex-start}
+.calendar-day.present{background:var(--present);color:#fff}
+.calendar-day.absent{background:var(--absent);color:#fff}
+.calendar-day.late{background:var(--late);color:#fff}
+.calendar-day span.date-number{font-weight:700;margin-bottom:4px}
+.legend{display:flex;gap:8px;margin-top:8px}
+.legend div{padding:4px 8px;border-radius:8px;color:#fff;font-weight:700}
+.legend .present{background:var(--present)}
+.legend .absent{background:var(--absent)}
+.legend .late{background:var(--late)}
+@media (max-width:1000px){.app{grid-template-columns:1fr} .calendar-grid{grid-template-columns:repeat(7,1fr)}}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- MAIN -->
+  <div class="card">
+    <div class="header">
+      <div>
+        <h1>Employee Attendance Tracker</h1>
+        <small class="muted">Track employee attendance per day with table and calendar view.</small>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <select id="filterDepartment">
+          <option value="">All Departments</option>
+          <option>HR</option>
+          <option>Marketing</option>
+          <option>IT</option>
+          <option>Finance</option>
+        </select>
+        <select id="filterEmployee">
+          <option value="">All Employees</option>
+        </select>
+        <input type="month" id="filterMonth">
+        <button id="applyFilter" class="btn ghost">Apply</button>
+      </div>
+    </div>
+
+    <!-- Attendance Table -->
+    <div class="table">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Employee</th>
+            <th>Status</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="attendanceTbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Monthly Calendar -->
+    <div class="calendar">
+      <div class="calendar-grid" id="calendarGrid"></div>
+      <div class="legend">
+        <div class="present">Present</div>
+        <div class="absent">Absent</div>
+        <div class="late">Late</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="card">
+    <h3 style="margin:0 0 8px">Attendance Summary</h3>
+    <div id="summaryContent"></div>
+  </div>
+
+</div>
+
+<script>
+// ---------- STORAGE ----------
+let attendanceData = []; // Example data: {date:'2025-11-01', employee:'Alice', status:'Present', notes:''}
+
+// Populate Employees dynamically
+const employeeSet = new Set();
+function updateEmployeeDropdown() {
+  const filterEmp = document.getElementById('filterEmployee');
+  filterEmp.innerHTML = '<option value="">All Employees</option>';
+  employeeSet.forEach(emp=>{
+    const opt = document.createElement('option'); opt.value=emp; opt.text=emp;
+    filterEmp.appendChild(opt);
+  });
+}
+
+// ---------- FILTER & RENDER ----------
+function getFilteredData() {
+  const dept = document.getElementById('filterDepartment').value;
+  const emp = document.getElementById('filterEmployee').value;
+  const month = document.getElementById('filterMonth').value;
+  return attendanceData.filter(a=>{
+    let keep=true;
+    if(dept && !a.department.includes(dept)) keep=false;
+    if(emp && a.employee!==emp) keep=false;
+    if(month && !a.date.startsWith(month)) keep=false;
+    return keep;
+  });
+}
+
+// Render Table
+function renderTable() {
+  const tbody = document.getElementById('attendanceTbody');
+  tbody.innerHTML='';
+  getFilteredData().forEach(a=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML=`<td>${a.date}</td><td>${a.employee}</td><td>${a.status}</td><td>${a.notes||''}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// Render Calendar
+function renderCalendar() {
+  const grid = document.getElementById('calendarGrid');
+  grid.innerHTML='';
+  const monthInput = document.getElementById('filterMonth').value;
+  if(!monthInput) return;
+  const [year, month] = monthInput.split('-').map(Number);
+  const firstDay = new Date(year, month-1, 1).getDay();
+  const daysInMonth = new Date(year, month, 0).getDate();
+  // blank spaces
+  for(let i=0;i<firstDay;i++){
+    const div=document.createElement('div');
+    grid.appendChild(div);
+  }
+  for(let d=1; d<=daysInMonth; d++){
+    const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayData = getFilteredData().filter(a=>a.date===dateStr);
+    const div = document.createElement('div');
+    div.className='calendar-day';
+    if(dayData.length>0){
+      if(dayData.every(x=>x.status==='Present')) div.classList.add('present');
+      else if(dayData.every(x=>x.status==='Absent')) div.classList.add('absent');
+      else div.classList.add('late');
+      div.title=dayData.map(x=>`${x.employee}: ${x.status}${x.notes?(' - '+x.notes):''}`).join('\n');
+    }
+    div.innerHTML=`<span class="date-number">${d}</span>`;
+    grid.appendChild(div);
+  }
+}
+
+// Render Summary
+function renderSummary() {
+  const summary = document.getElementById('summaryContent');
+  const filtered = getFilteredData();
+  const total = filtered.length;
+  const present = filtered.filter(a=>a.status==='Present').length;
+  const absent = filtered.filter(a=>a.status==='Absent').length;
+  const late = filtered.filter(a=>a.status==='Late').length;
+  summary.innerHTML=`<p>Total Records: ${total}</p><p>Present: ${present}</p><p>Absent: ${absent}</p><p>Late: ${late}</p>`;
+}
+
+// Apply Filter
+document.getElementById('applyFilter').addEventListener('click',()=>{
+  renderTable();
+  renderCalendar();
+  renderSummary();
+});
+
+// Example: populate dummy data
+function loadDummyData() {
+  const employees=['Alice','Bob','Charlie','David'];
+  const departments=['HR','IT','Marketing','Finance'];
+  for(let i=1;i<=30;i++){
+    employees.forEach(emp=>{
+      attendanceData.push({
+        date:`2025-11-${String(i).padStart(2,'0')}`,
+        employee:emp,
+        department:departments[Math.floor(Math.random()*departments.length)],
+        status:['Present','Absent','Late'][Math.floor(Math.random()*3)],
+        notes:''
+      });
+      employeeSet.add(emp);
+    });
+  }
+  updateEmployeeDropdown();
+  document.getElementById('filterMonth').value='2025-11';
+  renderTable(); renderCalendar(); renderSummary();
+}
+loadDummyData();
+</script>
+
+</body>
+</html>
