@@ -1,759 +1,176 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Budget Planner — ToolNest (Pro)</title>
-
-<!-- Tailwind -->
-<script src="https://cdn.tailwindcss.com"></script>
-
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-
-<!-- XLSX & jsPDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Budget Planner – ToolNest</title>
 <style>
-  :root{
-    --bg: linear-gradient(180deg,#f7f8fc 0%, #eef2ff 100%);
-    --panel: #ffffff;
-    --muted: #6b7280;
-    --accent: #6366f1;
+  body {
+    font-family: Arial, sans-serif;
+    background: #f5f7fa;
+    margin: 0;
+    padding: 0;
   }
-  html,body{height:100%}
-  body{
-    background: var(--bg);
-    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    -webkit-font-smoothing:antialiased;
-    -moz-osx-font-smoothing:grayscale;
-    margin:0;
-    padding:24px;
-    box-sizing:border-box;
+  .container {
+    max-width: 1100px;
+    margin: auto;
+    padding: 20px;
   }
-  .card{ background: var(--panel); border-radius: 10px; box-shadow: 0 6px 20px rgba(15,23,42,0.06); }
-  .sticky-header{ position: sticky; top:0; backdrop-filter: blur(4px); background: var(--panel); z-index: 10; border-bottom: 1px solid rgba(15,23,42,0.04); }
-  .scroll-inner{ max-height:520px; overflow:auto; padding-right:8px;}
-  table thead th{ position: sticky; top:0; background: var(--panel); z-index:5; }
-  input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-  .currency-select { min-width: 240px; max-width:320px; }
-  .flag-option {font-size:14px}
-  .small-muted { font-size: 0.85rem; color:var(--muted); }
-  /* Monthly Total bar */
-  #monthlyTotalBar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    transition: all 0.3s ease-in-out;
-    backdrop-filter: blur(6px);
+  h2 {
+    margin-bottom: 16px;
   }
-  /* Small screens - ensure footer above OS nav */
-  @media (max-width:640px){
-    body { padding-bottom: 96px; }
+  .card {
+    background: #fff;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
   }
-  @media (min-width:641px){
-    body { padding-bottom: 96px; }
+  .row3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
   }
-  /* Searchable dropdown basic style */
-  .search-wrap{ position: relative; display:inline-block; }
-  .search-filter{ display:block; width:100%; padding:6px 8px; margin-bottom:6px; border-radius:8px; border:1px solid rgba(15,23,42,0.08); }
-  .currency-select option { padding:6px 8px; }
+  label {
+    font-size: 14px;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+  }
+  input, select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #d2d6dc;
+    font-size: 14px;
+  }
+  .btn {
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: none;
+    font-weight: 600;
+  }
+  .primary { background:#2563eb; color:#fff; }
+  .ghost { background:#eef2f7; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    padding: 10px;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+    font-size: 14px;
+  }
+  th {
+    background: #f0f3f7;
+  }
 </style>
 </head>
 <body>
-
-<!-- Main container -->
-<div id="budgetContainer" class="max-w-6xl mx-auto">
-
-  <!-- Header -->
-  <header class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
-    <div class="flex items-center gap-3">
-      <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-2xl font-semibold text-slate-800 shadow">TN</div>
+<div class="container">
+  <h2>💰 Budget Planner – ToolNest</h2>  <!-- Add Budget Form -->  <div class="card">
+    <h3>Add Budget Item</h3>
+    <div class="row3">
       <div>
-        <h1 class="text-2xl md:text-3xl font-semibold text-slate-800">Budget Planner — Pro</h1>
-        <p class="text-sm text-slate-500">Business dashboard • Global currencies with flags • Export PDF/Excel</p>
+        <label>Category</label>
+        <select id="category">
+          <option>Marketing</option>
+          <option>Software</option>
+          <option>Travel</option>
+          <option>Office</option>
+          <option>Utilities</option>
+          <option>Miscellaneous</option>
+        </select>
+      </div>
+      <div>
+        <label>Amount</label>
+        <input type="number" id="amount" placeholder="Enter amount" />
+      </div>
+      <div>
+        <label>Month</label>
+        <input type="month" id="month" />
       </div>
     </div>
-
-    <div class="flex gap-2 items-center">
-      <!-- Searchable currency + select -->
-      <div class="card p-3 flex items-center gap-3">
-        <div class="flex flex-col">
-          <label class="small-muted">Currency</label>
-          <div class="search-wrap flex items-center gap-2">
-            <input id="currencySearch" placeholder="Search currency (code or country)" class="search-filter" />
-            <select id="currencySelect" class="currency-select p-2 border rounded bg-white"></select>
-          </div>
-        </div>
-
-        <div class="flex flex-col items-start">
-          <label class="small-muted">Auto-convert</label>
-          <div class="flex gap-2 items-center">
-            <button id="convertBtn" class="px-3 py-2 rounded bg-indigo-600 text-white">Convert</button>
-            <label class="flex items-center gap-2 text-sm text-slate-600">
-              <input id="autoConvert" type="checkbox" /> Auto
-            </label>
-          </div>
-        </div>
+    <button class="btn primary" id="addBudget">Add Budget</button>
+  </div>  <!-- Budget Table -->  <div class="card">
+    <h3>Budget Overview</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Amount</th>
+          <th>Month</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="budgetTable"></tbody>
+    </table>
+  </div>  <!-- Summary -->  <div class="card">
+    <h3>Summary</h3>
+    <div class="row3">
+      <div>
+        <label>Total Budget</label>
+        <input id="totalBudget" disabled />
       </div>
-
-      <button id="backBtn" type="button" class="px-3 py-2 rounded bg-white border text-slate-700">← Dashboard</button>
-      <button id="saveBtn" type="button" class="px-3 py-2 rounded bg-green-600 text-white">Save</button>
-      <button id="resetAllBtn" type="button" class="px-3 py-2 rounded bg-red-500 text-white">Reset</button>
-      <button id="exportXls" type="button" class="px-3 py-2 rounded bg-white border text-indigo-700">Excel</button>
-      <button id="exportPdf" type="button" class="px-3 py-2 rounded bg-white border text-indigo-700">PDF</button>
-    </div>
-  </header>
-
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-
-    <!-- Left: Inputs & Items -->
-    <section class="lg:col-span-2 card p-4">
-      <div class="sticky-header p-2 rounded mb-3">
-        <div class="flex items-center justify-between">
-          <h2 class="text-lg font-medium text-slate-800">Income & Items</h2>
-          <div class="text-sm text-slate-500">Add items, quick-add, edit costs</div>
-        </div>
+      <div>
+        <label>Highest Category</label>
+        <input id="highestCategory" disabled />
       </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
-        <div>
-          <label class="small-muted">Monthly Income (<span id="currencyLabelHeader">USD</span>)</label>
-          <input id="income" type="number" min="0" step="0.01" placeholder="5000" class="w-full p-2 mt-1 border rounded" />
-        </div>
-        <div>
-          <label class="small-muted">Months to project</label>
-          <input id="months" type="number" min="1" value="12" class="w-full p-2 mt-1 border rounded" />
-        </div>
-        <div>
-          <label class="small-muted">Start month</label>
-          <input id="startMonth" type="month" class="w-full p-2 mt-1 border rounded" />
-        </div>
-        <div>
-          <label class="small-muted">End month</label>
-          <input id="endMonth" type="month" class="w-full p-2 mt-1 border rounded" />
-        </div>
+      <div>
+        <label>Average Monthly Budget</label>
+        <input id="avgBudget" disabled />
       </div>
-
-      <!-- Items table -->
-      <div class="scroll-inner card p-3">
-        <div class="flex items-center justify-between mb-2">
-          <h3 class="font-medium text-slate-800">Items</h3>
-          <button id="addItemBtn" type="button" class="text-indigo-600 hover:underline text-sm">+ Add item</button>
-        </div>
-
-        <div class="overflow-x-auto">
-          <table class="min-w-full text-sm">
-            <thead>
-              <tr class="text-left text-xs text-slate-600">
-                <th class="p-2 w-2/5">Description</th>
-                <th class="p-2 w-1/6">Qty</th>
-                <th class="p-2 w-1/6">Cost / unit (<span id="currencyLabel">USD</span>)</th>
-                <th class="p-2 w-1/6">Total (<span id="currencyLabel2">USD</span>)</th>
-                <th class="p-2 w-12">Action</th>
-              </tr>
-            </thead>
-            <tbody id="itemsTbody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Quick add -->
-      <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
-        <input id="quickDesc" placeholder="Item description" class="p-2 border rounded" />
-        <input id="quickQty" type="number" min="1" value="1" class="p-2 border rounded" />
-        <div class="flex gap-2">
-          <input id="quickCost" type="number" min="0" step="0.01" placeholder="Cost" class="p-2 border rounded" />
-          <button id="quickAddBtn" type="button" class="px-4 py-2 rounded bg-indigo-600 text-white">Add</button>
-        </div>
-      </div>
-
-      <!-- Summary boxes -->
-      <div class="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div class="p-3 bg-white rounded shadow-sm">
-          <div class="text-sm text-slate-500">Total Items Cost</div>
-          <div id="totalItems" class="text-xl font-semibold text-slate-800">$0.00</div>
-        </div>
-        <div class="p-3 bg-white rounded shadow-sm">
-          <div class="text-sm text-slate-500">Monthly Income</div>
-          <div id="monthlyIncome" class="text-xl font-semibold text-slate-800">$0.00</div>
-        </div>
-        <div class="p-3 bg-white rounded shadow-sm">
-          <div class="text-sm text-slate-500">Projected Savings</div>
-          <div id="projSavings" class="text-xl font-semibold text-slate-800">$0.00</div>
-        </div>
-      </div>
-
-    </section>
-
-    <!-- Right: Monthly plan & charts -->
-    <aside class="card p-4 flex flex-col gap-4">
-      <div class="sticky-header p-2 rounded">
-        <h3 class="font-medium text-slate-800">Monthly Plan</h3>
-        <p id="monthlyRange" class="text-sm text-slate-600 mt-1">From — to —</p>
-      </div>
-
-      <div class="scroll-inner">
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="text-left text-xs text-slate-600">
-              <th class="p-2">Month</th>
-              <th class="p-2">Total (<span id="currencyLabel3">USD</span>)</th>
-            </tr>
-          </thead>
-          <tbody id="monthlyTbody"></tbody>
-        </table>
-      </div>
-
-      <div class="card p-3">
-        <div class="flex items-center justify-between mb-2">
-          <h4 class="text-sm font-medium text-slate-800">Category distribution (by first word)</h4>
-          <div class="text-xs text-slate-500">Quick grouping</div>
-        </div>
-        <canvas id="pieChart" height="160"></canvas>
-      </div>
-
-      <div class="card p-3">
-        <div class="flex items-center justify-between mb-2">
-          <h4 class="text-sm font-medium text-slate-800">Monthly totals (bar)</h4>
-        </div>
-        <canvas id="barChart" height="160"></canvas>
-      </div>
-
-    </aside>
-
-  </div>
-
-  <!-- Footer actions -->
-  <div class="mt-6 flex items-center justify-between">
-    <div class="text-sm text-slate-500">Tip: Use live conversion when changing currency for convenience.</div>
-    <div class="flex gap-2">
-      <button id="resetVisibleBtn" type="button" class="px-4 py-2 rounded border bg-white">Reset Items</button>
-      <button id="exportQuick" type="button" class="px-4 py-2 rounded bg-indigo-600 text-white">Export Summary</button>
     </div>
   </div>
+</div><script>
+  const table = document.getElementById("budgetTable");
+  const totalBudget = document.getElementById("totalBudget");
+  const highestCategory = document.getElementById("highestCategory");
+  const avgBudget = document.getElementById("avgBudget");
+  let items = [];
 
-</div>
+  document.getElementById("addBudget").onclick = () => {
+    const cat = category.value;
+    const amt = Number(amount.value);
+    const mon = month.value;
 
-<!-- Monthly Total Bar -->
-<div id="monthlyTotalBar" class="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white p-4 shadow-lg flex justify-between items-center z-50">
-  <div>
-    <div class="text-sm opacity-90">Monthly Total</div>
-    <div id="monthlyRangeSmall" class="text-xs opacity-80"></div>
-  </div>
-  <div class="text-right">
-    <div id="monthlyTotal" class="text-xl font-bold">USD 0.00</div>
-  </div>
-</div>
+    if (!cat || !amt || !mon) return alert("All fields required");
 
-<script>
-/* ====== Budget Planner Pro (upgraded) ======
-   Features added:
-   - Searchable currency list with flags (global)
-   - Start & End month -> months auto-calc
-   - Full conversion via exchangerate.host
-   - Monthly total bar updates
-   - Export Excel / PDF
-*/
+    const entry = {cat, amt, mon};
+    items.push(entry);
+    render();
+  };
 
-// -- storage key
-const STORAGE = 'tn_budget_pro_pro_v2';
-
-// -- DOM refs
-const budgetContainer = document.getElementById('budgetContainer');
-const currencySelect = document.getElementById('currencySelect');
-const currencySearch = document.getElementById('currencySearch');
-const convertBtn = document.getElementById('convertBtn');
-const autoConvert = document.getElementById('autoConvert');
-const currencyLabel = document.getElementById('currencyLabel');
-const currencyLabel2 = document.getElementById('currencyLabel2');
-const currencyLabel3 = document.getElementById('currencyLabel3');
-const currencyLabelHeader = document.getElementById('currencyLabelHeader');
-const monthlyTotalEl = document.getElementById('monthlyTotal');
-const monthlyRangeEl = document.getElementById('monthlyRange');
-const monthlyRangeSmall = document.getElementById('monthlyRangeSmall');
-
-const itemsTbody = document.getElementById('itemsTbody');
-const monthlyTbody = document.getElementById('monthlyTbody');
-const incomeInput = document.getElementById('income');
-const monthsInput = document.getElementById('months');
-const startMonthInput = document.getElementById('startMonth');
-const endMonthInput = document.getElementById('endMonth');
-const quickDesc = document.getElementById('quickDesc'), quickQty = document.getElementById('quickQty'), quickCost = document.getElementById('quickCost');
-const quickAddBtn = document.getElementById('quickAddBtn'), addItemBtn = document.getElementById('addItemBtn');
-const totalItemsEl = document.getElementById('totalItems'), monthlyIncomeEl = document.getElementById('monthlyIncome'), projSavingsEl = document.getElementById('projSavings');
-const exportXlsBtn = document.getElementById('exportXls'), exportPdfBtn = document.getElementById('exportPdf');
-const saveBtn = document.getElementById('saveBtn'), resetAllBtn = document.getElementById('resetAllBtn'), resetVisibleBtn = document.getElementById('resetVisibleBtn');
-const exportQuick = document.getElementById('exportQuick'), backBtn = document.getElementById('backBtn');
-
-let items = [];
-let barChart = null, pieChart = null;
-let currentCurrency = 'USD';
-let lastRates = { base: 'USD', rates: {} };
-
-// 🌍 currencies.js — Full Worldwide Currency List with SVG Flags
-const currencies = [
-  { country: "Afghanistan", currency: "AFN", name: "Afghan Afghani", flag: "https://flagcdn.com/af.svg" },
-  { country: "Albania", currency: "ALL", name: "Albanian Lek", flag: "https://flagcdn.com/al.svg" },
-  { country: "Algeria", currency: "DZD", name: "Algerian Dinar", flag: "https://flagcdn.com/dz.svg" },
-  { country: "Andorra", currency: "EUR", name: "Euro", flag: "https://flagcdn.com/ad.svg" },
-  { country: "Angola", currency: "AOA", name: "Angolan Kwanza", flag: "https://flagcdn.com/ao.svg" },
-  { country: "Argentina", currency: "ARS", name: "Argentine Peso", flag: "https://flagcdn.com/ar.svg" },
-  { country: "Armenia", currency: "AMD", name: "Armenian Dram", flag: "https://flagcdn.com/am.svg" },
-  { country: "Australia", currency: "AUD", name: "Australian Dollar", flag: "https://flagcdn.com/au.svg" },
-  { country: "Austria", currency: "EUR", name: "Euro", flag: "https://flagcdn.com/at.svg" },
-  { country: "Azerbaijan", currency: "AZN", name: "Azerbaijani Manat", flag: "https://flagcdn.com/az.svg" },
-  { country: "Bahamas", currency: "BSD", name: "Bahamian Dollar", flag: "https://flagcdn.com/bs.svg" },
-  { country: "Bahrain", currency: "BHD", name: "Bahraini Dinar", flag: "https://flagcdn.com/bh.svg" },
-  { country: "Bangladesh", currency: "BDT", name: "Bangladeshi Taka", flag: "https://flagcdn.com/bd.svg" },
-  { country: "Barbados", currency: "BBD", name: "Barbadian Dollar", flag: "https://flagcdn.com/bb.svg" },
-  { country: "Belarus", currency: "BYN", name: "Belarusian Ruble", flag: "https://flagcdn.com/by.svg" },
-  { country: "Belgium", currency: "EUR", name: "Euro", flag: "https://flagcdn.com/be.svg" },
-  { country: "Belize", currency: "BZD", name: "Belize Dollar", flag: "https://flagcdn.com/bz.svg" },
-  { country: "Benin", currency: "XOF", name: "West African CFA Franc", flag: "https://flagcdn.com/bj.svg" },
-  { country: "Bhutan", currency: "BTN", name: "Bhutanese Ngultrum", flag: "https://flagcdn.com/bt.svg" },
-  { country: "Bolivia", currency: "BOB", name: "Bolivian Boliviano", flag: "https://flagcdn.com/bo.svg" },
-  { country: "Bosnia and Herzegovina", currency: "BAM", name: "Convertible Mark", flag: "https://flagcdn.com/ba.svg" },
-  { country: "Botswana", currency: "BWP", name: "Botswana Pula", flag: "https://flagcdn.com/bw.svg" },
-  { country: "Brazil", currency: "BRL", name: "Brazilian Real", flag: "https://flagcdn.com/br.svg" },
-  { country: "Brunei", currency: "BND", name: "Brunei Dollar", flag: "https://flagcdn.com/bn.svg" },
-  { country: "Bulgaria", currency: "BGN", name: "Bulgarian Lev", flag: "https://flagcdn.com/bg.svg" },
-  { country: "Burkina Faso", currency: "XOF", name: "West African CFA Franc", flag: "https://flagcdn.com/bf.svg" },
-  { country: "Burundi", currency: "BIF", name: "Burundian Franc", flag: "https://flagcdn.com/bi.svg" },
-  { country: "Cambodia", currency: "KHR", name: "Cambodian Riel", flag: "https://flagcdn.com/kh.svg" },
-  { country: "Cameroon", currency: "XAF", name: "Central African CFA Franc", flag: "https://flagcdn.com/cm.svg" },
-  { country: "Canada", currency: "CAD", name: "Canadian Dollar", flag: "https://flagcdn.com/ca.svg" },
-  { country: "Chile", currency: "CLP", name: "Chilean Peso", flag: "https://flagcdn.com/cl.svg" },
-  { country: "China", currency: "CNY", name: "Chinese Yuan", flag: "https://flagcdn.com/cn.svg" },
-  { country: "Colombia", currency: "COP", name: "Colombian Peso", flag: "https://flagcdn.com/co.svg" },
-  { country: "Costa Rica", currency: "CRC", name: "Costa Rican Colón", flag: "https://flagcdn.com/cr.svg" },
-  { country: "Croatia", currency: "EUR", name: "Euro", flag: "https://flagcdn.com/hr.svg" },
-  { country: "Cuba", currency: "CUP", name: "Cuban Peso", flag: "https://flagcdn.com/cu.svg" },
-  { country: "Cyprus", currency: "EUR", name: "Euro", flag: "https://flagcdn.com/cy.svg" },
-  { country: "Czech Republic", currency: "CZK", name: "Czech Koruna", flag: "https://flagcdn.com/cz.svg" },
-  { country: "Denmark", currency: "DKK", name: "Danish Krone", flag: "https://flagcdn.com/dk.svg" },
-  { country: "Dominican Republic", currency: "DOP", name: "Dominican Peso", flag: "https://flagcdn.com/do.svg" },
-  { country: "Egypt", currency: "EGP", name: "Egyptian Pound", flag: "https://flagcdn.com/eg.svg" },
-  { country: "Ethiopia", currency: "ETB", name: "Ethiopian Birr", flag: "https://flagcdn.com/et.svg" },
-  { country: "Fiji", currency: "FJD", name: "Fijian Dollar", flag: "https://flagcdn.com/fj.svg" },
-  { country: "Finland", currency: "EUR", name: "Euro", flag: "https://flagcdn.com/fi.svg" },
-  { country: "France", currency: "EUR", name: "Euro", flag: "https://flagcdn.com/fr.svg" },
-  { country: "Germany", currency: "EUR", name: "Euro", flag: "https://flagcdn.com/de.svg" },
-  { country: "Ghana", currency: "GHS", name: "Ghanaian Cedi", flag: "https://flagcdn.com/gh.svg" },
-  { country: "Greece", currency: "EUR", name: "Euro", flag: "https://flagcdn.com/gr.svg" },
-  { country: "Hong Kong", currency: "HKD", name: "Hong Kong Dollar", flag: "https://flagcdn.com/hk.svg" },
-  { country: "Hungary", currency: "HUF", name: "Hungarian Forint", flag: "https://flagcdn.com/hu.svg" },
-  { country: "Iceland", currency: "ISK", name: "Icelandic Króna", flag: "https://flagcdn.com/is.svg" },
-  { country: "India", currency: "INR", name: "Indian Rupee", flag: "https://flagcdn.com/in.svg" },
-  { country: "Indonesia", currency: "IDR", name: "Indonesian Rupiah", flag: "https://flagcdn.com/id.svg" },
-  { country: "Iran", currency: "IRR", name: "Iranian Rial", flag: "https://flagcdn.com/ir.svg" },
-  { country: "Iraq", currency: "IQD", name: "Iraqi Dinar", flag: "https://flagcdn.com/iq.svg" },
-  { country: "Ireland", currency: "EUR", name: "Euro", flag: "https://flagcdn.com/ie.svg" },
-  { country: "Israel", currency: "ILS", name: "Israeli New Shekel", flag: "https://flagcdn.com/il.svg" },
-  { country: "Italy", currency: "EUR", name: "Euro", flag: "https://flagcdn.com/it.svg" },
-  { country: "Jamaica", currency: "JMD", name: "Jamaican Dollar", flag: "https://flagcdn.com/jm.svg" },
-  { country: "Japan", currency: "JPY", name: "Japanese Yen", flag: "https://flagcdn.com/jp.svg" },
-  { country: "Jordan", currency: "JOD", name: "Jordanian Dinar", flag: "https://flagcdn.com/jo.svg" },
-  { country: "Kazakhstan", currency: "KZT", name: "Kazakhstani Tenge", flag: "https://flagcdn.com/kz.svg" },
-  { country: "Kenya", currency: "KES", name: "Kenyan Shilling", flag: "https://flagcdn.com/ke.svg" },
-  { country: "Kuwait", currency: "KWD", name: "Kuwaiti Dinar", flag: "https://flagcdn.com/kw.svg" },
-  { country: "Kyrgyzstan", currency: "KGS", name: "Kyrgyzstani Som", flag: "https://flagcdn.com/kg.svg" },
-  { country: "Laos", currency: "LAK", name: "Lao Kip", flag: "https://flagcdn.com/la.svg" },
-  { country: "Lebanon", currency: "LBP", name: "Lebanese Pound", flag: "https://flagcdn.com/lb.svg" },
-  { country: "Libya", currency: "LYD", name: "Libyan Dinar", flag: "https://flagcdn.com/ly.svg" },
-  { country: "Malaysia", currency: "MYR", name: "Malaysian Ringgit", flag: "https://flagcdn.com/my.svg" },
-  { country: "Maldives", currency: "MVR", name: "Maldivian Rufiyaa", flag: "https://flagcdn.com/mv.svg" },
-  { country: "Malta", currency: "EUR", name: "Euro", flag: "https://flagcdn.com/mt.svg" },
-  { country: "Mexico", currency: "MXN", name: "Mexican Peso", flag: "https://flagcdn.com/mx.svg" },
-  { country: "Moldova", currency: "MDL", name: "Moldovan Leu", flag: "https://flagcdn.com/md.svg" },
-  { country: "Monaco", currency: "EUR", name: "Euro", flag: "https://flagcdn.com/mc.svg" },
-  { country: "Mongolia", currency: "MNT", name: "Mongolian Tögrög", flag: "https://flagcdn.com/mn.svg" },
-  { country: "Montenegro", currency: "EUR", name: "Euro", flag: "https://flagcdn.com/me.svg" },
-  { country: "Morocco", currency: "MAD", name: "Moroccan Dirham", flag: "https://flagcdn.com/ma.svg" },
-  { country: "Nepal", currency: "NPR", name: "Nepalese Rupee", flag: "https://flagcdn.com/np.svg" },
-  { country: "Netherlands", currency: "EUR", name: "Euro", flag: "https://flagcdn.com/nl.svg" },
-  { country: "New Zealand", currency: "NZD", name: "New Zealand Dollar", flag: "https://flagcdn.com/nz.svg" },
-  { country: "Nigeria", currency: "NGN", name: "Nigerian Naira", flag: "https://flagcdn.com/ng.svg" },
-  { country: "Norway", currency: "NOK", name: "Norwegian Krone", flag: "https://flagcdn.com/no.svg" },
-  { country: "Oman", currency: "OMR", name: "Omani Rial", flag: "https://flagcdn.com/om.svg" },
-  { country: "Pakistan", currency: "PKR", name: "Pakistani Rupee", flag: "https://flagcdn.com/pk.svg" },
-  { country: "Palestine", currency: "ILS", name: "Israeli New Shekel", flag: "https://flagcdn.com/ps.svg" },
-  { country: "Panama", currency: "PAB", name: "Panamanian Balboa", flag: "https://flagcdn.com/pa.svg" },
-  { country: "Peru", currency: "PEN", name: "Peruvian Sol", flag: "https://flagcdn.com/pe.svg" },
-  { country: "Philippines", currency: "PHP", name: "Philippine Peso", flag: "https://flagcdn.com/ph.svg" },
-  { country: "Poland", currency: "PLN", name: "Polish Zloty", flag: "https://flagcdn.com/pl.svg" },
-  { country: "Portugal", currency: "EUR", name: "Euro", flag: "https://flagcdn.com/pt.svg" },
-  { country: "Qatar", currency: "QAR", name: "Qatari Riyal", flag: "https://flagcdn.com/qa.svg" },
-  { country: "Romania", currency: "RON", name: "Romanian Leu", flag: "https://flagcdn.com/ro.svg" },
-  { country: "Russia", currency: "RUB", name: "Russian Ruble", flag: "https://flagcdn.com/ru.svg" },
-  { country: "Rwanda", currency: "RWF", name: "Rwandan Franc", flag: "https://flagcdn.com/rw.svg" },
-  { country: "Saudi Arabia", currency: "SAR", name: "Saudi Riyal", flag: "https://flagcdn.com/sa.svg" },
-  { country: "Serbia", currency: "RSD", name: "Serbian Dinar", flag: "https://flagcdn.com/rs.svg" },
-  { country: "Singapore", currency: "SGD", name: "Singapore Dollar", flag: "https://flagcdn.com/sg.svg" },
-  { country: "South Africa", currency: "ZAR", name: "South African Rand", flag: "https://flagcdn.com/za.svg" },
-  { country: "South Korea", currency: "KRW", name: "South Korean Won", flag: "https://flagcdn.com/kr.svg" },
-  { country: "Spain", currency: "EUR", name: "Euro", flag: "https://flagcdn.com/es.svg" },
-  { country: "Sri Lanka", currency: "LKR", name: "Sri Lankan Rupee", flag: "https://flagcdn.com/lk.svg" },
-  { country: "Sweden", currency: "SEK", name: "Swedish Krona", flag: "https://flagcdn.com/se.svg" },
-  { country: "Switzerland", currency: "CHF", name: "Swiss Franc", flag: "https://flagcdn.com/ch.svg" },
-  { country: "Syria", currency: "SYP", name: "Syrian Pound", flag: "https://flagcdn.com/sy.svg" },
-  { country: "Taiwan", currency: "TWD", name: "New Taiwan Dollar", flag: "https://flagcdn.com/tw.svg" },
-  { country: "Tajikistan", currency: "TJS", name: "Tajikistani Somoni", flag: "https://flagcdn.com/tj.svg" },
-  { country: "Tanzania", currency: "TZS", name: "Tanzanian Shilling", flag: "https://flagcdn.com/tz.svg" },
-  { country: "Thailand", currency: "THB", name: "Thai Baht", flag: "https://flagcdn.com/th.svg" },
-  { country: "Tunisia", currency: "TND", name: "Tunisian Dinar", flag: "https://flagcdn.com/tn.svg" },
-  { country: "Turkey", currency: "TRY", name: "Turkish Lira", flag: "https://flagcdn.com/tr.svg" },
-  { country: "Turkmenistan", currency: "TMT", name: "Turkmenistani Manat", flag: "https://flagcdn.com/tm.svg" },
-  { country: "Uganda", currency: "UGX", name: "Ugandan Shilling", flag: "https://flagcdn.com/ug.svg" },
-  { country: "Ukraine", currency: "UAH", name: "Ukrainian Hryvnia", flag: "https://flagcdn.com/ua.svg" },
-  { country: "United Arab Emirates", currency: "AED", name: "UAE Dirham", flag: "https://flagcdn.com/ae.svg" },
-  { country: "United Kingdom", currency: "GBP", name: "British Pound", flag: "https://flagcdn.com/gb.svg" },
-  { country: "United States", currency: "USD", name: "US Dollar", flag: "https://flagcdn.com/us.svg" },
-  { country: "Uruguay", currency: "UYU", name: "Uruguayan Peso", flag: "https://flagcdn.com/uy.svg" },
-  { country: "Uzbekistan", currency: "UZ..
-];
-
-// populate currency select with flags and text
-function initCurrencyUI(){
-  currencySelect.innerHTML = '';
-  currencyList.forEach(c=>{
-    const opt = document.createElement('option');
-    opt.value = c.code;
-    opt.innerText = `${c.flag}  ${c.code} — ${c.name}`;
-    opt.setAttribute('data-symbol', c.symbol || c.code);
-    currencySelect.appendChild(opt);
-  });
-  // try detect local currency by locale (fallback USD)
-  try{
-    const locale = navigator.language || 'en-US';
-    const localeCurrency = Intl.NumberFormat(locale, { style: 'currency', currency: 'USD' }).resolvedOptions().currency;
-    if(currencyList.find(x=>x.code===localeCurrency)) currentCurrency = localeCurrency;
-  }catch(e){}
-  currencySelect.value = currentCurrency;
-  updateCurrencyLabels(currentCurrency);
-}
-initCurrencyUI();
-
-// filter select options by search input
-currencySearch.addEventListener('input', ()=>{
-  const q = currencySearch.value.trim().toLowerCase();
-  for(const opt of currencySelect.options){
-    const txt = opt.text.toLowerCase();
-    opt.hidden = q && !txt.includes(q);
-  }
-  // try focus first visible
-  const firstVisible = Array.from(currencySelect.options).find(o=>!o.hidden);
-  if(firstVisible) currencySelect.value = firstVisible.value;
-});
-
-// helpers
-const uid = ()=> Math.random().toString(36).slice(2,9);
-const fmt = (n, code) => {
-  const c = currencyList.find(x=>x.code===code) || currencyList[0];
-  const symbol = c && c.symbol ? c.symbol + ' ' : (code + ' ');
-  return symbol + Number(n || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-};
-function roundToTwo(n){ return Math.round((Number(n)||0) * 100) / 100; }
-function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function showToast(msg, ms=1400){ const t = document.createElement('div'); t.innerText = msg; t.className='fixed right-5 bottom-24 bg-slate-800 text-white px-3 py-2 rounded shadow'; document.body.appendChild(t); setTimeout(()=>t.remove(), ms); }
-
-// load/save
-function load(){
-  const raw = localStorage.getItem(STORAGE);
-  if(raw){
-    try{
-      const o = JSON.parse(raw);
-      items = o.items || [];
-      currentCurrency = o.currency || currentCurrency;
-      lastRates = o.lastRates || lastRates;
-      incomeInput.value = o.income || '';
-      monthsInput.value = o.months || 12;
-      startMonthInput.value = o.startMonth || '';
-      endMonthInput.value = o.endMonth || '';
-      currencySelect.value = currentCurrency;
-      updateCurrencyLabels(currentCurrency);
-    }catch(e){ items=[]; }
-  }
-  render();
-}
-function save(){ const obj = { items, currency: currentCurrency, income: incomeInput.value, months: monthsInput.value, startMonth: startMonthInput.value, endMonth: endMonthInput.value, lastRates }; localStorage.setItem(STORAGE, JSON.stringify(obj)); showToast('Saved'); }
-
-// UI logic
-function renderItems(){
-  itemsTbody.innerHTML = '';
-  items.forEach(it=>{
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="p-2"><input data-id="${it.id}" data-field="desc" class="w-full p-1 border rounded" value="${escapeHtml(it.desc)}" /></td>
-      <td class="p-2"><input data-id="${it.id}" data-field="qty" type="number" min="0" class="w-24 p-1 border rounded" value="${it.qty}" /></td>
-      <td class="p-2"><input data-id="${it.id}" data-field="cost" type="number" min="0" step="0.01" class="w-28 p-1 border rounded" value="${it.cost}" /></td>
-      <td class="p-2">${fmt(it.qty * it.cost, currentCurrency)}</td>
-      <td class="p-2"><button data-id="${it.id}" class="del-row text-sm text-red-600" type="button">Del</button></td>
-    `;
-    itemsTbody.appendChild(tr);
-  });
-
-  // listeners
-  itemsTbody.querySelectorAll('input').forEach(inp=>{
-    inp.addEventListener('input', ()=>{
-      const id = inp.dataset.id; const f = inp.dataset.field;
-      const item = items.find(x=>x.id===id); if(!item) return;
-      if(f==='desc') item.desc = inp.value;
-      if(f==='qty') item.qty = Number(inp.value)||0;
-      if(f==='cost') item.cost = Number(inp.value)||0;
-      render(); // update totals
+  function render() {
+    table.innerHTML = "";
+    items.forEach((x, i) => {
+      table.innerHTML += `
+        <tr>
+          <td>${x.cat}</td>
+          <td>${x.amt}</td>
+          <td>${x.mon}</td>
+          <td><button class='btn ghost' onclick='del(${i})'>Delete</button></td>
+        </tr>`;
     });
-  });
-  itemsTbody.querySelectorAll('.del-row').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const id = btn.dataset.id;
-      items = items.filter(x=>x.id!==id);
-      render(); save();
-    });
-  });
-}
 
-quickAddBtn.addEventListener('click', ()=>{
-  const d = quickDesc.value.trim(); const q = Number(quickQty.value)||0; const c = Number(quickCost.value)||0;
-  if(!d || q<=0 || c<0) return alert('Enter description, qty (>0) and cost (>=0).');
-  items.push({ id: uid(), desc:d, qty:q, cost:c });
-  quickDesc.value=''; quickQty.value=1; quickCost.value='';
-  render(); save();
-});
+    // Summary
+    const sum = items.reduce((a,b)=>a+b.amt,0);
+    totalBudget.value = sum;
 
-addItemBtn.addEventListener('click', ()=>{ items.push({ id: uid(), desc:'New item', qty:1, cost:0 }); render(); save(); });
-
-resetAllBtn.addEventListener('click', ()=>{ if(confirm('Reset everything?')){ items=[]; incomeInput.value=''; monthsInput.value=12; startMonthInput.value=''; endMonthInput.value=''; lastRates={base:currentCurrency,rates:{}}; render(); save(); }});
-resetVisibleBtn.addEventListener('click', ()=>{ if(confirm('Clear items only?')){ items=[]; render(); save(); }});
-backBtn.addEventListener('click', ()=>{ window.location.href='index.html'; });
-saveBtn.addEventListener('click', save);
-
-// compute months between start & end (inclusive months)
-function monthsBetween(startStr, endStr){
-  if(!startStr || !endStr) return 0;
-  const s = new Date(startStr + '-01'), e = new Date(endStr + '-01');
-  if(isNaN(s) || isNaN(e)) return 0;
-  const months = (e.getFullYear() - s.getFullYear())*12 + (e.getMonth() - s.getMonth()) + 1;
-  return Math.max(0, months);
-}
-
-// render main
-function render(){
-  renderItems();
-  const totalItems = items.reduce((s,i)=> s + (i.qty * i.cost), 0);
-  totalItemsEl.innerText = fmt(totalItems, currentCurrency);
-  monthlyIncomeEl.innerText = fmt(Number(incomeInput.value)||0, currentCurrency);
-  projSavingsEl.innerText = fmt((Number(incomeInput.value)||0) - totalItems, currentCurrency);
-
-  // months calculation: prefer explicit endMonth if provided
-  let months = Math.max(1, Number(monthsInput.value) || 12);
-  if(startMonthInput.value && endMonthInput.value){
-    const calc = monthsBetween(startMonthInput.value, endMonthInput.value);
-    if(calc>0){ months = calc; monthsInput.value = calc; }
-  } else if(startMonthInput.value && !endMonthInput.value){
-    // if only start provided, keep months as input; endMonth left blank
-    // optionally set endMonth based on monthsInput:
-    const start = new Date(startMonthInput.value + '-01');
-    const end = new Date(start.getFullYear(), start.getMonth() + months - 1, 1);
-    endMonthInput.value = `${end.getFullYear()}-${String(end.getMonth()+1).padStart(2,'0')}`;
+    if (items.length) {
+      const grouped = {};
+      items.forEach(x => grouped[x.cat] = (grouped[x.cat]||0) + x.amt);
+      const top = Object.entries(grouped).sort((a,b)=>b[1]-a[1])[0];
+      highestCategory.value = top[0] + " (" + top[1] + ")";
+      avgBudget.value = (sum / items.length).toFixed(2);
+    }
   }
 
-  const start = startMonthInput.value ? new Date(startMonthInput.value + '-01') : new Date();
-  const labels = [];
-  for(let i=0;i<months;i++){
-    const d = new Date(start.getFullYear(), start.getMonth()+i, 1);
-    labels.push(d.toLocaleString(undefined, { month:'short', year:'2-digit' }));
+  function del(i) {
+    items.splice(i,1);
+    render();
   }
-
-  const monthlyTotals = Array.from({length:months}, ()=>0);
-  // For now we distribute totalItems equally across months (so each month shows totalItems)
-  // You can modify logic to allocate differently
-  for(let m=0;m<months;m++){ monthlyTotals[m] = items.reduce((s,i)=> s + (i.qty * i.cost), 0); }
-
-  monthlyTbody.innerHTML = '';
-  monthlyTotals.forEach((val, idx)=>{
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td class="p-2">${labels[idx]}</td><td class="p-2 font-medium">${fmt(val, currentCurrency)}</td>`;
-    monthlyTbody.appendChild(tr);
-  });
-
-  // update range display
-  const firstMonth = labels.length ? labels[0] : '—';
-  const lastMonth = labels.length ? labels[labels.length-1] : '—';
-  monthlyRangeEl.textContent = `From ${firstMonth} to ${lastMonth}`;
-  monthlyRangeSmall.textContent = `${firstMonth} → ${lastMonth}`;
-
-  updateBarChart(labels, monthlyTotals);
-  updatePieChart(items);
-
-  // monthly total number for footer = sum of monthlyTotals
-  const totalMonthlySum = monthlyTotals.reduce((s,v)=>s+v,0);
-  monthlyTotalEl.innerText = `${currentCurrency} ${Number(totalMonthlySum||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`;
-}
-
-// charts
-function updateBarChart(labels, data){
-  const ctx = document.getElementById('barChart').getContext('2d');
-  if(barChart) barChart.destroy();
-  barChart = new Chart(ctx, {
-    type:'bar',
-    data:{ labels, datasets:[{ label:`Monthly total (${currentCurrency})`, data, backgroundColor: labels.map((_,i)=> i % 2 ? '#60a5fa' : '#a78bfa') }] },
-    options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ ticks:{ callback: v => fmt(v, currentCurrency) } } } }
-  });
-}
-
-function updatePieChart(itemsList){
-  const categoryTotals = {};
-  itemsList.forEach(it=>{
-    const cat = (it.desc||'Other').split(' ')[0] || 'Other';
-    categoryTotals[cat] = (categoryTotals[cat]||0) + (it.qty * it.cost);
-  });
-  const labels = Object.keys(categoryTotals);
-  const data = labels.map(l=>categoryTotals[l]);
-  const colors = ['#60a5fa','#fda4af','#fbbf24','#a78bfa','#34d399','#fb7185','#f97316','#60a5fa','#c084fc'];
-  const ctx = document.getElementById('pieChart').getContext('2d');
-  if(pieChart) pieChart.destroy();
-  pieChart = new Chart(ctx, { type:'pie', data:{ labels, datasets:[{ data, backgroundColor: colors.slice(0, labels.length) }] }, options:{ responsive:true, maintainAspectRatio:false } });
-}
-
-// export excel
-exportXlsBtn.addEventListener('click', ()=>{
-  if(items.length===0) return alert('No items to export');
-  const rows = items.map(it=> ({ Description: it.desc, Quantity: it.qty, 'Cost per unit': it.cost, Total: it.qty * it.cost }));
-  const ws = XLSX.utils.json_to_sheet(rows);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'BudgetItems');
-  const summary = [{ Key:'TotalItems', Value: items.reduce((s,i)=>s+(i.qty*i.cost),0) }, { Key:'Income', Value: incomeInput.value || 0 }, { Key:'Currency', Value: currentCurrency }];
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(summary), 'Summary');
-  XLSX.writeFile(wb, `budget_plan_${currentCurrency}.xlsx`);
-});
-
-// export PDF
-exportPdfBtn.addEventListener('click', async ()=>{
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation:'landscape', unit:'pt', format:'a4' });
-  doc.setFontSize(16); doc.text('Budget Plan — ToolNest', 40, 40);
-  if(barChart){ const img = barChart.toBase64Image(); doc.addImage(img, 'PNG', 40, 70, 520, 220); }
-  if(pieChart){ const img2 = pieChart.toBase64Image(); doc.addImage(img2, 'PNG', 580, 70, 220, 220); }
-  doc.setFontSize(10);
-  let y = 310;
-  items.forEach(it=>{
-    doc.text(`${it.desc} — ${it.qty} × ${formatNumber(it.cost)} ${currentCurrency} = ${formatNumber(it.qty*it.cost)} ${currentCurrency}`, 40, y);
-    y += 12;
-    if(y > 520){ doc.addPage(); y = 40; }
-  });
-  doc.save(`budget_report_${currentCurrency}.pdf`);
-});
-
-function formatNumber(n){ return Number(n||0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}); }
-
-// quick export
-exportQuick.addEventListener('click', ()=>{
-  const total = items.reduce((s,i)=>s+(i.qty*i.cost),0);
-  const income = Number(incomeInput.value)||0;
-  const savings = income - total;
-  alert(`Total Items: ${fmt(total,currentCurrency)}\nMonthly Income: ${fmt(income,currentCurrency)}\nProjected Monthly Savings: ${fmt(savings,currentCurrency)}\nCurrency: ${currentCurrency}`);
-});
-
-// conversion helper using exchangerate.host
-async function fetchRate(from, to){
-  if(from === to) return 1;
-  try{
-    const url = `https://api.exchangerate.host/convert?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&amount=1`;
-    const res = await fetch(url);
-    if(!res.ok) throw new Error('Rate fetch failed');
-    const j = await res.json();
-    if(j && j.info && typeof j.info.rate === 'number') return Number(j.info.rate);
-  }catch(e){
-    console.error(e);
-  }
-  throw new Error('Rate fetch failed');
-}
-
-// convert all numeric values to target currency
-async function convertAllValues(targetCurrency){
-  if(targetCurrency === currentCurrency) return showToast('Already in ' + targetCurrency);
-  showToast(`Converting ${currentCurrency} → ${targetCurrency} ...`, 2200);
-  try{
-    const rate = await fetchRate(currentCurrency, targetCurrency);
-    items = items.map(it => ({ ...it, cost: roundToTwo(it.cost * rate) }));
-    incomeInput.value = roundToTwo((Number(incomeInput.value)||0) * rate);
-    currentCurrency = targetCurrency;
-    updateCurrencyLabels(currentCurrency);
-    render(); save();
-    showToast('Conversion applied');
-  }catch(e){ console.error(e); alert('Could not fetch conversion rate. Try again later.'); }
-}
-
-// update labels across UI
-function updateCurrencyLabels(code){
-  currencyLabel.innerText = code;
-  currencyLabel2.innerText = code;
-  currencyLabel3.innerText = code;
-  currencyLabelHeader.innerText = code;
-  monthlyTotalEl.innerText = `${code} ${Number(monthlyTotalEl.dataset || 0).toLocaleString()}`;
-  // re-render will update formatted displays
-}
-
-// currency UI events
-convertBtn.addEventListener('click', async ()=>{ await convertAllValues(currencySelect.value); });
-currencySelect.addEventListener('change', async ()=>{
-  const sel = currencySelect.value;
-  if(autoConvert.checked){ await convertAllValues(sel); }
-  else { currentCurrency = sel; updateCurrencyLabels(currentCurrency); render(); save(); }
-});
-
-// start/end/months interactivity
-startMonthInput.addEventListener('change', ()=>{
-  // if start set and months present, compute end
-  if(startMonthInput.value && monthsInput.value){
-    const start = new Date(startMonthInput.value + '-01');
-    const months = Math.max(1, Number(monthsInput.value));
-    const end = new Date(start.getFullYear(), start.getMonth() + months - 1, 1);
-    endMonthInput.value = `${end.getFullYear()}-${String(end.getMonth()+1).padStart(2,'0')}`;
-  }
-  render(); save();
-});
-endMonthInput.addEventListener('change', ()=>{
-  if(startMonthInput.value && endMonthInput.value){
-    const calc = monthsBetween(startMonthInput.value, endMonthInput.value);
-    if(calc>0) monthsInput.value = calc;
-  }
-  render(); save();
-});
-monthsInput.addEventListener('input', ()=>{
-  if(startMonthInput.value){
-    const start = new Date(startMonthInput.value + '-01');
-    const months = Math.max(1, Number(monthsInput.value));
-    const end = new Date(start.getFullYear(), start.getMonth() + months - 1, 1);
-    endMonthInput.value = `${end.getFullYear()}-${String(end.getMonth()+1).padStart(2,'0')}`;
-  }
-  render(); save();
-});
-
-// init/load
-function loadInit(){ const raw = localStorage.getItem(STORAGE); if(raw){ try{ const o = JSON.parse(raw); items = o.items || []; currentCurrency = o.currency || currentCurrency; lastRates = o.lastRates || lastRates; incomeInput.value = o.income || ''; monthsInput.value = o.months || 12; startMonthInput.value = o.startMonth || ''; endMonthInput.value = o.endMonth || ''; }catch(e){} } initCurrencyUI(); updateCurrencyLabels(currentCurrency); render(); }
-loadInit();
-
-// Autosave every 12s
-setInterval(save, 12000);
-
-// preserve scroll fix
-let savedScroll = 0;
-budgetContainer.addEventListener('scroll', ()=> savedScroll = budgetContainer.scrollTop);
-function preserveScroll(){ budgetContainer.scrollTop = savedScroll; }
-window.addEventListener('resize', preserveScroll);
-
-// prevent Enter form submit accidental
-budgetContainer.addEventListener('keydown', (e)=>{
-  if(e.key === 'Enter' && e.target && (e.target.tagName === 'INPUT' || e.target.tagName==='TEXTAREA')) {
-    e.preventDefault();
-    if(e.target.id === 'quickDesc'){ quickAddBtn.click(); }
-  }
-});
-</script>
-
-</body>
+</script></body>
 </html>
