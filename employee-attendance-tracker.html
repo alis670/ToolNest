@@ -3,9 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Employee Attendance Tracker</title>
+<title>Employee Attendance Calendar</title>
 
-<!-- jsPDF CDN for PDF export -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
@@ -14,165 +13,209 @@
   --success:#10b981; --danger:#ef4444; --radius:10px;
   font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;
 }
-*{box-sizing:border-box;}
-body{margin:0;background:var(--bg);color:#0f172a;padding:18px;}
+body{margin:0;padding:18px;background:var(--bg);color:#0f172a;}
 .card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 10px 30px rgba(2,6,23,0.06);}
-h1,h2,h3,h4{margin:0;}
-h2{font-size:20px;margin-bottom:12px;}
-input,select,textarea,button{font-family:inherit;}
-input,select,textarea{padding:8px;border-radius:8px;border:1px solid #e6eef8;background:#fff;width:100%;}
-button{padding:8px 12px;border-radius:8px;border:0;cursor:pointer;font-weight:700;}
+h2{margin:0 0 12px;font-size:20px;}
+input,select,button{font-family:inherit;padding:8px;border-radius:8px;border:1px solid #e6eef8;}
+button{cursor:pointer;font-weight:700;border:0;padding:8px 12px;}
 .btn.primary{background:var(--accent);color:#fff;}
 .btn.ghost{background:#f1f5f9;border:1px solid #e6eef8;}
-.table{overflow-x:auto;margin-top:12px;border-radius:8px;border:1px solid #eef2ff;}
-table{width:100%;border-collapse:collapse;font-size:14px;}
-th,td{padding:8px;border-bottom:1px solid #f1f5f9;text-align:left;min-width:100px;}
-th{background:#fbfdff;position:sticky;top:0;}
-.filter-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;align-items:end;margin-bottom:12px;}
-@media (max-width:1000px){.filter-row{grid-template-columns:1fr 1fr;}}
-.flex-end{display:flex;align-items:end;gap:8px;flex-wrap:wrap;}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:12px;}
+.day{background:#fbfdff;padding:12px;border-radius:6px;text-align:center;cursor:pointer;position:relative;}
+.day-header{font-weight:700;background:#e2e8f0;padding:6px;border-radius:6px;text-align:center;}
+.status-badge{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);font-size:12px;font-weight:700;padding:2px 4px;border-radius:4px;}
+.present{background:#10b981;color:#fff;}
+.absent{background:#ef4444;color:#fff;}
+.late{background:#f59e0b;color:#fff;}
+.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;display:none;}
+.modal-content{background:#fff;padding:16px;border-radius:8px;width:300px;}
+.modal-content h3{margin:0 0 12px;}
+.modal-content label{display:block;margin:6px 0 2px;font-weight:600;}
+.modal-content input, .modal-content select{width:100%;}
+.modal-content .flex-end{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;}
 </style>
 </head>
 <body>
 
 <div class="card">
-  <h2>Employee Attendance Tracker</h2>
+  <h2>Employee Attendance Calendar</h2>
 
-  <!-- Filters -->
-  <div class="filter-row">
-    <div>
-      <label>Month (YYYY-MM)</label>
-      <input type="month" id="filterMonth">
-    </div>
+  <!-- Employee & Department -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:12px;">
     <div>
       <label>Employee Name</label>
-      <input type="text" id="filterEmployee" placeholder="Employee Name">
+      <input type="text" id="employeeName" placeholder="John Doe">
     </div>
     <div>
       <label>Department</label>
-      <input type="text" id="filterDepartment" placeholder="Department">
+      <input type="text" id="departmentName" placeholder="Sales">
     </div>
     <div>
-      <button id="applyFilter" class="btn ghost" style="width:100%;">Apply Filter</button>
+      <label>Select Month</label>
+      <input type="month" id="selectMonth">
     </div>
   </div>
 
+  <!-- Calendar Headers -->
+  <div class="calendar">
+    <div class="day-header">Sun</div>
+    <div class="day-header">Mon</div>
+    <div class="day-header">Tue</div>
+    <div class="day-header">Wed</div>
+    <div class="day-header">Thu</div>
+    <div class="day-header">Fri</div>
+    <div class="day-header">Sat</div>
+  </div>
+
+  <!-- Calendar days will be injected here -->
+  <div class="calendar" id="calendarDays"></div>
+
   <!-- Download buttons -->
-  <div class="flex-end">
+  <div class="flex-end" style="margin-top:12px;">
     <button id="exportCsv" class="btn ghost">Export CSV</button>
     <button id="exportJson" class="btn ghost">Export JSON</button>
     <button id="exportPdf" class="btn ghost">Export PDF</button>
   </div>
+</div>
 
-  <!-- Attendance Table -->
-  <div class="table">
-    <table>
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Employee</th>
-          <th>Department</th>
-          <th>Status</th>
-          <th>Notes</th>
-        </tr>
-      </thead>
-      <tbody id="attendanceTbody">
-        <!-- Dynamic rows go here -->
-      </tbody>
-    </table>
+<!-- Modal for setting attendance -->
+<div class="modal" id="attendanceModal">
+  <div class="modal-content">
+    <h3>Mark Attendance</h3>
+    <label>Status</label>
+    <select id="attendanceStatus">
+      <option>Present</option>
+      <option>Absent</option>
+      <option>Late</option>
+    </select>
+    <div id="lateTimeContainer" style="display:none;">
+      <label>Minutes Late</label>
+      <input type="number" id="lateMinutes" min="0" value="0">
+    </div>
+    <div class="flex-end">
+      <button class="btn ghost" id="cancelModal">Cancel</button>
+      <button class="btn primary" id="saveModal">Save</button>
+    </div>
   </div>
 </div>
 
 <script>
-let attendanceData = [
-  {date:'2025-11-01',employee:'John Doe',department:'Sales',status:'Present',notes:''},
-  {date:'2025-11-01',employee:'Jane Smith',department:'HR',status:'Absent',notes:''}
-];
+let attendanceData = {}; // Key: YYYY-MM-DD, Value: {employee, department, status, lateMinutes}
 
-// Render table rows
-function renderTable() {
-  const tbody = document.getElementById('attendanceTbody');
-  tbody.innerHTML = '';
-  const filtered = getFiltered();
-  filtered.forEach((a,index)=>{
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><input type="date" value="${a.date}" onchange="updateRow(${index}, 'date', this.value)"></td>
-      <td><input type="text" value="${a.employee}" onchange="updateRow(${index}, 'employee', this.value)"></td>
-      <td><input type="text" value="${a.department}" onchange="updateRow(${index}, 'department', this.value)"></td>
-      <td>
-        <select onchange="updateRow(${index}, 'status', this.value)">
-          <option ${a.status==='Present'?'selected':''}>Present</option>
-          <option ${a.status==='Absent'?'selected':''}>Absent</option>
-          <option ${a.status==='Late'?'selected':''}>Late</option>
-        </select>
-      </td>
-      <td><input type="text" value="${a.notes}" onchange="updateRow(${index}, 'notes', this.value)"></td>
-    `;
-    tbody.appendChild(tr);
-  });
+// Generate calendar for selected month
+function generateCalendar(){
+  const monthInput = document.getElementById('selectMonth').value;
+  if(!monthInput) return;
+  const [year, month] = monthInput.split('-').map(Number);
+  const firstDay = new Date(year, month-1, 1).getDay();
+  const lastDate = new Date(year, month, 0).getDate();
+
+  const calendar = document.getElementById('calendarDays');
+  calendar.innerHTML = '';
+
+  // Empty slots before first day
+  for(let i=0;i<firstDay;i++){ const div = document.createElement('div'); calendar.appendChild(div); }
+
+  for(let d=1;d<=lastDate;d++){
+    const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const div = document.createElement('div');
+    div.classList.add('day');
+    div.textContent = d;
+
+    // Add status badge if exists
+    if(attendanceData[dateStr]){
+      const badge = document.createElement('div');
+      badge.classList.add('status-badge', attendanceData[dateStr].status.toLowerCase());
+      badge.textContent = attendanceData[dateStr].status + (attendanceData[dateStr].status==='Late'?` (${attendanceData[dateStr].lateMinutes}m)`:'');
+      div.appendChild(badge);
+    }
+
+    div.addEventListener('click', ()=>openModal(dateStr));
+    calendar.appendChild(div);
+  }
 }
 
-// Update a row
-function updateRow(index, field, value){
-  const filtered = getFiltered();
-  const item = filtered[index];
-  if(item) item[field] = value;
+document.getElementById('selectMonth').addEventListener('change', generateCalendar);
+
+// Modal logic
+let currentDate = '';
+const modal = document.getElementById('attendanceModal');
+const statusSelect = document.getElementById('attendanceStatus');
+const lateContainer = document.getElementById('lateTimeContainer');
+
+function openModal(dateStr){
+  currentDate = dateStr;
+  const employee = document.getElementById('employeeName').value.trim();
+  const department = document.getElementById('departmentName').value.trim();
+  if(!employee || !department){ alert('Enter Employee and Department'); return; }
+  modal.style.display='flex';
+  if(attendanceData[dateStr]){
+    statusSelect.value = attendanceData[dateStr].status;
+    document.getElementById('lateMinutes').value = attendanceData[dateStr].lateMinutes || 0;
+  } else {
+    statusSelect.value='Present';
+    document.getElementById('lateMinutes').value = 0;
+  }
+  lateContainer.style.display = (statusSelect.value==='Late')?'block':'none';
 }
 
-// Filtered data
-function getFiltered(){
-  const month = document.getElementById('filterMonth').value;
-  const emp = document.getElementById('filterEmployee').value.trim().toLowerCase();
-  const dep = document.getElementById('filterDepartment').value.trim().toLowerCase();
-  return attendanceData.filter(a=>{
-    return (!month || a.date.startsWith(month)) &&
-           (!emp || a.employee.toLowerCase().includes(emp)) &&
-           (!dep || a.department.toLowerCase().includes(dep));
-  });
-}
+statusSelect.addEventListener('change', ()=>{
+  lateContainer.style.display = (statusSelect.value==='Late')?'block':'none';
+});
 
-document.getElementById('applyFilter').addEventListener('click', renderTable);
+document.getElementById('cancelModal').addEventListener('click', ()=>{
+  modal.style.display='none';
+});
 
-// --- Export CSV ---
+document.getElementById('saveModal').addEventListener('click', ()=>{
+  const employee = document.getElementById('employeeName').value.trim();
+  const department = document.getElementById('departmentName').value.trim();
+  const status = statusSelect.value;
+  const lateMinutes = parseInt(document.getElementById('lateMinutes').value) || 0;
+  attendanceData[currentDate] = {employee, department, status, lateMinutes};
+  modal.style.display='none';
+  generateCalendar();
+});
+
+// Export CSV
 document.getElementById('exportCsv').addEventListener('click', ()=>{
-  const filtered = getFiltered();
-  const csv = [
-    ['Date','Employee','Department','Status','Notes'],
-    ...filtered.map(a=>[a.date,a.employee,a.department,a.status,a.notes])
-  ].map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
+  const rows = [['Date','Employee','Department','Status','Minutes Late']];
+  for(const date in attendanceData){
+    const a = attendanceData[date];
+    rows.push([date,a.employee,a.department,a.status,a.lateMinutes]);
+  }
+  const csv = rows.map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
   const blob = new Blob([csv],{type:'text/csv'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href=url; a.download='attendance.csv'; a.click();
   URL.revokeObjectURL(url);
 });
 
-// --- Export JSON ---
+// Export JSON
 document.getElementById('exportJson').addEventListener('click', ()=>{
-  const data = getFiltered();
-  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const data = JSON.stringify(attendanceData,null,2);
+  const blob = new Blob([data],{type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href=url; a.download='attendance.json'; a.click();
   URL.revokeObjectURL(url);
 });
 
-// --- Export PDF ---
+// Export PDF
 document.getElementById('exportPdf').addEventListener('click', ()=>{
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
-  const data = getFiltered();
   doc.setFontSize(12);
-  doc.text("Employee Attendance Tracker", 14, 14);
+  doc.text("Employee Attendance Calendar", 14, 14);
   let y=22;
-  data.forEach(a=>{
-    doc.text(`${a.date} | ${a.employee} | ${a.department} | ${a.status} | ${a.notes}`, 14, y);
+  for(const date in attendanceData){
+    const a = attendanceData[date];
+    doc.text(`${date} | ${a.employee} | ${a.department} | ${a.status} | ${a.lateMinutes} min late`, 14, y);
     y+=8;
-  });
+    if(y>280){doc.addPage(); y=20;}
+  }
   doc.save('attendance.pdf');
 });
 
-// Initial render
-renderTable();
 </script>
 
 </body>
