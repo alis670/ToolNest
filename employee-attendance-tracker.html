@@ -2,22 +2,21 @@
 
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Employee Attendance & Salary Tracker</title><style>
-:root {
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Employee Attendance Tracker</title><style>
+:root{
   --bg:#f6f8fb; --card:#fff; --muted:#6b7280; --accent:#2563eb;
   --success:#10b981; --danger:#ef4444; --radius:10px;
   font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:#0f172a;padding:18px}
-.app{max-width:1150px;margin:0 auto;display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start}
+.app{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start}
 .card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 10px 30px rgba(2,6,23,0.06)}
-.header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+.header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
 h1{margin:0;font-size:18px}
 small.muted{color:var(--muted)}
-.controls{display:flex;gap:8px;flex-wrap:wrap}
 input,select,textarea,button{font-family:inherit}
 input,select,textarea{padding:8px;border-radius:8px;border:1px solid #e6eef8;background:#fff}
 button{padding:8px 12px;border-radius:8px;border:0;cursor:pointer}
@@ -25,147 +24,136 @@ button{padding:8px 12px;border-radius:8px;border:0;cursor:pointer}
 .primary{background:var(--accent);color:#fff}
 .ghost{background:#f1f5f9;border:1px solid #e6eef8}
 .danger{background:var(--danger);color:#fff}
-.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
-.kpi{background:#fbfdff;padding:12px;border-radius:8px;text-align:center}
-.kpi h3{margin:0;font-size:13px}
-.kpi p{margin:6px 0 0;font-weight:800}
 .table{margin-top:12px;overflow:auto;border-radius:8px;border:1px solid #eef2ff}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{padding:8px;border-bottom:1px solid #f1f5f9;text-align:left}
 th{background:#fbfdff;position:sticky;top:0}
-canvas{background:#fff;border-radius:8px;padding:8px}
-.audit{margin-top:12px;max-height:180px;overflow:auto;font-size:13px;color:var(--muted)}
-.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-label{display:block;margin-bottom:6px;font-weight:600}
 .flex-end{display:flex;align-items:end;gap:8px;flex-wrap:wrap}
-@media (max-width:1000px){.app{grid-template-columns:1fr}}  
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:12px}
+.day{padding:12px;border-radius:6px;text-align:center;background:#f1f5f9;cursor:pointer}
+.day.present{background:#10b981;color:#fff}
+.day.absent{background:#ef4444;color:#fff}
+.day.late{background:#f59e0b;color:#fff}
+@media (max-width:1000px){.app{grid-template-columns:1fr}} 
 </style></head>
-<body><div class="app">  <!-- MAIN -->  <div class="card">
+<body><div class="app">
+  <!-- MAIN -->
+  <div class="card">
     <div class="header">
-      <div><h1>Employee Attendance & Salary Tracker</h1><small class="muted">Track attendance, late, overtime, bonus and auto-calculate salary</small></div>
-    </div><!-- Form -->
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;align-items:end">
-  <div><label>Employee Name</label><input id="employeeName" placeholder="Enter name"></div>
-  <div><label>Department</label><input id="department" placeholder="Enter department"></div>
-  <div><label>Month</label><input type="month" id="monthSelect"></div>
-  <div><label>Date</label><input type="date" id="dateSelect"></div>
-  <div><label>Status</label>
-    <select id="status">
-      <option value="present">Present</option>
-      <option value="absent">Absent</option>
-      <option value="late">Late</option>
-    </select>
+      <div>
+        <h1>Employee Attendance Tracker</h1>
+      </div>
+      <div style="min-width:180px">
+        <label>Select Month</label>
+        <input type="month" id="monthPicker">
+      </div>
+    </div><!-- Add Employee -->
+<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-bottom:12px">
+  <div>
+    <label>Employee Name</label>
+    <input id="empName" placeholder="Enter name">
   </div>
-  <div><label>Late Minutes</label><input type="number" id="lateMinutes" placeholder="0" min="0"></div>
-  <div><label>Overtime Hours</label><input type="number" id="overtime" placeholder="0" min="0"></div>
-  <div><label>Bonus</label><input type="number" id="bonus" placeholder="0" min="0"></div>
-  <div class="flex-end"><button id="addEntry" class="btn primary">Add</button><button id="clearForm" class="btn ghost">Clear</button></div>
+  <div>
+    <label>Department</label>
+    <input id="empDept" placeholder="Enter department">
+  </div>
+  <div class="flex-end">
+    <button id="addEmp" class="btn primary">Add Employee</button>
+  </div>
 </div>
 
-<!-- Table -->
-<div class="table">
-  <table>
-    <thead>
-      <tr><th>Date</th><th>Employee</th><th>Department</th><th>Status</th><th>Late (min)</th><th>Overtime (hrs)</th><th>Bonus</th><th>Calculated Salary</th><th>Actions</th></tr>
-    </thead>
-    <tbody id="attendanceTable"></tbody>
-  </table>
+<!-- Filters -->
+<div class="filter-row">
+  <div><label>Filter Employee</label><input id="filterEmp" placeholder="Search"></div>
+  <div><label>Filter Department</label><input id="filterDept" placeholder="Search"></div>
+  <div class="flex-end">
+    <button id="applyFilter" class="btn ghost">Apply Filter</button>
+  </div>
 </div>
 
-<div class="flex-end" style="margin-top:12px;gap:8px;flex-wrap:wrap">
-  <button id="downloadCSV" class="btn ghost">Export CSV</button>
-  <button id="downloadJSON" class="btn ghost">Export JSON</button>
-  <button id="downloadPDF" class="btn ghost">Export PDF</button>
+<!-- Calendar -->
+<div id="calendar" class="calendar"></div>
+
+<!-- Attendance Legend -->
+<div style="margin-top:12px;display:flex;gap:12px;flex-wrap:wrap">
+  <div class="day present">Present</div>
+  <div class="day absent">Absent</div>
+  <div class="day late">Late</div>
 </div>
 
-<!-- KPIs -->
-<div class="kpis" style="margin-top:12px">
-  <div class="kpi"><h3>Total Employees</h3><p id="totalEmployees">0</p></div>
-  <div class="kpi"><h3>Total Present</h3><p id="totalPresent">0</p></div>
-  <div class="kpi"><h3>Total Absent</h3><p id="totalAbsent">0</p></div>
+<!-- Export -->
+<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+  <button id="exportCsv" class="btn ghost">Export CSV</button>
+  <button id="exportJson" class="btn ghost">Export JSON</button>
+  <button id="exportPdf" class="btn ghost">Export PDF</button>
 </div>
 
-  </div>  <!-- SIDEBAR -->  <div class="card">
-    <h3 style="margin:0 0 8px">Salary Summary</h3>
-    <div class="audit" id="salarySummary"></div>
+  </div>  <!-- SIDEBAR -->  <div class="card" style="display:flex;flex-direction:column;gap:12px">
+    <h3>Employees</h3>
+    <div id="empList" class="audit" style="max-height:500px;overflow:auto"></div>
   </div>
 </div><script>
-let entries = [];
-const baseSalary = 1000; // default salary per month
+let employees=[];
+let monthSelected=new Date().toISOString().slice(0,7);
 
-function calculateSalary(entry) {
-  let salary = baseSalary;
-  if(entry.status === 'absent') salary = 0;
-  if(entry.status === 'late') salary -= (entry.lateMinutes || 0) * 2; // 2 per minute
-  salary += (entry.overtime || 0) * 10; // 10 per overtime hour
-  salary += (entry.bonus || 0);
-  return salary;
-}
+const monthPicker=document.getElementById('monthPicker');
+monthPicker.value=monthSelected;
+monthPicker.addEventListener('change',()=>{monthSelected=monthPicker.value; renderCalendar();});
 
-function renderTable(){
-  const tbody = document.getElementById('attendanceTable');
-  tbody.innerHTML = '';
-  entries.forEach((e,i)=>{
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${e.date}</td><td>${e.employee}</td><td>${e.department}</td><td>${e.status}</td><td>${e.lateMinutes||0}</td><td>${e.overtime||0}</td><td>${e.bonus||0}</td><td>${e.calculated}</td><td><button onclick='deleteEntry(${i})' class='btn ghost'>Delete</button></td>`;
-    tbody.appendChild(tr);
-  });
-  updateKPIs();
-  renderSalarySummary();
-}
-
-function updateKPIs(){
-  document.getElementById('totalEmployees').textContent = [...new Set(entries.map(e=>e.employee))].length;
-  document.getElementById('totalPresent').textContent = entries.filter(e=>e.status==='present').length;
-  document.getElementById('totalAbsent').textContent = entries.filter(e=>e.status==='absent').length;
-}
-
-function renderSalarySummary(){
-  const summaryDiv = document.getElementById('salarySummary');
-  const grouped = {};
-  entries.forEach(e=>{
-    if(!grouped[e.employee]) grouped[e.employee]=0;
-    grouped[e.employee] += e.calculated;
-  });
-  summaryDiv.innerHTML = Object.keys(grouped).map(emp=>`<div>${emp}: ${grouped[emp]}</div>`).join('');
-}
-
-function deleteEntry(index){
-  entries.splice(index,1);
-  renderTable();
-}
-
-document.getElementById('addEntry').addEventListener('click',()=>{
-  const employee = document.getElementById('employeeName').value.trim();
-  const department = document.getElementById('department').value.trim();
-  const date = document.getElementById('dateSelect').value;
-  const status = document.getElementById('status').value;
-  const lateMinutes = Number(document.getElementById('lateMinutes').value);
-  const overtime = Number(document.getElementById('overtime').value);
-  const bonus = Number(document.getElementById('bonus').value);
-  if(!employee||!department||!date){ alert('Fill employee, department, date'); return; }
-  const calculated = calculateSalary({status,lateMinutes,overtime,bonus});
-  entries.push({employee,department,date,status,lateMinutes,overtime,bonus,calculated});
-  renderTable();
+document.getElementById('addEmp').addEventListener('click',()=>{
+  const name=document.getElementById('empName').value.trim();
+  const dept=document.getElementById('empDept').value.trim();
+  if(!name || !dept) return alert('Enter name & department');
+  const emp={id:Date.now(),name,dept,attendance:{}};
+  employees.push(emp);
+  document.getElementById('empName').value='';
+  document.getElementById('empDept').value='';
+  renderEmployees();
+  renderCalendar();
 });
 
-document.getElementById('clearForm').addEventListener('click',()=>{
-  ['employeeName','department','dateSelect','status','lateMinutes','overtime','bonus'].forEach(id=>document.getElementById(id).value='');
-});
+function renderEmployees(){
+  const container=document.getElementById('empList');
+  container.innerHTML=employees.map(e=>`<div>${e.name} - ${e.dept}</div>`).join('');
+}
 
-// Download CSV
-document.getElementById('downloadCSV').addEventListener('click',()=>{
-  let csv = 'Date,Employee,Department,Status,Late Minutes,Overtime,Bonus,Calculated Salary\n';
-  entries.forEach(e=>{csv += `${e.date},${e.employee},${e.department},${e.status},${e.lateMinutes||0},${e.overtime||0},${e.bonus||0},${e.calculated}\n`;});
-  const blob = new Blob([csv], {type:'text/csv'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='attendance.csv'; a.click();
-});
+function renderCalendar(){
+  const cal=document.getElementById('calendar');
+  cal.innerHTML='';
+  if(!monthSelected) return;
+  const [year,month]=monthSelected.split('-').map(Number);
+  const daysInMonth=new Date(year,month,0).getDate();
+  for(let d=1;d<=daysInMonth;d++){
+    const dayDiv=document.createElement('div');
+    dayDiv.className='day';
+    dayDiv.textContent=d;
+    dayDiv.addEventListener('click',()=>markAttendance(d));
+    cal.appendChild(dayDiv);
+  }
+}
 
-// Download JSON
-document.getElementById('downloadJSON').addEventListener('click',()=>{
-  const blob = new Blob([JSON.stringify(entries,null,2)], {type:'application/json'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='attendance.json'; a.click();
-});
+function markAttendance(day){
+  const status=prompt('Mark Present / Absent / Late');
+  let lateMinutes=0;
+  if(status && status.toLowerCase()==='late'){
+    lateMinutes=prompt('Minutes late?')||0;
+  }
+  employees.forEach(e=>{e.attendance[`${monthSelected}-${day}`]={status,status,status==='late'?lateMinutes:0};});
+  renderCalendar();
+}
 
+renderEmployees();
+renderCalendar();
 </script></body>
 </html>
+<!-- Added Manual Salary Input -->
+<div class="salary-input" style="margin-top:20px;display:flex;flex-direction:column;gap:10px;">
+  <label for="manualSalary">Enter Base Salary (Manual)</label>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+    <select id="salaryCurrency" style="min-width:120px;">
+      <!-- populated from currencies.js -->
+    </select>
+    <input id="manualSalary" type="number" placeholder="Enter Salary" style="flex:1;min-width:160px;">
+  </div>
+</div>
