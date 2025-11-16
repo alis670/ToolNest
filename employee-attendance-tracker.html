@@ -1,335 +1,228 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>HR — Employees (Dark Premium)</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Premium HR Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css" rel="stylesheet">
 <style>
-  :root{
-    --bg:#0b1220;
-    --panel:#0f1724;
-    --card:#0b1228;
-    --muted:#98a0b3;
-    --accent:#2EA6FF; /* electric blue */
-    --accent-2:#2b9bff;
-    --glass: rgba(255,255,255,0.03);
-  }
-  html,body{height:100%;margin:0;background:linear-gradient(180deg,#05060a,var(--bg));color:#e6eef8;font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
-  .app{display:flex;min-height:100vh}
-  /* Sidebar */
-  .sidebar{width:220px;padding:22px;background:linear-gradient(180deg,rgba(20,28,40,0.95),rgba(6,10,18,0.95));box-shadow:0 10px 30px rgba(2,6,23,0.6);position:fixed;height:100vh}
-  .brand{display:flex;align-items:center;gap:10px;margin-bottom:18px}
-  .brand .logo{width:44px;height:44px;background:linear-gradient(135deg,var(--accent),var(--accent-2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#001022}
-  .nav-link{display:block;color:#cfe7ff;padding:9px 10px;border-radius:8px;text-decoration:none;margin:6px 0}
-  .nav-link:hover{background:rgba(255,255,255,0.03)}
-  .content{margin-left:240px;padding:28px;width:calc(100% - 240px)}
-  .card-dark{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.03); border-radius:12px; padding:16px; box-shadow: 0 8px 30px rgba(2,6,23,0.6); margin-bottom:18px;}
-  .btn-accent{background:linear-gradient(90deg,var(--accent),var(--accent-2));border:0;color:#041426}
-  .muted{color:var(--muted)}
-  .table thead th{border-bottom:1px solid rgba(255,255,255,0.04)}
-  @media (max-width:900px){
-    .sidebar{position:relative;width:100%;height:auto}
-    .content{margin-left:0;padding:16px}
-  }
-  .small-input{padding:.4rem .6rem;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);color:inherit}
+  body.dark { background-color: #1a1a1a; color: #f0f0f0; }
+  .dark .card { background-color: #2a2a2a; color: #f0f0f0; }
+  .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); justify-content:center; align-items:center; }
 </style>
 </head>
-<body>
-
-<!-- LOGIN / SIGNUP (kept same behaviour) -->
-<div id="loginScreen" style="max-width:480px;margin:40px auto;">
-  <div class="card-dark">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <div>
-        <h3 style="margin:0">HR Login / Sign Up</h3>
-        <div class="muted small" style="margin-top:6px">Your login is stored locally (browser).</div>
-      </div>
-      <div>
-        <button id="showLogin" class="btn btn-outline-light btn-sm">Login</button>
-        <button id="showSignup" class="btn btn-accent btn-sm">Sign Up</button>
-      </div>
+<body class="container mx-auto mt-10"><!-- LOGIN / SIGNUP --><div id="loginDiv" class="card p-6 rounded shadow-md bg-white">
+  <h2 class="text-2xl mb-4">HR Login / Sign Up</h2>
+  <div class="mb-4">
+    <button id="showLogin" class="px-4 py-2 bg-blue-500 text-white rounded">Login</button>
+    <button id="showSignup" class="px-4 py-2 bg-green-500 text-white rounded">Sign Up</button>
+  </div>  <form id="loginForm" class="space-y-2">
+    <input type="text" id="hrUserLogin" placeholder="Username" class="w-full p-2 border rounded" required>
+    <input type="password" id="hrPassLogin" placeholder="Password" class="w-full p-2 border rounded" required>
+    <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded">Login</button>
+  </form>  <form id="signupForm" class="space-y-2" style="display:none;">
+    <input type="text" id="hrUserSignup" placeholder="Choose Username" class="w-full p-2 border rounded" required>
+    <input type="password" id="hrPassSignup" placeholder="Choose Password" class="w-full p-2 border rounded" required>
+    <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded">Sign Up</button>
+  </form>
+</div><!-- MAIN DASHBOARD --><div id="mainApp" style="display:none;">
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-3xl font-bold">HR Dashboard</h2>
+    <div>
+      <button id="themeToggle" class="px-3 py-1 border rounded mr-2">Toggle Dark</button>
+      <button id="logoutBtn" class="px-3 py-1 bg-red-500 text-white rounded">Logout</button>
     </div>
-
-    <form id="loginForm">
-      <input id="hrUserLogin" class="form-control mb-2 small-input" placeholder="Username" required />
-      <input id="hrPassLogin" type="password" class="form-control mb-2 small-input" placeholder="Password" required />
-      <div class="d-grid gap-2"><button class="btn btn-accent">Login</button></div>
+  </div>  <!-- ADD EMPLOYEE -->  <div class="card p-4 rounded shadow-md bg-white mb-6">
+    <h3 class="text-xl font-semibold mb-2">Add Employee</h3>
+    <form id="addEmployeeForm" class="grid grid-cols-6 gap-2">
+      <input type="text" id="empName" placeholder="Name" class="p-2 border rounded" required>
+      <input type="text" id="empDept" placeholder="Department" class="p-2 border rounded" required>
+      <input type="text" id="empDesig" placeholder="Designation" class="p-2 border rounded" required>
+      <input type="number" id="empSalary" placeholder="Basic Salary" class="p-2 border rounded" required>
+      <select id="empCurrency" class="p-2 border rounded" required>
+        <option value="">Select Currency</option>
+      </select>
+      <button type="submit" class="bg-blue-500 text-white rounded">Add Employee</button>
     </form>
-
-    <form id="signupForm" style="display:none;margin-top:10px">
-      <input id="hrUserSignup" class="form-control mb-2 small-input" placeholder="Choose username" required />
-      <input id="hrPassSignup" type="password" class="form-control mb-2 small-input" placeholder="Choose password" required />
-      <div class="d-grid gap-2"><button class="btn btn-outline-success">Create account</button></div>
+  </div>  <!-- EMPLOYEE LIST -->  <div class="card p-4 rounded shadow-md bg-white mb-6">
+    <h3 class="text-xl font-semibold mb-2">Employee List</h3>
+    <table class="w-full table-auto border-collapse border" id="employeeTable">
+      <tr class="bg-gray-200"><th class="border p-2">Name</th><th class="border p-2">Dept</th><th class="border p-2">Designation</th><th class="border p-2">Salary</th><th class="border p-2">Currency</th><th class="border p-2">Action</th></tr>
+    </table>
+  </div>  <!-- ATTENDANCE -->  <div class="card p-4 rounded shadow-md bg-white mb-6">
+    <h3 class="text-xl font-semibold mb-2">Attendance</h3>
+    <input type="month" id="attendanceMonth" class="p-2 border rounded mb-2">
+    <div id="calendar" class="overflow-auto"></div>
+    <table class="w-full border-collapse border mt-2" id="attendanceTable">
+      <tr class="bg-gray-200"><th class="border p-2">Date</th><th class="border p-2">Employee</th><th class="border p-2">Status</th><th class="border p-2">Late Minutes</th><th class="border p-2">Action</th></tr>
+    </table>
+  </div>  <!-- SALARY CALCULATION -->  <div class="card p-4 rounded shadow-md bg-white mb-6">
+    <h3 class="text-xl font-semibold mb-2">Salary Calculation</h3>
+    <form id="calculateSalaryForm" class="grid grid-cols-6 gap-2">
+      <select id="salaryEmployee" class="p-2 border rounded" required><option value="">Select Employee</option></select>
+      <input type="date" id="startDate" class="p-2 border rounded" required>
+      <input type="date" id="endDate" class="p-2 border rounded" required>
+      <input type="number" step="0.1" id="overtimeHours" placeholder="Overtime Hours" class="p-2 border rounded">
+      <input type="number" id="bonusAmount" placeholder="Bonus" class="p-2 border rounded">
+      <button type="submit" class="bg-green-500 text-white rounded">Calculate Salary</button>
     </form>
+    <table class="w-full table-auto border-collapse border mt-2" id="salaryTable">
+      <tr class="bg-gray-200"><th class="border p-2">Employee</th><th class="border p-2">Month</th><th class="border p-2">Net Salary</th><th class="border p-2">Payslip</th></tr>
+    </table>
+  </div>  <!-- ATTENDANCE CHART -->  <div class="card p-4 rounded shadow-md bg-white mb-6">
+    <h3 class="text-xl font-semibold mb-2">Attendance Chart</h3>
+    <canvas id="attendanceChart" height="100"></canvas>
   </div>
-</div>
-
-<!-- MAIN APP -->
-<div id="app" style="display:none;">
-  <div class="app">
-    <aside class="sidebar">
-      <div class="brand">
-        <div class="logo">HR</div>
-        <div>
-          <div style="font-weight:700">HR SaaS</div>
-          <div class="muted small" id="userBadge">—</div>
-        </div>
-      </div>
-
-      <a href="#" class="nav-link" data-section="employees">Employees</a>
-      <a href="#" class="nav-link" id="logoutLink">Logout</a>
-    </aside>
-
-    <main class="content">
-      <div id="employeesSection" class="card-dark">
-        <div class="d-flex justify-content-between align-items-start mb-3">
-          <div>
-            <h2 style="margin:0">Employees</h2>
-            <div class="muted small">Add / Edit / Delete employees — stored locally</div>
-          </div>
-          <div>
-            <input id="searchEmployee" class="form-control small-input" placeholder="Search employee..." style="width:220px">
-          </div>
-        </div>
-
-        <div class="card-dark mb-3">
-          <h5 style="margin-bottom:10px">Add / Edit Employee</h5>
-          <form id="addEmployeeForm" class="row g-2">
-            <div class="col-md-3"><input id="empName" class="form-control small-input" placeholder="Full name" required /></div>
-            <div class="col-md-3"><input id="empDept" class="form-control small-input" placeholder="Department" required /></div>
-            <div class="col-md-2"><input id="empDesig" class="form-control small-input" placeholder="Designation" required /></div>
-            <div class="col-md-2"><input id="empSalary" type="number" class="form-control small-input" placeholder="Basic salary" required /></div>
-            <div class="col-md-2">
-              <select id="empCurrency" class="form-select small-input">
-                <option value="PKR">PKR</option>
-                <option value="USD">USD</option>
-                <option value="INR">INR</option>
-                <option value="EUR">EUR</option>
-              </select>
-            </div>
-            <div class="col-12">
-              <input type="hidden" id="editIndex" value="-1" />
-              <button class="btn btn-accent mt-2">Save Employee</button>
-              <button id="cancelEdit" type="button" class="btn btn-outline-light mt-2" style="margin-left:8px;display:none">Cancel</button>
-            </div>
-          </form>
-        </div>
-
-        <div class="card-dark">
-          <h5>Employee List</h5>
-          <div class="table-responsive">
-            <table class="table table-dark table-striped" id="employeeTable">
-              <thead>
-                <tr><th>Name</th><th>Department</th><th>Designation</th><th>Salary</th><th>Currency</th><th>Actions</th></tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-          <div class="d-flex gap-2 mt-2">
-            <button id="clearAllEmployees" class="btn btn-outline-danger btn-sm">Clear All Employees</button>
-          </div>
-        </div>
-      </div>
-    </main>
+</div><!-- MODAL --><div class="modal" id="attendanceModal">
+  <div class="bg-white p-4 rounded shadow-md w-96">
+    <h3 class="text-lg font-semibold mb-2">Mark Attendance</h3>
+    <select id="modalEmployee" class="p-2 border rounded mb-2"></select>
+    <select id="modalStatus" class="p-2 border rounded mb-2">
+      <option value="">Select Status</option>
+      <option value="Present">Present</option>
+      <option value="Absent">Absent</option>
+      <option value="Late">Late</option>
+    </select>
+    <input type="number" id="modalLateMinutes" placeholder="Late minutes" class="p-2 border rounded mb-2">
+    <input type="hidden" id="modalDate">
+    <button class="w-full bg-blue-500 text-white rounded" onclick="saveAttendance()">Save</button>
+    <button class="w-full mt-2 bg-gray-500 text-white rounded" onclick="closeModal()">Close</button>
   </div>
-</div>
+</div><script src="currencies.js"></script><script>
+let employees=[], attendance=[], salaries=[], currencySymbols={};
 
-<script>
-/* ======= Keep login/signup system behavior intact ======= */
-(function(){
-  const showLoginBtn = document.getElementById('showLogin');
-  const showSignupBtn = document.getElementById('showSignup');
-  const loginForm = document.getElementById('loginForm');
-  const signupForm = document.getElementById('signupForm');
-  const loginScreen = document.getElementById('loginScreen');
-  const app = document.getElementById('app');
-  const logoutLink = document.getElementById('logoutLink');
-  const userBadge = document.getElementById('userBadge');
-
-  // Toggle
-  showLoginBtn.addEventListener('click', ()=>{ loginForm.style.display='block'; signupForm.style.display='none'; });
-  showSignupBtn.addEventListener('click', ()=>{ loginForm.style.display='none'; signupForm.style.display='block'; });
-
-  // Storage keys
-  const LS_USER = 'hr_user_simple';
-  const LS_PASS = 'hr_pass_simple';
-  const LS_LOGGED = 'hr_logged_simple';
-
-  // Signup
-  signupForm.addEventListener('submit', e=>{
-    e.preventDefault();
-    const u = document.getElementById('hrUserSignup').value.trim();
-    const p = document.getElementById('hrPassSignup').value.trim();
-    if(!u||!p){ alert('Enter username/password'); return; }
-    localStorage.setItem(LS_USER, u);
-    localStorage.setItem(LS_PASS, p);
-    alert('Account created. Please login.');
-    signupForm.reset();
-    loginForm.style.display='block'; signupForm.style.display='none';
-  });
-
-  // Login
-  loginForm.addEventListener('submit', e=>{
-    e.preventDefault();
-    const u = document.getElementById('hrUserLogin').value.trim();
-    const p = document.getElementById('hrPassLogin').value.trim();
-    const storedU = localStorage.getItem(LS_USER);
-    const storedP = localStorage.getItem(LS_PASS);
-    if(u === storedU && p === storedP){
-      localStorage.setItem(LS_LOGGED, '1');
-      loginScreen.style.display = 'none';
-      app.style.display = 'block';
-      userBadge.textContent = u;
-      EmployeeApp.init();
-    } else {
-      alert('Invalid credentials!');
-    }
-  });
-
-  // Auto-login if previously logged
-  if(localStorage.getItem(LS_LOGGED) === '1'){
-    loginScreen.style.display = 'none';
-    app.style.display = 'block';
-    userBadge.textContent = localStorage.getItem(LS_USER) || 'HR';
-    EmployeeApp.init();
-  }
-
-  // Logout
-  logoutLink.addEventListener('click', (e)=>{
-    e.preventDefault();
-    if(confirm('Logout?')){
-      localStorage.removeItem(LS_LOGGED);
-      location.reload();
-    }
-  });
-
-})();
-
-/* ======= Employee App (only feature set you asked to keep) ======= */
-const EmployeeApp = (function(){
-  const LS_EMP = 'hr_employees_v2';
-
-  let employees = [];
-
-  function load(){
-    employees = JSON.parse(localStorage.getItem(LS_EMP) || '[]');
-  }
-  function save(){
-    localStorage.setItem(LS_EMP, JSON.stringify(employees));
-  }
-
-  // Render list
-  function renderTable(filter=''){
-    const tbody = document.querySelector('#employeeTable tbody');
-    tbody.innerHTML = '';
-    const query = filter.trim().toLowerCase();
-    employees.forEach((e,i)=>{
-      if(query){
-        const hay = (e.name + ' ' + e.dept + ' ' + e.desig).toLowerCase();
-        if(!hay.includes(query)) return;
-      }
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${escapeHTML(e.name)}</td>
-                      <td>${escapeHTML(e.dept)}</td>
-                      <td>${escapeHTML(e.desig)}</td>
-                      <td>${Number(e.salary).toFixed(2)}</td>
-                      <td>${escapeHTML(e.currency)}</td>
-                      <td>
-                        <button class="btn btn-sm btn-outline-light edit" data-i="${i}">Edit</button>
-                        <button class="btn btn-sm btn-outline-danger del" data-i="${i}">Delete</button>
-                      </td>`;
-      tbody.appendChild(tr);
+// Load currencies
+function loadCurrencies(){
+  if(typeof currencies !== 'undefined'){
+    const select = document.getElementById('empCurrency');
+    currencies.forEach(c=>{
+      const opt=document.createElement('option'); opt.value=c.code; opt.text=`${c.code} (${c.symbol})`;
+      select.appendChild(opt); currencySymbols[c.code]=c.symbol;
     });
-    // attach handlers
-    tbody.querySelectorAll('button.edit').forEach(b=> b.addEventListener('click', onEdit));
-    tbody.querySelectorAll('button.del').forEach(b=> b.addEventListener('click', onDelete));
-    document.getElementById('empCount').textContent = employees.length;
   }
+}
 
-  function onEdit(e){
-    const idx = parseInt(e.currentTarget.dataset.i);
-    const emp = employees[idx];
-    document.getElementById('empName').value = emp.name;
-    document.getElementById('empDept').value = emp.dept;
-    document.getElementById('empDesig').value = emp.desig;
-    document.getElementById('empSalary').value = emp.salary;
-    document.getElementById('empCurrency').value = emp.currency;
-    document.getElementById('editIndex').value = idx;
-    document.getElementById('cancelEdit').style.display = 'inline-block';
-    window.scrollTo({top:0,behavior:'smooth'});
-  }
+function saveData(){
+  localStorage.setItem('employees', JSON.stringify(employees));
+  localStorage.setItem('attendance', JSON.stringify(attendance));
+  localStorage.setItem('salaries', JSON.stringify(salaries));
+}
+function loadData(){
+  employees=JSON.parse(localStorage.getItem('employees')||'[]');
+  attendance=JSON.parse(localStorage.getItem('attendance')||'[]');
+  salaries=JSON.parse(localStorage.getItem('salaries')||'[]');
+  updateEmployeeTable(); updateEmployeeSelect(); renderAttendanceTable();
+}
 
-  function onDelete(e){
-    const idx = parseInt(e.currentTarget.dataset.i);
-    if(!confirm('Delete employee?')) return;
-    employees.splice(idx,1);
-    save(); renderTable(document.getElementById('searchEmployee').value || '');
-  }
+function updateEmployeeTable(){
+  const table=document.getElementById('employeeTable');
+  table.innerHTML="<tr class='bg-gray-200'><th class='border p-2'>Name</th><th class='border p-2'>Dept</th><th class='border p-2'>Designation</th><th class='border p-2'>Salary</th><th class='border p-2'>Currency</th><th class='border p-2'>Action</th></tr>";
+  employees.forEach((e,i)=>{
+    const row=table.insertRow();
+    row.insertCell(0).innerText=e.name;
+    row.insertCell(1).innerText=e.dept;
+    row.insertCell(2).innerText=e.desig;
+    row.insertCell(3).innerText=e.salary.toFixed(2);
+    row.insertCell(4).innerText=e.currency;
+    const btn=document.createElement('button'); btn.className='bg-red-500 text-white rounded px-2'; btn.innerText='Delete';
+    btn.onclick=()=>{ employees.splice(i,1); updateEmployeeTable(); updateEmployeeSelect(); saveData(); };
+    row.insertCell(5).appendChild(btn);
+  });
+}
 
-  // Add or Save edit
-  function onSave(e){
-    e.preventDefault();
-    const name = document.getElementById('empName').value.trim();
-    const dept = document.getElementById('empDept').value.trim();
-    const desig = document.getElementById('empDesig').value.trim();
-    const salary = Number(document.getElementById('empSalary').value) || 0;
-    const currency = document.getElementById('empCurrency').value || 'PKR';
-    if(!name || !dept || !desig){ alert('Fill name, dept and designation'); return; }
-    const editIndex = Number(document.getElementById('editIndex').value);
-    if(editIndex >= 0){
-      // update
-      employees[editIndex] = { name, dept, desig, salary, currency };
-      document.getElementById('editIndex').value = -1;
-      document.getElementById('cancelEdit').style.display = 'none';
-    } else {
-      // push new
-      employees.push({ name, dept, desig, salary, currency });
-    }
-    save(); renderTable(document.getElementById('searchEmployee').value || '');
-    e.target.reset();
-  }
+function updateEmployeeSelect(){
+  const selects=[document.getElementById('modalEmployee'), document.getElementById('salaryEmployee')];
+  selects.forEach(sel=>{
+    sel.innerHTML='<option value="">Select Employee</option>';
+    employees.forEach((e,i)=>{
+      const opt=document.createElement('option'); opt.value=i; opt.text=e.name; sel.appendChild(opt);
+    });
+  });
+}
 
-  function clearAll(){
-    if(confirm('Clear ALL employees? This cannot be undone.')) {
-      employees = [];
-      save(); renderTable();
-    }
-  }
+function openModal(date){
+  document.getElementById('modalDate').value=date;
+  document.getElementById('attendanceModal').style.display='flex';
+}
+function closeModal(){document.getElementById('attendanceModal').style.display='none';}
+function saveAttendance(){
+  const empIndex=document.getElementById('modalEmployee').value;
+  const status=document.getElementById('modalStatus').value;
+  const late=parseInt(document.getElementById('modalLateMinutes').value)||0;
+  const date=document.getElementById('modalDate').value;
+  if(empIndex===''||status===''){ alert('Select employee and status'); return; }
+  attendance.push({date, empIndex:parseInt(empIndex), status, late}); renderAttendanceTable(); closeModal(); saveData();
+}
+function renderAttendanceTable(){
+  const table=document.getElementById('attendanceTable');
+  table.innerHTML="<tr class='bg-gray-200'><th class='border p-2'>Date</th><th class='border p-2'>Employee</th><th class='border p-2'>Status</th><th class='border p-2'>Late Minutes</th><th class='border p-2'>Action</th></tr>";
+  attendance.forEach((a,i)=>{
+    const row=table.insertRow();
+    row.insertCell(0).innerText=a.date;
+    row.insertCell(1).innerText=employees[a.empIndex]?.name||'';
+    row.insertCell(2).innerText=a.status;
+    row.insertCell(3).innerText=a.late;
+    const btn=document.createElement('button'); btn.innerText='Delete'; btn.className='bg-red-500 text-white rounded px-2';
+    btn.onclick=()=>{ attendance.splice(i,1); renderAttendanceTable(); saveData(); };
+    row.insertCell(4).appendChild(btn);
+  });
+}
 
-  function cancelEdit(){
-    document.getElementById('editIndex').value = -1;
-    document.getElementById('cancelEdit').style.display = 'none';
-    document.getElementById('addEmployeeForm').reset();
-  }
+// Theme toggle
+const themeBtn=document.getElementById('themeToggle');
+themeBtn.addEventListener('click', ()=>{document.body.classList.toggle('dark');});
 
-  function bind(){
-    document.getElementById('addEmployeeForm').addEventListener('submit', onSave);
-    document.getElementById('searchEmployee').addEventListener('input', (ev)=> renderTable(ev.target.value || ''));
-    document.getElementById('clearAllEmployees').addEventListener('click', clearAll);
-    document.getElementById('cancelEdit').addEventListener('click', cancelEdit);
-  }
+// LOGIN / SIGNUP
+const loginDiv=document.getElementById('loginDiv');
+const loginForm=document.getElementById('loginForm');
+const signupForm=document.getElementById('signupForm');
+const mainApp=document.getElementById('mainApp');
+const logoutBtn=document.getElementById('logoutBtn');
 
-  return {
-    init: function(){
-      load();
-      bind();
-      renderTable();
-      // show employees section by default
-      document.querySelectorAll('.nav-link').forEach(a=>{
-        a.addEventListener('click', (ev)=>{
-          ev.preventDefault();
-          const sec = a.dataset.section;
-          if(sec === 'employees'){ /* nothing else; already on employees view */ }
-        });
-      });
-    }
+document.getElementById('showLogin').addEventListener('click',()=>{loginForm.style.display='block';signupForm.style.display='none';});
+document.getElementById('showSignup').addEventListener('click',()=>{loginForm.style.display='none';signupForm.style.display='block';});
+
+if(localStorage.getItem('isLoggedIn')==='true'){ loginDiv.style.display='none'; mainApp.style.display='block'; loadData(); }
+
+signupForm.addEventListener('submit', e=>{
+  e.preventDefault();
+  const user=document.getElementById('hrUserSignup').value.trim();
+  const pass=document.getElementById('hrPassSignup').value.trim();
+  if(!user||!pass){ alert('Enter username/password'); return; }
+  localStorage.setItem('hrUser', user);
+  localStorage.setItem('hrPass', pass);
+  alert('Account created! Login now.');
+  signupForm.reset(); loginForm.style.display='block'; signupForm.style.display='none';
+});
+
+loginForm.addEventListener('submit', e=>{
+  e.preventDefault();
+  const user=document.getElementById('hrUserLogin').value.trim();
+  const pass=document.getElementById('hrPassLogin').value.trim();
+  if(user===localStorage.getItem('hrUser') && pass===localStorage.getItem('hrPass')){
+    localStorage.setItem('isLoggedIn','true'); loginDiv.style.display='none'; mainApp.style.display='block'; loadData();
+  }else{ alert('Invalid credentials'); }
+});
+
+logoutBtn.addEventListener('click',()=>{
+  localStorage.removeItem('isLoggedIn'); loginDiv.style.display='block'; mainApp.style.display='none';
+});
+
+// Add employee form
+const addEmpForm=document.getElementById('addEmployeeForm');
+addEmpForm.addEventListener('submit', e=>{
+  e.preventDefault();
+  const emp={
+    name:document.getElementById('empName').value,
+    dept:document.getElementById('empDept').value,
+    desig:document.getElementById('empDesig').value,
+    salary:parseFloat(document.getElementById('empSalary').value),
+    currency:document.getElementById('empCurrency').value
   };
-})();
+  employees.push(emp); updateEmployeeTable(); updateEmployeeSelect(); saveData(); addEmpForm.reset();
+});
 
-/* ======= small helpers ======= */
-function escapeHTML(s){ return (s||'').toString().replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
-</script>
-
-</body>
+// Initialize currencies
+loadCurrencies();
+</script></body>
 </html>
