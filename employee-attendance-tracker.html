@@ -203,62 +203,7 @@ function calculateSalary(empIndex,start,end,overtime,bonus){
     });
     total+=parseFloat(bonus)||0; total+=parseFloat(overtime)||0; return total.toFixed(2);
 }
-function calculateSalaryDetailed(empIndex,start,end,overtime,bonus){
-    let basic=0, lateDeduction=0, overtimePay=parseFloat(overtime)||0, bonusPay=parseFloat(bonus)||0;
-    const startDate=new Date(start); 
-    const endDate=new Date(end);
 
-    attendance.forEach(a=>{
-        if(a.empIndex===empIndex){
-            const aDate=new Date(a.date);
-            if(aDate>=startDate && aDate<=endDate){
-                const dailySalary=employees[empIndex].salary/30;
-                if(a.status==='Present') basic+=dailySalary;
-                else if(a.status==='Late'){ 
-                    basic+=dailySalary; 
-                    lateDeduction += dailySalary*0.1; // 10% deduction
-                }
-                else if(a.status==='Absent'){ 
-                    // Full day deduction for absence
-                    lateDeduction += dailySalary; 
-                }
-            }
-        }
-    });
-
-    const totalPayable = basic - lateDeduction + overtimePay + bonusPay;
-
-    return { 
-        basic: basic.toFixed(2), 
-        lateDeduction: lateDeduction.toFixed(2), 
-        overtimePay: overtimePay.toFixed(2), 
-        bonusPay: bonusPay.toFixed(2), 
-        totalPayable: totalPayable.toFixed(2) 
-    };
-          }
-    const totalPayable=basic - lateDeduction + overtimePay + bonusPay;
-    return { basic:basic.toFixed(2), lateDeduction:lateDeduction.toFixed(2), overtimePay:overtimePay.toFixed(2), bonusPay:bonusPay.toFixed(2), totalPayable:totalPayable.toFixed(2) };
-}
-
-// Update listener
-document.getElementById('calculateSalaryForm').addEventListener('submit',e=>{
-    e.preventDefault();
-    const empIndex=parseInt(document.getElementById('salaryEmployee').value);
-    const start=document.getElementById('startDate').value;
-    const end=document.getElementById('endDate').value;
-    const overtime=document.getElementById('overtimeHours').value;
-    const bonus=document.getElementById('bonusAmount').value;
-    if(isNaN(empIndex)||!start||!end){alert('Select employee and dates'); return;}
-    const result=calculateSalaryDetailed(empIndex,start,end,overtime,bonus);
-
-    // Show breakdown immediately after calculate button
-    document.getElementById('salaryBreakdown').style.display='block';
-    document.getElementById('basicSalary').innerText=result.basic;
-    document.getElementById('lateDeduction').innerText=result.lateDeduction;
-    document.getElementById('overtimePay').innerText=result.overtimePay;
-    document.getElementById('bonusPay').innerText=result.bonusPay;
-    document.getElementById('totalPayable').innerText=result.totalPayable;
-});
 // Chart
 function renderChart(){
     const ctx=document.getElementById('attendanceChart'); let present=0, absent=0, late=0;
