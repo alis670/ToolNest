@@ -37,7 +37,6 @@ body{background:#f8f9fa;font-family:Arial;}
 </form>
 </div>
 
-<!-- Main HR Dashboard -->
 <div id="mainApp" style="display:none;">
 <h2 class="mb-3">HR Dashboard</h2>
 <button id="logoutBtn" class="btn btn-danger mb-3">Logout</button>
@@ -123,7 +122,7 @@ body{background:#f8f9fa;font-family:Arial;}
 </div>
 
 <script>
-// Toggle login/signup
+// --- Login / Signup ---
 document.getElementById('showLogin').onclick=()=>{document.getElementById('loginForm').style.display='block';document.getElementById('signupForm').style.display='none';};
 document.getElementById('showSignup').onclick=()=>{document.getElementById('loginForm').style.display='none';document.getElementById('signupForm').style.display='block';};
 
@@ -132,13 +131,10 @@ document.getElementById('signupForm').addEventListener('submit', e=>{
 e.preventDefault();
 const user=document.getElementById('hrUserSignup').value;
 const pass=document.getElementById('hrPassSignup').value;
-if(!user || !pass){alert('Enter username and password');return;}
-localStorage.setItem('hrUser',user);
-localStorage.setItem('hrPass',pass);
-alert('HR account created! Login now.');
-document.getElementById('signupForm').reset();
-document.getElementById('loginForm').style.display='block';
-document.getElementById('signupForm').style.display='none';
+if(!user||!pass){alert('Enter username/password');return;}
+localStorage.setItem('hrUser',user); localStorage.setItem('hrPass',pass);
+alert('Account created! Login now.');
+document.getElementById('signupForm').reset(); document.getElementById('loginForm').style.display='block'; document.getElementById('signupForm').style.display='none';
 });
 
 // Login
@@ -149,23 +145,33 @@ const pass=document.getElementById('hrPassLogin').value;
 const storedUser=localStorage.getItem('hrUser');
 const storedPass=localStorage.getItem('hrPass');
 if(user===storedUser && pass===storedPass){
-document.getElementById('loginDiv').style.display='none';
-document.getElementById('mainApp').style.display='block';
+document.getElementById('loginDiv').style.display='none'; document.getElementById('mainApp').style.display='block';
+loadDataFromStorage();
 }else{alert('Invalid credentials');}
 });
 
 // Logout
-document.getElementById('logoutBtn').onclick=()=>{
-document.getElementById('loginDiv').style.display='block';
-document.getElementById('mainApp').style.display='none';
-};
+document.getElementById('logoutBtn').onclick=()=>{document.getElementById('loginDiv').style.display='block'; document.getElementById('mainApp').style.display='none'; saveDataToStorage();};
 
-// --- HR Dashboard JS ---
-
+// --- Dashboard Storage ---
 let employees=[], attendance=[], salaries=[];
 const currencySymbols={"PKR":"₨","USD":"$","INR":"₹","EUR":"€","GBP":"£"};
 
-// Add Employee
+// Load data from localStorage
+function loadDataFromStorage(){
+employees=JSON.parse(localStorage.getItem('employees')||"[]");
+attendance=JSON.parse(localStorage.getItem('attendance')||"[]");
+salaries=JSON.parse(localStorage.getItem('salaries')||"[]");
+updateEmployeeTable(); updateEmployeeSelect(); updateAttendanceTable(); updateSalaryTable(); updateAttendanceChart();
+}
+// Save data to localStorage
+function saveDataToStorage(){
+localStorage.setItem('employees',JSON.stringify(employees));
+localStorage.setItem('attendance',JSON.stringify(attendance));
+localStorage.setItem('salaries',JSON.stringify(salaries));
+}
+
+// --- Add Employee ---
 document.getElementById('addEmployeeForm').addEventListener('submit', e=>{
 e.preventDefault();
 const emp={name:document.getElementById('empName').value,
@@ -173,24 +179,19 @@ dept:document.getElementById('empDept').value,
 desig:document.getElementById('empDesig').value,
 salary:parseFloat(document.getElementById('empSalary').value),
 currency:document.getElementById('empCurrency').value};
-employees.push(emp);
-updateEmployeeTable(); updateEmployeeSelect();
-e.target.reset();
+employees.push(emp); updateEmployeeTable(); updateEmployeeSelect(); saveDataToStorage(); e.target.reset();
 });
-
-// Employee Table & Select Update
 function updateEmployeeTable(){
 const table=document.getElementById('employeeTable');
 table.innerHTML="<tr><th>Name</th><th>Dept</th><th>Designation</th><th>Salary</th><th>Currency</th><th>Action</th></tr>";
-employees.forEach((e,i)=>{
-const row=table.insertRow();
+employees.forEach((e,i)=>{const row=table.insertRow();
 row.insertCell(0).innerText=e.name;
 row.insertCell(1).innerText=e.dept;
 row.insertCell(2).innerText=e.desig;
 row.insertCell(3).innerText=e.salary.toFixed(2);
 row.insertCell(4).innerText=e.currency;
-const btn=document.createElement('button');btn.className='btn btn-danger btn-sm';btn.innerText='Delete';
-btn.onclick=()=>{employees.splice(i,1);updateEmployeeTable();updateEmployeeSelect();};
+const btn=document.createElement('button'); btn.className='btn btn-danger btn-sm'; btn.innerText='Delete';
+btn.onclick=()=>{employees.splice(i,1);updateEmployeeTable();updateEmployeeSelect(); saveDataToStorage();};
 row.insertCell(5).appendChild(btn);
 });
 }
@@ -200,7 +201,7 @@ selects.forEach(sel=>{sel.innerHTML='<option value="">Select Employee</option>';
 employees.forEach((e,i)=>{const opt=document.createElement('option');opt.value=i;opt.text=e.name;sel.appendChild(opt);});});
 }
 
-// Attendance
+// --- Attendance ---
 document.getElementById('attendanceForm').addEventListener('submit', e=>{
 e.preventDefault();
 const empIndex=parseInt(document.getElementById('attEmployee').value);
@@ -208,8 +209,7 @@ const record={empIndex,date:document.getElementById('attDate').value,
 status:document.getElementById('attStatus').value,
 lateMinutes:parseInt(document.getElementById('lateMinutes').value)||0,
 month:document.getElementById('salaryMonth').value};
-attendance.push(record);
-updateAttendanceTable(); updateAttendanceChart(); e.target.reset();
+attendance.push(record); updateAttendanceTable(); updateAttendanceChart(); saveDataToStorage(); e.target.reset();
 });
 function updateAttendanceTable(){
 const table=document.getElementById('attendanceTable');
@@ -221,7 +221,7 @@ row.insertCell(2).innerText=a.status;
 row.insertCell(3).innerText=a.lateMinutes;});
 }
 
-// Salary
+// --- Salary ---
 document.getElementById('calculateSalaryForm').addEventListener('submit', e=>{
 e.preventDefault();
 const empIndex=parseInt(document.getElementById('salaryEmployee').value);
@@ -237,8 +237,7 @@ if(a.status==='Late') deduction+=(emp.salary/30)*(a.lateMinutes/480);}}});
 const perHour=(emp.salary/30)/8;
 const otPay=ot*perHour*1.5;
 const netSalary=emp.salary-deduction+otPay+bonus;
-salaries.push({empIndex,month:document.getElementById('salaryMonth').value,netSalary});
-updateSalaryTable();
+salaries.push({empIndex,month:document.getElementById('salaryMonth').value,netSalary}); updateSalaryTable(); saveDataToStorage();
 });
 function updateSalaryTable(){
 const table=document.getElementById('salaryTable');
@@ -248,7 +247,7 @@ const row=table.insertRow();
 row.insertCell(0).innerText=employees[s.empIndex].name;
 row.insertCell(1).innerText=s.month;
 row.insertCell(2).innerText=s.netSalary.toFixed(2);
-const btn=document.createElement('button');btn.className='btn btn-success btn-sm';btn.innerText='Download';
+const btn=document.createElement('button'); btn.className='btn btn-success btn-sm'; btn.innerText='Download';
 btn.onclick=()=>{generatePDF(employees[s.empIndex],s.netSalary,s.month);};
 row.insertCell(3).appendChild(btn);
 });
@@ -265,7 +264,7 @@ doc.text(`Month: ${month}`,20,80);
 doc.save(`${emp.name}_payslip.pdf`);
 }
 
-// Attendance Chart
+// --- Attendance Chart ---
 const ctx=document.getElementById('attendanceChart').getContext('2d');
 const chart=new Chart(ctx,{type:'bar',data:{labels:['Present','Absent','Late'],datasets:[{label:'Days',data:[0,0,0],backgroundColor:['#28a745','#dc3545','#ffc107']}]},options:{responsive:true,scales:{y:{beginAtZero:true,precision:0}}}});
 function updateAttendanceChart(){const counts={Present:0,Absent:0,Late:0};attendance.forEach(a=>counts[a.status]++);chart.data.datasets[0].data=[counts.Present,counts.Absent,counts.Late];chart.update();}
