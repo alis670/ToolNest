@@ -118,8 +118,10 @@ table th { background:var(--table-header); color:var(--text); }
 </div>
 </div>
 
-<script src="loadcurrencies.js"></script>
+<script src="loadCurrencies.js"></script>
 <script>
+populateCurrencyDropdown('currencyFixed');
+  
 let employees=[], attendance=[], salaries=[], chartInstance=null;
 
 // Save/load
