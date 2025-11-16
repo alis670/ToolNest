@@ -203,20 +203,39 @@ function calculateSalary(empIndex,start,end,overtime,bonus){
     });
     total+=parseFloat(bonus)||0; total+=parseFloat(overtime)||0; return total.toFixed(2);
 }
-// Detailed Salary Calculation
 function calculateSalaryDetailed(empIndex,start,end,overtime,bonus){
     let basic=0, lateDeduction=0, overtimePay=parseFloat(overtime)||0, bonusPay=parseFloat(bonus)||0;
-    const startDate=new Date(start); const endDate=new Date(end);
+    const startDate=new Date(start); 
+    const endDate=new Date(end);
+
     attendance.forEach(a=>{
         if(a.empIndex===empIndex){
             const aDate=new Date(a.date);
             if(aDate>=startDate && aDate<=endDate){
                 const dailySalary=employees[empIndex].salary/30;
                 if(a.status==='Present') basic+=dailySalary;
-                else if(a.status==='Late'){ basic+=dailySalary; lateDeduction+=dailySalary*0.1; } // 10% deduction for late
+                else if(a.status==='Late'){ 
+                    basic+=dailySalary; 
+                    lateDeduction += dailySalary*0.1; // 10% deduction
+                }
+                else if(a.status==='Absent'){ 
+                    // Full day deduction for absence
+                    lateDeduction += dailySalary; 
+                }
             }
         }
     });
+
+    const totalPayable = basic - lateDeduction + overtimePay + bonusPay;
+
+    return { 
+        basic: basic.toFixed(2), 
+        lateDeduction: lateDeduction.toFixed(2), 
+        overtimePay: overtimePay.toFixed(2), 
+        bonusPay: bonusPay.toFixed(2), 
+        totalPayable: totalPayable.toFixed(2) 
+    };
+          }
     const totalPayable=basic - lateDeduction + overtimePay + bonusPay;
     return { basic:basic.toFixed(2), lateDeduction:lateDeduction.toFixed(2), overtimePay:overtimePay.toFixed(2), bonusPay:bonusPay.toFixed(2), totalPayable:totalPayable.toFixed(2) };
 }
