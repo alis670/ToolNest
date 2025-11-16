@@ -1,228 +1,155 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Premium HR Dashboard</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-  body.dark { background-color: #1a1a1a; color: #f0f0f0; }
-  .dark .card { background-color: #2a2a2a; color: #f0f0f0; }
-  .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); justify-content:center; align-items:center; }
+:root {
+  --bg:#fff; --text:#000; --card-bg:#f8f9fa; --input-bg:#fff; --input-text:#000; --table-header:#e9ecef;
+}
+body.dark-mode { --bg:#121212; --text:#f5f5f5; --card-bg:#1e1e1e; --input-bg:#2a2a2a; --input-text:#f5f5f5; --table-header:#333; }
+body { background:var(--bg); color:var(--text); }
+.card { background:var(--card-bg); color:var(--text); margin-bottom:1rem; }
+input, select { background:var(--input-bg); color:var(--input-text); }
+table th { background:var(--table-header); color:var(--text); }
+.modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; }
+.modal-content { background:var(--card-bg); padding:1rem; border-radius:5px; width:100%; max-width:400px; }
+.btn-close { float:right; cursor:pointer; background:none; border:none; font-size:1.2rem; }
+td { cursor:pointer; }
 </style>
 </head>
-<body class="container mx-auto mt-10"><!-- LOGIN / SIGNUP --><div id="loginDiv" class="card p-6 rounded shadow-md bg-white">
-  <h2 class="text-2xl mb-4">HR Login / Sign Up</h2>
-  <div class="mb-4">
-    <button id="showLogin" class="px-4 py-2 bg-blue-500 text-white rounded">Login</button>
-    <button id="showSignup" class="px-4 py-2 bg-green-500 text-white rounded">Sign Up</button>
-  </div>  <form id="loginForm" class="space-y-2">
-    <input type="text" id="hrUserLogin" placeholder="Username" class="w-full p-2 border rounded" required>
-    <input type="password" id="hrPassLogin" placeholder="Password" class="w-full p-2 border rounded" required>
-    <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded">Login</button>
-  </form>  <form id="signupForm" class="space-y-2" style="display:none;">
-    <input type="text" id="hrUserSignup" placeholder="Choose Username" class="w-full p-2 border rounded" required>
-    <input type="password" id="hrPassSignup" placeholder="Choose Password" class="w-full p-2 border rounded" required>
-    <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded">Sign Up</button>
-  </form>
-</div><!-- MAIN DASHBOARD --><div id="mainApp" style="display:none;">
-  <div class="flex justify-between items-center mb-4">
-    <h2 class="text-3xl font-bold">HR Dashboard</h2>
-    <div>
-      <button id="themeToggle" class="px-3 py-1 border rounded mr-2">Toggle Dark</button>
-      <button id="logoutBtn" class="px-3 py-1 bg-red-500 text-white rounded">Logout</button>
-    </div>
-  </div>  <!-- ADD EMPLOYEE -->  <div class="card p-4 rounded shadow-md bg-white mb-6">
-    <h3 class="text-xl font-semibold mb-2">Add Employee</h3>
-    <form id="addEmployeeForm" class="grid grid-cols-6 gap-2">
-      <input type="text" id="empName" placeholder="Name" class="p-2 border rounded" required>
-      <input type="text" id="empDept" placeholder="Department" class="p-2 border rounded" required>
-      <input type="text" id="empDesig" placeholder="Designation" class="p-2 border rounded" required>
-      <input type="number" id="empSalary" placeholder="Basic Salary" class="p-2 border rounded" required>
-      <select id="empCurrency" class="p-2 border rounded" required>
-        <option value="">Select Currency</option>
-      </select>
-      <button type="submit" class="bg-blue-500 text-white rounded">Add Employee</button>
-    </form>
-  </div>  <!-- EMPLOYEE LIST -->  <div class="card p-4 rounded shadow-md bg-white mb-6">
-    <h3 class="text-xl font-semibold mb-2">Employee List</h3>
-    <table class="w-full table-auto border-collapse border" id="employeeTable">
-      <tr class="bg-gray-200"><th class="border p-2">Name</th><th class="border p-2">Dept</th><th class="border p-2">Designation</th><th class="border p-2">Salary</th><th class="border p-2">Currency</th><th class="border p-2">Action</th></tr>
-    </table>
-  </div>  <!-- ATTENDANCE -->  <div class="card p-4 rounded shadow-md bg-white mb-6">
-    <h3 class="text-xl font-semibold mb-2">Attendance</h3>
-    <input type="month" id="attendanceMonth" class="p-2 border rounded mb-2">
-    <div id="calendar" class="overflow-auto"></div>
-    <table class="w-full border-collapse border mt-2" id="attendanceTable">
-      <tr class="bg-gray-200"><th class="border p-2">Date</th><th class="border p-2">Employee</th><th class="border p-2">Status</th><th class="border p-2">Late Minutes</th><th class="border p-2">Action</th></tr>
-    </table>
-  </div>  <!-- SALARY CALCULATION -->  <div class="card p-4 rounded shadow-md bg-white mb-6">
-    <h3 class="text-xl font-semibold mb-2">Salary Calculation</h3>
-    <form id="calculateSalaryForm" class="grid grid-cols-6 gap-2">
-      <select id="salaryEmployee" class="p-2 border rounded" required><option value="">Select Employee</option></select>
-      <input type="date" id="startDate" class="p-2 border rounded" required>
-      <input type="date" id="endDate" class="p-2 border rounded" required>
-      <input type="number" step="0.1" id="overtimeHours" placeholder="Overtime Hours" class="p-2 border rounded">
-      <input type="number" id="bonusAmount" placeholder="Bonus" class="p-2 border rounded">
-      <button type="submit" class="bg-green-500 text-white rounded">Calculate Salary</button>
-    </form>
-    <table class="w-full table-auto border-collapse border mt-2" id="salaryTable">
-      <tr class="bg-gray-200"><th class="border p-2">Employee</th><th class="border p-2">Month</th><th class="border p-2">Net Salary</th><th class="border p-2">Payslip</th></tr>
-    </table>
-  </div>  <!-- ATTENDANCE CHART -->  <div class="card p-4 rounded shadow-md bg-white mb-6">
-    <h3 class="text-xl font-semibold mb-2">Attendance Chart</h3>
-    <canvas id="attendanceChart" height="100"></canvas>
-  </div>
-</div><!-- MODAL --><div class="modal" id="attendanceModal">
-  <div class="bg-white p-4 rounded shadow-md w-96">
-    <h3 class="text-lg font-semibold mb-2">Mark Attendance</h3>
-    <select id="modalEmployee" class="p-2 border rounded mb-2"></select>
-    <select id="modalStatus" class="p-2 border rounded mb-2">
-      <option value="">Select Status</option>
-      <option value="Present">Present</option>
-      <option value="Absent">Absent</option>
-      <option value="Late">Late</option>
-    </select>
-    <input type="number" id="modalLateMinutes" placeholder="Late minutes" class="p-2 border rounded mb-2">
-    <input type="hidden" id="modalDate">
-    <button class="w-full bg-blue-500 text-white rounded" onclick="saveAttendance()">Save</button>
-    <button class="w-full mt-2 bg-gray-500 text-white rounded" onclick="closeModal()">Close</button>
-  </div>
-</div><script src="currencies.js"></script><script>
-let employees=[], attendance=[], salaries=[], currencySymbols={};
+<body class="container mt-4">
 
-// Load currencies
+<!-- LOGIN / SIGNUP -->
+<div id="loginDiv" class="card p-4">
+<h2>HR Login / Sign Up</h2>
+<div class="mb-3">
+<button id="showLogin" class="btn btn-primary btn-sm">Login</button>
+<button id="showSignup" class="btn btn-secondary btn-sm">Sign Up</button>
+<button id="toggleTheme" class="btn btn-dark btn-sm float-end">Toggle Dark Mode</button>
+</div>
+<form id="loginForm" style="display:block;">
+<input type="text" id="hrUserLogin" class="form-control mb-2" placeholder="Username" required>
+<input type="password" id="hrPassLogin" class="form-control mb-2" placeholder="Password" required>
+<button type="submit" class="btn btn-primary">Login</button>
+</form>
+<form id="signupForm" style="display:none;">
+<input type="text" id="hrUserSignup" class="form-control mb-2" placeholder="Choose Username" required>
+<input type="password" id="hrPassSignup" class="form-control mb-2" placeholder="Choose Password" required>
+<button type="submit" class="btn btn-success">Sign Up</button>
+</form>
+</div>
+
+<!-- DASHBOARD -->
+<div id="mainApp" style="display:none;">
+<h2>HR Dashboard</h2>
+<button id="logoutBtn" class="btn btn-danger mb-3">Logout</button>
+
+<!-- Employee -->
+<div class="card">
+<h4>Add Employee</h4>
+<form id="addEmployeeForm" class="row g-2 mb-3">
+<div class="col-md-2"><input type="text" id="empName" placeholder="Name" class="form-control" required></div>
+<div class="col-md-2"><input type="text" id="empDept" placeholder="Department" class="form-control" required></div>
+<div class="col-md-2"><input type="text" id="empDesig" placeholder="Designation" class="form-control" required></div>
+<div class="col-md-2"><input type="number" id="empSalary" placeholder="Salary" class="form-control" required></div>
+<div class="col-md-2"><select id="empCurrency" class="form-select" required><option value="">Select Currency</option></select></div>
+<div class="col-md-2"><button type="submit" class="btn btn-primary w-100">Add</button></div>
+</form>
+<h4>Employee List</h4>
+<table class="table table-bordered" id="employeeTable"><tr><th>Name</th><th>Dept</th><th>Designation</th><th>Salary</th><th>Currency</th><th>Action</th></tr></table>
+</div>
+
+<!-- Attendance -->
+<div class="card">
+<h4>Attendance Calendar</h4>
+<div class="row mb-2"><div class="col-md-3"><input type="month" id="attendanceMonth" class="form-control"></div></div>
+<div id="calendar" class="table-responsive"></div>
+</div>
+
+<div class="card">
+<h4>Attendance Records</h4>
+<table class="table table-bordered" id="attendanceTable"><tr><th>Date</th><th>Employee</th><th>Status</th><th>Late</th><th>Action</th></tr></table>
+</div>
+
+<!-- Salary -->
+<div class="card">
+<h4>Calculate Salary</h4>
+<form id="calculateSalaryForm" class="row g-2 mb-3">
+<div class="col-md-2"><select id="salaryEmployee" class="form-select" required><option value="">Select Employee</option></select></div>
+<div class="col-md-2"><input type="date" id="startDate" class="form-control" required></div>
+<div class="col-md-2"><input type="date" id="endDate" class="form-control" required></div>
+<div class="col-md-2"><input type="number" step="0.1" id="overtimeHours" placeholder="Overtime" class="form-control"></div>
+<div class="col-md-2"><input type="number" id="bonusAmount" placeholder="Bonus" class="form-control"></div>
+<div class="col-md-2"><button type="submit" class="btn btn-success w-100">Calculate</button></div>
+</form>
+<h4>Salary List</h4>
+<table class="table table-bordered" id="salaryTable"><tr><th>Employee</th><th>Month</th><th>Net Salary</th><th>Action</th></tr></table>
+</div>
+
+<!-- Chart -->
+<div class="card"><h4>Attendance Chart</h4><canvas id="attendanceChart" height="100"></canvas></div>
+
+<!-- Attendance Modal -->
+<div class="modal" id="attendanceModal">
+<div class="modal-content">
+<h5>Mark Attendance <button class="btn-close" onclick="closeModal()">&times;</button></h5>
+<select id="modalEmployee" class="form-select mb-2"></select>
+<select id="modalStatus" class="form-select mb-2"><option value="">Select Status</option><option value="Present">Present</option><option value="Absent">Absent</option><option value="Late">Late</option></select>
+<input type="number" id="modalLateMinutes" class="form-control mb-2" placeholder="Late minutes">
+<input type="hidden" id="modalDate">
+<button class="btn btn-primary w-100" onclick="saveAttendance()">Save</button>
+</div>
+</div>
+
+<script src="currencies.js"></script>
+<script>
+let employees=[], attendance=[], salaries=[], currencySymbols={}, chartInstance=null;
+
 function loadCurrencies(){
-  if(typeof currencies !== 'undefined'){
-    const select = document.getElementById('empCurrency');
-    currencies.forEach(c=>{
-      const opt=document.createElement('option'); opt.value=c.code; opt.text=`${c.code} (${c.symbol})`;
-      select.appendChild(opt); currencySymbols[c.code]=c.symbol;
-    });
-  }
-}
-
-function saveData(){
-  localStorage.setItem('employees', JSON.stringify(employees));
-  localStorage.setItem('attendance', JSON.stringify(attendance));
-  localStorage.setItem('salaries', JSON.stringify(salaries));
-}
-function loadData(){
-  employees=JSON.parse(localStorage.getItem('employees')||'[]');
-  attendance=JSON.parse(localStorage.getItem('attendance')||'[]');
-  salaries=JSON.parse(localStorage.getItem('salaries')||'[]');
-  updateEmployeeTable(); updateEmployeeSelect(); renderAttendanceTable();
-}
-
-function updateEmployeeTable(){
-  const table=document.getElementById('employeeTable');
-  table.innerHTML="<tr class='bg-gray-200'><th class='border p-2'>Name</th><th class='border p-2'>Dept</th><th class='border p-2'>Designation</th><th class='border p-2'>Salary</th><th class='border p-2'>Currency</th><th class='border p-2'>Action</th></tr>";
-  employees.forEach((e,i)=>{
-    const row=table.insertRow();
-    row.insertCell(0).innerText=e.name;
-    row.insertCell(1).innerText=e.dept;
-    row.insertCell(2).innerText=e.desig;
-    row.insertCell(3).innerText=e.salary.toFixed(2);
-    row.insertCell(4).innerText=e.currency;
-    const btn=document.createElement('button'); btn.className='bg-red-500 text-white rounded px-2'; btn.innerText='Delete';
-    btn.onclick=()=>{ employees.splice(i,1); updateEmployeeTable(); updateEmployeeSelect(); saveData(); };
-    row.insertCell(5).appendChild(btn);
+if(typeof currencies!=="undefined"){
+  const sel=document.getElementById('empCurrency');
+  currencies.forEach(c=>{
+    const opt=document.createElement('option');
+    opt.value=c.code; opt.text=`${c.code} (${c.symbol})`;
+    sel.appendChild(opt); currencySymbols[c.code]=c.symbol;
   });
-}
-
-function updateEmployeeSelect(){
-  const selects=[document.getElementById('modalEmployee'), document.getElementById('salaryEmployee')];
-  selects.forEach(sel=>{
-    sel.innerHTML='<option value="">Select Employee</option>';
-    employees.forEach((e,i)=>{
-      const opt=document.createElement('option'); opt.value=i; opt.text=e.name; sel.appendChild(opt);
-    });
-  });
-}
-
-function openModal(date){
-  document.getElementById('modalDate').value=date;
-  document.getElementById('attendanceModal').style.display='flex';
-}
+}}
+function saveData(){localStorage.setItem('employees',JSON.stringify(employees));localStorage.setItem('attendance',JSON.stringify(attendance));localStorage.setItem('salaries',JSON.stringify(salaries));}
+function loadData(){employees=JSON.parse(localStorage.getItem('employees')||"[]");attendance=JSON.parse(localStorage.getItem('attendance')||"[]");salaries=JSON.parse(localStorage.getItem('salaries')||"[]");updateEmployeeTable();updateEmployeeSelect();renderAttendanceTable();renderChart();}
+function updateEmployeeTable(){const table=document.getElementById('employeeTable');table.innerHTML="<tr><th>Name</th><th>Dept</th><th>Designation</th><th>Salary</th><th>Currency</th><th>Action</th></tr>";employees.forEach((e,i)=>{const row=table.insertRow();row.insertCell(0).innerText=e.name;row.insertCell(1).innerText=e.dept;row.insertCell(2).innerText=e.desig;row.insertCell(3).innerText=e.salary.toFixed(2);row.insertCell(4).innerText=e.currency;const btn=document.createElement('button');btn.className='btn btn-danger btn-sm';btn.innerText='Delete';btn.onclick=()=>{employees.splice(i,1);saveData();updateEmployeeTable();updateEmployeeSelect();renderAttendanceTable();renderChart();};row.insertCell(5).appendChild(btn);});}
+function updateEmployeeSelect(){[document.getElementById('modalEmployee'),document.getElementById('salaryEmployee')].forEach(sel=>{sel.innerHTML='<option value="">Select Employee</option>';employees.forEach((e,i)=>{const opt=document.createElement('option');opt.value=i;opt.text=e.name;sel.appendChild(opt);});});}
+function openModal(date){document.getElementById('modalDate').value=date;document.getElementById('attendanceModal').style.display='flex';}
 function closeModal(){document.getElementById('attendanceModal').style.display='none';}
-function saveAttendance(){
-  const empIndex=document.getElementById('modalEmployee').value;
-  const status=document.getElementById('modalStatus').value;
-  const late=parseInt(document.getElementById('modalLateMinutes').value)||0;
-  const date=document.getElementById('modalDate').value;
-  if(empIndex===''||status===''){ alert('Select employee and status'); return; }
-  attendance.push({date, empIndex:parseInt(empIndex), status, late}); renderAttendanceTable(); closeModal(); saveData();
-}
-function renderAttendanceTable(){
-  const table=document.getElementById('attendanceTable');
-  table.innerHTML="<tr class='bg-gray-200'><th class='border p-2'>Date</th><th class='border p-2'>Employee</th><th class='border p-2'>Status</th><th class='border p-2'>Late Minutes</th><th class='border p-2'>Action</th></tr>";
-  attendance.forEach((a,i)=>{
-    const row=table.insertRow();
-    row.insertCell(0).innerText=a.date;
-    row.insertCell(1).innerText=employees[a.empIndex]?.name||'';
-    row.insertCell(2).innerText=a.status;
-    row.insertCell(3).innerText=a.late;
-    const btn=document.createElement('button'); btn.innerText='Delete'; btn.className='bg-red-500 text-white rounded px-2';
-    btn.onclick=()=>{ attendance.splice(i,1); renderAttendanceTable(); saveData(); };
-    row.insertCell(4).appendChild(btn);
-  });
-}
+function saveAttendance(){const empIndex=parseInt(document.getElementById('modalEmployee').value);const status=document.getElementById('modalStatus').value;const late=parseInt(document.getElementById('modalLateMinutes').value)||0;const date=document.getElementById('modalDate').value;if(empIndex===""||status===""){alert("Select employee/status");return;}attendance.push({date,empIndex,status,late});saveData();renderAttendanceTable();renderChart();closeModal();}
+function renderAttendanceTable(){const table=document.getElementById('attendanceTable');table.innerHTML="<tr><th>Date</th><th>Employee</th><th>Status</th><th>Late</th><th>Action</th></tr>";attendance.forEach((a,i)=>{const row=table.insertRow();row.insertCell(0).innerText=a.date;row.insertCell(1).innerText=employees[a.empIndex]?.name||"";row.insertCell(2).innerText=a.status;row.insertCell(3).innerText=a.late;const btn=document.createElement('button');btn.innerText='Delete';btn.className='btn btn-sm btn-danger';btn.onclick=()=>{attendance.splice(i,1);saveData();renderAttendanceTable();renderChart();};row.insertCell(4).appendChild(btn);});}
+function renderCalendar(){const div=document.getElementById('calendar');const month=document.getElementById('attendanceMonth').value;if(!month){div.innerHTML='';return;}const [y,m]=month.split('-');const days=new Date(y,m,0).getDate();let html='<table class="table table-bordered text-center"><tr>';for(let d=1;d<=days;d++){html+=`<td onclick="openModal('${y}-${m.padStart(2,'0')}-${d.toString().padStart(2,'0')}')">${d}</td>`;if(d%7===0) html+='</tr><tr>';}html+='</tr></table>';div.innerHTML=html;}
+function renderChart(){const ctx=document.getElementById('attendanceChart');let present=0,absent=0,late=0;attendance.forEach(a=>{if(a.status==='Present') present++; else if(a.status==='Absent') absent++; else late++;});if(chartInstance) chartInstance.destroy();chartInstance=new Chart(ctx,{type:'pie',data:{labels:['Present','Absent','Late'],datasets:[{data:[present,absent,late],backgroundColor:['#28a745','#dc3545','#ffc107']}]}});}
 
-// Theme toggle
-const themeBtn=document.getElementById('themeToggle');
-themeBtn.addEventListener('click', ()=>{document.body.classList.toggle('dark');});
+document.getElementById('attendanceMonth').addEventListener('change',renderCalendar);
 
-// LOGIN / SIGNUP
-const loginDiv=document.getElementById('loginDiv');
-const loginForm=document.getElementById('loginForm');
-const signupForm=document.getElementById('signupForm');
-const mainApp=document.getElementById('mainApp');
-const logoutBtn=document.getElementById('logoutBtn');
-
-document.getElementById('showLogin').addEventListener('click',()=>{loginForm.style.display='block';signupForm.style.display='none';});
-document.getElementById('showSignup').addEventListener('click',()=>{loginForm.style.display='none';signupForm.style.display='block';});
-
-if(localStorage.getItem('isLoggedIn')==='true'){ loginDiv.style.display='none'; mainApp.style.display='block'; loadData(); }
-
-signupForm.addEventListener('submit', e=>{
-  e.preventDefault();
-  const user=document.getElementById('hrUserSignup').value.trim();
-  const pass=document.getElementById('hrPassSignup').value.trim();
-  if(!user||!pass){ alert('Enter username/password'); return; }
-  localStorage.setItem('hrUser', user);
-  localStorage.setItem('hrPass', pass);
-  alert('Account created! Login now.');
-  signupForm.reset(); loginForm.style.display='block'; signupForm.style.display='none';
-});
-
-loginForm.addEventListener('submit', e=>{
-  e.preventDefault();
-  const user=document.getElementById('hrUserLogin').value.trim();
-  const pass=document.getElementById('hrPassLogin').value.trim();
-  if(user===localStorage.getItem('hrUser') && pass===localStorage.getItem('hrPass')){
-    localStorage.setItem('isLoggedIn','true'); loginDiv.style.display='none'; mainApp.style.display='block'; loadData();
-  }else{ alert('Invalid credentials'); }
-});
-
-logoutBtn.addEventListener('click',()=>{
-  localStorage.removeItem('isLoggedIn'); loginDiv.style.display='block'; mainApp.style.display='none';
-});
-
-// Add employee form
-const addEmpForm=document.getElementById('addEmployeeForm');
-addEmpForm.addEventListener('submit', e=>{
-  e.preventDefault();
-  const emp={
-    name:document.getElementById('empName').value,
-    dept:document.getElementById('empDept').value,
-    desig:document.getElementById('empDesig').value,
-    salary:parseFloat(document.getElementById('empSalary').value),
-    currency:document.getElementById('empCurrency').value
-  };
-  employees.push(emp); updateEmployeeTable(); updateEmployeeSelect(); saveData(); addEmpForm.reset();
-});
-
-// Initialize currencies
+document.addEventListener('DOMContentLoaded',()=>{
 loadCurrencies();
-</script></body>
-</html>
+const loginDiv=document.getElementById('loginDiv');const loginForm=document.getElementById('loginForm');const signupForm=document.getElementById('signupForm');const mainApp=document.getElementById('mainApp');const logoutBtn=document.getElementById('logoutBtn');const showLoginBtn=document.getElementById('showLogin');const showSignupBtn=document.getElementById('showSignup');const toggleThemeBtn=document.getElementById('toggleTheme');
+
+showLoginBtn.addEventListener('click',()=>{loginForm.style.display='block';signupForm.style.display='none';});
+showSignupBtn.addEventListener('click',()=>{loginForm.style.display='none';signupForm.style.display='block';});
+toggleThemeBtn.addEventListener('click',()=>{document.body.classList.toggle('dark-mode');});
+
+if(localStorage.getItem('isLoggedIn')==='true'){loginDiv.style.display='none';mainApp.style.display='block';loadData();}
+
+signupForm.addEventListener('submit',e=>{e.preventDefault();const user=document.getElementById('hrUserSignup').value.trim();const pass=document.getElementById('hrPassSignup').value.trim();if(!user||!pass){alert('Enter username/password');return;}localStorage.setItem('hrUser',user);localStorage.setItem('hrPass',pass);alert('Account created! Login.');signupForm.reset();loginForm.style.display='block';signupForm.style.display='none';});
+
+loginForm.addEventListener('submit',e=>{e.preventDefault();const user=document.getElementById('hrUserLogin').value.trim();const pass=document.getElementById('hrPassLogin').value.trim();const storedUser=localStorage.getItem('hrUser');const storedPass=localStorage.getItem('hrPass');if(user===storedUser && pass===storedPass){localStorage.setItem('isLoggedIn','true');loginDiv.style.display='none';mainApp.style.display='block';loadData();}else{alert('Invalid credentials!');}});
+
+logoutBtn.addEventListener('click',()=>{localStorage.removeItem('isLoggedIn');loginDiv.style.display='block';mainApp.style.display='none';});
+
+document.getElementById('addEmployeeForm').addEventListener('submit',e=>{e.preventDefault();const emp={name:document.getElementById('empName').value,dept:document.getElementById('empDept').value,desig:document.getElementById('empDesig').value,salary:parseFloat(document.getElementById('empSalary').value),currency:document.getElementById('empCurrency').value};employees.push(emp);saveData();updateEmployeeTable();updateEmployeeSelect();e.target.reset();});
+});
+</script>
+</body>
+  </html>
