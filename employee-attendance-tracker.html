@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Employee Attendance & Salary Manager — Final</title>
+<title>Employee Attendance & Salary Manager — Updated</title>
 <style>
 :root{
   --bg:#f6f8fb; --card:#fff; --muted:#6b7280; --accent:#2563eb;
@@ -53,7 +53,7 @@ small.muted{color:var(--muted)}
     <div class="header">
       <div>
         <h1>Employee Attendance & Salary Manager</h1>
-        <small class="muted">Add employees → Manage attendance → Auto-calculate final salary (Hybrid rules)</small>
+        <small class="muted">Add employees → Manage attendance → Auto-calculate salary</small>
       </div>
       <div style="min-width:220px">
         <label style="display:block;font-size:13px;margin-bottom:6px">Month (calendar)</label>
@@ -154,7 +154,7 @@ small.muted{color:var(--muted)}
 
     <!-- Deduction rules -->
     <div style="margin-top:8px">
-      <label>Late deduction rule (Hybrid - custom)</label>
+      <label>Late deduction rule (Hybrid)</label>
       <div style="display:flex;gap:8px;margin-top:6px">
         <input id="ruleMinutes" type="number" class="input" style="width:110px" placeholder="minutes (e.g. 10)">
         <input id="ruleAmount" type="number" class="input" style="width:140px" placeholder="cut amount (per step)">
@@ -194,25 +194,16 @@ small.muted{color:var(--muted)}
   </div>
 </div>
 
-<!-- load currencies (user provides file) -->
+<!-- use your currencies.js; fallback handled in script -->
 <script src="currencies.js"></script>
 
 <script>
 /* -------------------------
-  Employee Attendance & Salary Manager (final)
-  - Multiple employees
-  - Start / End salary date per employee
-  - Basic salary separate input
-  - Currency dropdown via currencies.js (populateCurrencyDropdown)
-  - Attendance per employee saved in localStorage
-  - Absent = full day cut (based on working days)
-  - Late deduction = custom rule: floor(totalLateMinutes/step) * amount
-  - Overtime + Bonus + Final salary calculation
-  - Export CSV / JSON / Print
+  Employee Attendance & Salary Manager (fixed employee list)
 ------------------------- */
 
 const STORAGE_KEY = 'emps_attendance_salary_v1';
-let data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"emps":[],"rules": {"minutes":10,"amount":50}}');
+let data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"emps":[],"rules":{"minutes":10,"amount":50}}');
 
 // DOM refs
 const empTbody = document.getElementById('empTbody');
@@ -225,21 +216,18 @@ const sidebarList = document.getElementById('sidebarList');
 const ruleMinutes = document.getElementById('ruleMinutes');
 const ruleAmount = document.getElementById('ruleAmount');
 
-// init UI
 function init(){
-  // set defaults
   if(!data.rules) data.rules = { minutes: 10, amount: 50 };
   ruleMinutes.value = data.rules.minutes;
   ruleAmount.value = data.rules.amount;
 
-  // month default = current month
   monthSelector.value = monthSelector.value || new Date().toISOString().slice(0,7);
 
-  // populate currency dropdown
+  // populate currency dropdown using user's currencies.js if available
   if(typeof populateCurrencyDropdown === 'function'){
     try { populateCurrencyDropdown('empCurrency'); }
-    catch(e){ fallbackCurrency(); }
-  } else fallbackCurrency();
+    catch(e){ fallbackCurrencyPopulate(); }
+  } else fallbackCurrencyPopulate();
 
   // bind events
   document.getElementById('btnAddEmp').addEventListener('click', addEmployee);
@@ -256,11 +244,10 @@ function init(){
 
   monthSelector.addEventListener('change', ()=>renderCalendar());
 
-  // initial render
   renderAll();
 }
 
-function fallbackCurrency(){
+function fallbackCurrencyPopulate(){
   const el = document.getElementById('empCurrency');
   el.innerHTML='';
   ['USD','EUR','PKR','INR'].forEach(c=>{ const o=document.createElement('option'); o.value=c; o.text=c; el.appendChild(o); });
@@ -287,7 +274,13 @@ function addEmployee(){
     attendance: {} // date -> {status, minutes, overtime}
   };
   data.emps.push(emp);
-  save(); clearEmployeeForm(); renderAll();
+  save();
+  clearEmployeeForm();
+  renderAll();
+
+  // auto-select newly added employee for convenience
+  selectedEmployee.value = emp.id;
+  renderCalendar();
 }
 
 function clearEmployeeForm(){
@@ -306,10 +299,10 @@ function renderEmpTable(){
   empTbody.innerHTML = '';
   data.emps.forEach(emp=>{
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${escape(emp.name)}</td>
-      <td>${escape(emp.dept||'')}</td>
-      <td>${escape(emp.currency)} ${num(emp.basic)}</td>
-      <td>${escape(emp.type)}</td>
+    tr.innerHTML = `<td>${escapeHtml(emp.name)}</td>
+      <td>${escapeHtml(emp.dept||'')}</td>
+      <td>${escapeHtml(emp.currency)} ${num(emp.basic)}</td>
+      <td>${escapeHtml(emp.type)}</td>
       <td>${emp.startDate||'-'}</td>
       <td>${emp.endDate||'-'}</td>
       <td>
@@ -323,15 +316,19 @@ function renderEmpTable(){
 
 function renderSideBarList(){
   sidebarList.innerHTML = '';
+  if(data.emps.length === 0){
+    sidebarList.innerHTML = '<div class="small muted">No employees added.</div>';
+    return;
+  }
   data.emps.forEach(emp=>{
     const div = document.createElement('div');
     div.className = 'emp-row';
     div.innerHTML = `<div>
-        <div style="font-weight:700">${escape(emp.name)}</div>
-        <div class="small">${escape(emp.dept||'')}</div>
+        <div style="font-weight:700">${escapeHtml(emp.name)}</div>
+        <div class="small">${escapeHtml(emp.dept||'')}</div>
       </div>
       <div style="text-align:right">
-        <div class="small">${escape(emp.currency)} ${num(emp.basic)}</div>
+        <div class="small">${escapeHtml(emp.currency)} ${num(emp.basic)}</div>
         <div style="margin-top:6px"><button class="btn ghost" onclick="manageEmp('${emp.id}')">Manage</button></div>
       </div>`;
     sidebarList.appendChild(div);
@@ -342,9 +339,6 @@ function renderSideBarList(){
 function manageEmp(id){
   selectedEmployee.value = id;
   renderCalendar();
-  document.getElementById('selectedEmployee').value = id;
-  // scroll calendar into view
-  document.querySelector('#calendarGrid').scrollIntoView({behavior:'smooth'});
 }
 
 function editEmp(id){
@@ -360,7 +354,7 @@ function editEmp(id){
   document.getElementById('empStart').value = emp.startDate;
   document.getElementById('empEnd').value = emp.endDate;
 
-  // remove old entry and wait for user to Add again (simple edit flow)
+  // remove old entry so next Add acts as update
   data.emps = data.emps.filter(e=>e.id!==id);
   save(); renderAll();
 }
@@ -376,7 +370,6 @@ function deleteEmp(id){
 function populateSelectedEmployee(){
   selectedEmployee.innerHTML = '<option value="">-- select employee --</option>';
   data.emps.forEach(e=>{ const o=document.createElement('option'); o.value=e.id; o.textContent=e.name; selectedEmployee.appendChild(o); });
-  // maintain selection if possible
   if(!selectedEmployee.value && data.emps.length) selectedEmployee.value = data.emps[0].id;
 }
 
@@ -388,12 +381,10 @@ function renderCalendar(){
   const monthVal = monthSelector.value || new Date().toISOString().slice(0,7);
   calendarTitle.textContent = new Date(monthVal+'-01').toLocaleString(undefined,{month:'long', year:'numeric'});
 
-  // build calendar: first day offset, days in month
   const [Y, M] = monthVal.split('-').map(Number);
   const firstDay = new Date(Y, M-1, 1).getDay();
   const daysInMonth = new Date(Y, M, 0).getDate();
 
-  // add empty cells for offset
   for(let i=0;i<firstDay;i++){
     const empty = document.createElement('div'); empty.className='cell'; empty.style.background='transparent'; empty.style.border='0'; calendarGrid.appendChild(empty);
   }
@@ -408,7 +399,6 @@ function renderCalendar(){
       const small = document.createElement('div'); small.className='small'; small.textContent = 'Select employee to manage attendance';
       cell.appendChild(small);
     } else {
-      // check employee start/end date range
       if((emp.startDate && dateStr < emp.startDate) || (emp.endDate && dateStr > emp.endDate)){
         const small = document.createElement('div'); small.className='small'; small.textContent = 'Not in salary period';
         cell.appendChild(small);
@@ -432,7 +422,8 @@ function renderCalendar(){
           const abtn = document.createElement('button'); abtn.className='btn ghost'; abtn.textContent='Absent'; abtn.onclick = ()=> setAttendance(emp.id, dateStr, 'absent');
           const lbtn = document.createElement('button'); lbtn.className='btn ghost'; lbtn.textContent='Late'; lbtn.onclick = ()=> {
             const mins = prompt('Minutes late (numeric)', '10'); if(mins===null) return;
-            const ovr = prompt('Overtime hours (optional)', '0'); setAttendance(emp.id, dateStr, 'late', Number(mins)||0, Number(ovr)||0);
+            const ovr = prompt('Overtime hours (optional)', '0');
+            setAttendance(emp.id, dateStr, 'late', Number(mins)||0, Number(ovr)||0);
           };
           actions.appendChild(pbtn); actions.appendChild(abtn); actions.appendChild(lbtn);
           cell.appendChild(actions);
@@ -465,16 +456,13 @@ function editAttendance(empId, date){
 
 // payroll calculation (hybrid)
 function calcPayroll(emp, monthVal){
-  // working days per month based on workingDays setting
   const wdSetting = Number(document.getElementById('workingDays').value || 5);
-  // days in month
   const [Y, M] = monthVal.split('-').map(Number);
   const daysInMonth = new Date(Y, M, 0).getDate();
 
-  // compute workingDays in month (Mon-Fri or Mon-Sat)
   let workDaysCount = 0;
   for(let d=1; d<=daysInMonth; d++){
-    const day = new Date(Y, M-1, d).getDay(); // 0 Sun .. 6 Sat
+    const day = new Date(Y, M-1, d).getDay();
     if(wdSetting === 6){
       if(day !== 0) workDaysCount++;
     } else {
@@ -483,7 +471,6 @@ function calcPayroll(emp, monthVal){
   }
   if(workDaysCount === 0) workDaysCount = Math.max(1, daysInMonth);
 
-  // count attendance
   let present=0, absent=0, lateMinutes=0, overtimeHours=0;
   for(let d=1; d<=daysInMonth; d++){
     const dateStr = `${monthVal}-${String(d).padStart(2,'0')}`;
@@ -495,26 +482,15 @@ function calcPayroll(emp, monthVal){
     if(a.overtime) overtimeHours += (a.overtime||0);
   }
 
-  // compute amounts
   const base = Number(emp.basic) || 0;
   let overtimePay = (Number(emp.overtimeRate)||0) * overtimeHours;
   let bonus = Number(emp.bonus) || 0;
 
-  // absent deduction (full day cut)
   let absentDeduction = 0;
-  if(emp.type === 'hourly'){
-    // best-effort: skip absent deduction for hourly unless user defines hours — treat absent as 0 here
-    absentDeduction = 0;
-  } else if(emp.type === 'weekly'){
-    // weekly base is weekly salary; approximate daily = weekly/5
-    const daily = base / 5;
-    absentDeduction = daily * absent;
-  } else { // monthly
-    const daily = base / workDaysCount;
-    absentDeduction = daily * absent;
-  }
+  if(emp.type === 'hourly'){ absentDeduction = 0; }
+  else if(emp.type === 'weekly'){ const daily = base / 5; absentDeduction = daily * absent; }
+  else { const daily = base / workDaysCount; absentDeduction = daily * absent; }
 
-  // late deduction using custom rule
   const step = Number(data.rules.minutes) || 1;
   const cut = Number(data.rules.amount) || 0;
   const lateDeduction = Math.floor(lateMinutes / step) * cut;
@@ -569,7 +545,7 @@ function exportAttendanceCSV(){
     const a = emp.attendance && emp.attendance[dateStr];
     rows.push([dateStr, (a? a.status : 'none'), (a? a.minutes : 0), (a? a.overtime : 0)]);
   }
-  const csv = rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\\n');
+  const csv = rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob = new Blob([csv], { type:'text/csv' });
   const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `attendance_${emp.name}_${monthVal}.csv`; a.click(); URL.revokeObjectURL(url);
 }
@@ -595,7 +571,7 @@ function downloadSlipCsv(){
   const emp = data.emps.find(e=>e.id===empId);
   const out = calcPayroll(emp, monthSelector.value);
   const rows = [['label','value'], ['Employee', emp.name], ['Period', monthSelector.value], ['Base', out.base], ['Overtime', out.overtimePay], ['Bonus', out.bonus], ['LateDeduction', out.lateDeduction], ['AbsentDeduction', out.absentDeduction], ['Final', out.final]];
-  const csv = rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\\n');
+  const csv = rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob = new Blob([csv], { type:'text/csv' }); const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download = `salary_${emp.name}_${monthSelector.value}.csv`; a.click(); URL.revokeObjectURL(url);
 }
 
@@ -608,7 +584,7 @@ function printSlip(){
   const html = `
     <div style="font-family:Arial;padding:18px;max-width:700px">
       <h2>Salary Slip</h2>
-      <div><strong>Employee:</strong> ${escape(emp.name)}</div>
+      <div><strong>Employee:</strong> ${escapeHtml(emp.name)}</div>
       <div><strong>Period:</strong> ${monthSelector.value}</div>
       <hr/>
       <div><strong>Base Salary:</strong> ${emp.currency} ${num(out.base)}</div>
@@ -625,30 +601,25 @@ function printSlip(){
   w.print();
 }
 
-// clear all
 function clearAll(){
   if(!confirm('Clear all employees and attendance?')) return;
   data = { emps: [], rules: data.rules || {minutes:10, amount:50} };
   save(); renderAll();
 }
 
-// utils
 function num(n){ return Number(n||0).toFixed(2); }
-function escape(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-// init
 init();
 
-// expose a couple functions to inline event attributes
+// expose useful functions for inline buttons
 window.manageEmp = manageEmp;
 window.editEmp = editEmp;
 window.deleteEmp = deleteEmp;
 window.exportAllJSON = exportAllJSON;
 window.downloadSlipCsv = downloadSlipCsv;
-window.downloadAll = exportAllJSON;
 window.exportAttendanceCSV = exportAttendanceCSV;
 window.exportAttendanceJSON = exportAttendanceJSON;
-window.downloadSlipCsv = downloadSlipCsv;
 </script>
 </body>
 </html>
