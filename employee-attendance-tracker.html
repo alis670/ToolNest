@@ -145,44 +145,44 @@ body{background:#f8f9fa;font-family:Arial;}
 let employees=[], attendance=[], salaries=[];
 const currencySymbols={"PKR":"₨","USD":"$","INR":"₹","EUR":"€","GBP":"£"};
 
-// --- Persistent Login ---
-window.onload = ()=>{
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    if(isLoggedIn === 'true'){
+// ----------------- Login/Signup -----------------
+window.onload = () => {
+    if(localStorage.getItem('isLoggedIn') === 'true'){
         document.getElementById('loginDiv').style.display='none';
         document.getElementById('mainApp').style.display='block';
         loadDataFromStorage();
     }
 }
 
-// Login/Signup UI toggle
-document.getElementById('showLogin').onclick=()=>{document.getElementById('loginForm').style.display='block';document.getElementById('signupForm').style.display='none';};
-document.getElementById('showSignup').onclick=()=>{document.getElementById('loginForm').style.display='none';document.getElementById('signupForm').style.display='block';};
+document.getElementById('showLogin').onclick = () => { document.getElementById('loginForm').style.display='block'; document.getElementById('signupForm').style.display='none'; }
+document.getElementById('showSignup').onclick = () => { document.getElementById('loginForm').style.display='none'; document.getElementById('signupForm').style.display='block'; }
 
 // Signup
 document.getElementById('signupForm').addEventListener('submit', e=>{
 e.preventDefault();
-const user=document.getElementById('hrUserSignup').value;
-const pass=document.getElementById('hrPassSignup').value;
-if(!user||!pass){alert('Enter username/password');return;}
+const user = document.getElementById('hrUserSignup').value.trim();
+const pass = document.getElementById('hrPassSignup').value.trim();
+if(!user||!pass){ alert('Enter username/password'); return; }
 localStorage.setItem('hrUser',user); localStorage.setItem('hrPass',pass);
 alert('Account created! Login now.');
-document.getElementById('signupForm').reset(); document.getElementById('loginForm').style.display='block'; document.getElementById('signupForm').style.display='none';
+document.getElementById('signupForm').reset();
+document.getElementById('loginForm').style.display='block';
+document.getElementById('signupForm').style.display='none';
 });
 
 // Login
 document.getElementById('loginForm').addEventListener('submit', e=>{
 e.preventDefault();
-const user=document.getElementById('hrUserLogin').value;
-const pass=document.getElementById('hrPassLogin').value;
-const storedUser=localStorage.getItem('hrUser');
-const storedPass=localStorage.getItem('hrPass');
-if(user===storedUser && pass===storedPass){
-    localStorage.setItem('isLoggedIn','true'); // persist login
-    document.getElementById('loginDiv').style.display='none'; 
+const user = document.getElementById('hrUserLogin').value.trim();
+const pass = document.getElementById('hrPassLogin').value.trim();
+const storedUser = localStorage.getItem('hrUser');
+const storedPass = localStorage.getItem('hrPass');
+if(user === storedUser && pass === storedPass){
+    localStorage.setItem('isLoggedIn','true');
+    document.getElementById('loginDiv').style.display='none';
     document.getElementById('mainApp').style.display='block';
     loadDataFromStorage();
-}else{alert('Invalid credentials');}
+}else{ alert('Invalid credentials!'); }
 });
 
 // Logout
@@ -193,20 +193,21 @@ document.getElementById('logoutBtn').onclick = () => {
     saveDataToStorage();
 };
 
-// --- Storage Functions ---
+// ----------------- Storage & Auto Fetch -----------------
 function loadDataFromStorage(){
-employees=JSON.parse(localStorage.getItem('employees')||"[]");
-attendance=JSON.parse(localStorage.getItem('attendance')||"[]");
-salaries=JSON.parse(localStorage.getItem('salaries')||"[]");
-updateEmployeeTable(); updateEmployeeSelect(); updateAttendanceTable(); updateSalaryTable(); updateAttendanceChart();
+    employees=JSON.parse(localStorage.getItem('employees')||"[]");
+    attendance=JSON.parse(localStorage.getItem('attendance')||"[]");
+    salaries=JSON.parse(localStorage.getItem('salaries')||"[]");
+    updateEmployeeTable(); updateEmployeeSelect();
+    updateAttendanceTable(); updateSalaryTable(); updateAttendanceChart();
 }
 function saveDataToStorage(){
-localStorage.setItem('employees',JSON.stringify(employees));
-localStorage.setItem('attendance',JSON.stringify(attendance));
-localStorage.setItem('salaries',JSON.stringify(salaries));
+    localStorage.setItem('employees',JSON.stringify(employees));
+    localStorage.setItem('attendance',JSON.stringify(attendance));
+    localStorage.setItem('salaries',JSON.stringify(salaries));
 }
 
-// --- Employees ---
+// ----------------- Employee Management -----------------
 document.getElementById('addEmployeeForm').addEventListener('submit', e=>{
 e.preventDefault();
 const emp={name:document.getElementById('empName').value,
@@ -236,108 +237,4 @@ selects.forEach(sel=>{sel.innerHTML='<option value="">Select Employee</option>';
 employees.forEach((e,i)=>{const opt=document.createElement('option');opt.value=i;opt.text=e.name;sel.appendChild(opt);});});
 }
 
-// --- Attendance Calendar ---
-function generateCalendar(monthValue){
-const [year,month]=monthValue.split('-').map(Number);
-const firstDay=new Date(year,month-1,1);
-const lastDay=new Date(year,month,0);
-let html='<table class="table table-bordered text-center"><tr>';
-const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-dayNames.forEach(d=>html+='<th>'+d+'</th>'); html+='</tr><tr>';
-let dayCounter=1;
-for(let i=0;i<firstDay.getDay();i++) html+='<td></td>';
-for(let i=firstDay.getDay();i<7;i++){html+='<td class="cal-day" data-date="'+year+'-'+String(month).padStart(2,'0')+'-'+String(dayCounter).padStart(2,'0')+'">'+dayCounter+'</td>'; dayCounter++;}
-html+='</tr>';
-while(dayCounter<=lastDay.getDate()){
-html+='<tr>';
-for(let i=0;i<7;i++){
-if(dayCounter>lastDay.getDate()){html+='<td></td>';}else{
-html+='<td class="cal-day" data-date="'+year+'-'+String(month).padStart(2,'0')+'-'+String(dayCounter).padStart(2,'0')+'">'+dayCounter+'</td>';
-dayCounter++;
-}
-}
-html+='</tr>';
-}
-html+='</table>';
-document.getElementById('calendar').innerHTML=html;
-document.querySelectorAll('.cal-day').forEach(td=>td.onclick=openModal);
-updateCalendarColors(monthValue);
-}
-function updateCalendarColors(monthValue){
-document.querySelectorAll('.cal-day').forEach(td=>{
-const date=td.getAttribute('data-date');
-const record=attendance.find(a=>a.date===date);
-if(record){
-if(record.status==='Present') td.style.background='#28a745'; 
-else if(record.status==='Absent') td.style.background='#dc3545'; 
-else if(record.status==='Late') td.style.background='#ffc107';
-td.style.color='#fff';
-}else{td.style.background=''; td.style.color='';}
-});
-}
-function openModal(e){
-const date=e.currentTarget.getAttribute('data-date');
-document.getElementById('modalDate').value=date;
-const empSelect=document.getElementById('modalEmployee');
-empSelect.innerHTML='<option value="">Select Employee</option>';
-employees.forEach((emp,i)=>{const opt=document.createElement('option');opt.value=i;opt.text=emp.name;empSelect.appendChild(opt);});
-document.getElementById('modalStatus').value='';
-document.getElementById('modalLateMinutes').value='';
-document.getElementById('attendanceModal').style.display='flex';
-}
-function closeModal(){document.getElementById('attendanceModal').style.display='none';}
-function saveAttendance(){
-const empIndex=parseInt(document.getElementById('modalEmployee').value);
-const status=document.getElementById('modalStatus').value;
-const lateMinutes=parseInt(document.getElementById('modalLateMinutes').value)||0;
-const date=document.getElementById('modalDate').value;
-if(isNaN(empIndex) || !status){alert('Select employee and status'); return;}
-const existingIndex=attendance.findIndex(a=>a.date===date && a.empIndex===empIndex);
-if(existingIndex>-1) attendance[existingIndex]={empIndex,date,status,lateMinutes,month:date.slice(0,7)};
-else attendance.push({empIndex,date,status,lateMinutes,month:date.slice(0,7)});
-saveDataToStorage();
-updateCalendarColors(date.slice(0,7));
-updateAttendanceTable();
-closeModal();
-}
-document.getElementById('attendanceMonth').addEventListener('change', e=>{
-if(e.target.value) generateCalendar(e.target.value);
-});
-const now=new Date();
-document.getElementById('attendanceMonth').value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
-generateCalendar(document.getElementById('attendanceMonth').value);
-
-// --- Attendance Table ---
-function updateAttendanceTable(){
-const table=document.getElementById('attendanceTable');
-table.innerHTML="<tr><th>Date</th><th>Employee</th><th>Status</th><th>Late Minutes</th></tr>";
-attendance.forEach(a=>{const row=table.insertRow();
-row.insertCell(0).innerText=a.date;
-row.insertCell(1).innerText=employees[a.empIndex].name;
-row.insertCell(2).innerText=a.status;
-row.insertCell(3).innerText=a.lateMinutes;});
-}
-
-// --- Salary Calculation ---
-document.getElementById('calculateSalaryForm').addEventListener('submit', e=>{
-e.preventDefault();
-const empIndex=parseInt(document.getElementById('salaryEmployee').value);
-const emp=employees[empIndex];
-const start=new Date(document.getElementById('startDate').value);
-const end=new Date(document.getElementById('endDate').value);
-const ot=parseFloat(document.getElementById('overtimeHours').value)||0;
-const bonus=parseFloat(document.getElementById('bonusAmount').value)||0;
-let deduction=0;
-attendance.forEach(a=>{if(a.empIndex===empIndex){const d=new Date(a.date);
-if(d>=start && d<=end){if(a.status==='Absent') deduction+=emp.salary/30;
-if(a.status==='Late') deduction+=(emp.salary/30)*(a.lateMinutes/480);}}});
-const perHour=(emp.salary/30)/8;
-const otPay=ot*perHour*1.5;
-const netSalary=emp.salary-deduction+otPay+bonus;
-salaries.push({empIndex,month:document.getElementById('attendanceMonth').value,netSalary}); updateSalaryTable(); saveDataToStorage();
-});
-function updateSalaryTable(){
-const table=document.getElementById('salaryTable');
-table.innerHTML="<tr><th>Employee</th><th>Month</th><th>Net Salary</th><th>Payslip</th></tr>";
-salaries.forEach(s=>{
-const row=table.insert
+// ----------------- Attendance, Salary, Chart -----------------
