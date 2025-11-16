@@ -20,24 +20,96 @@ body{background:#f8f9fa;font-family:Arial;}
 </head>
 <body class="container mt-3">
 
-<!-- LOGIN/SIGNUP -->
-<div id="loginDiv" class="card">
-<h2>HR Login / Sign Up</h2>
-<div class="mb-3">
-<button id="showLogin" class="btn btn-primary btn-sm">Login</button>
-<button id="showSignup" class="btn btn-secondary btn-sm">Sign Up</button>
-</div>
-<form id="loginForm" style="display:block;">
-<input type="text" id="hrUserLogin" class="form-control mb-2" placeholder="Username" required>
-<input type="password" id="hrPassLogin" class="form-control mb-2" placeholder="Password" required>
-<button type="submit" class="btn btn-primary">Login</button>
-</form>
-<form id="signupForm" style="display:none;">
-<input type="text" id="hrUserSignup" class="form-control mb-2" placeholder="Choose Username" required>
-<input type="password" id="hrPassSignup" class="form-control mb-2" placeholder="Choose Password" required>
-<button type="submit" class="btn btn-success">Sign Up</button>
-</form>
-</div>
+<!DOCTYPE html>  <html lang="en">  
+<head>  
+<meta charset="UTF-8">  
+<meta name="viewport" content="width=device-width, initial-scale=1.0">  
+<title>HR Login/Signup Test</title>  
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">  
+</head>  
+<body class="container mt-5">  <div id="loginDiv" class="card p-4">  
+<h2>HR Login / Sign Up</h2>  
+<div class="mb-3">  
+<button id="showLogin" class="btn btn-primary btn-sm">Login</button>  
+<button id="showSignup" class="btn btn-secondary btn-sm">Sign Up</button>  
+</div>  <form id="loginForm" style="display:block;">  
+<input type="text" id="hrUserLogin" class="form-control mb-2" placeholder="Username" required>  
+<input type="password" id="hrPassLogin" class="form-control mb-2" placeholder="Password" required>  
+<button type="submit" class="btn btn-primary">Login</button>  
+</form>  <form id="signupForm" style="display:none;">  
+<input type="text" id="hrUserSignup" class="form-control mb-2" placeholder="Choose Username" required>  
+<input type="password" id="hrPassSignup" class="form-control mb-2" placeholder="Choose Password" required>  
+<button type="submit" class="btn btn-success">Sign Up</button>  
+</form>  
+</div>  <div id="mainApp" style="display:none;" class="mt-3">  
+<h2>HR Dashboard</h2>  
+<button id="logoutBtn" class="btn btn-danger mb-3">Logout</button>  
+<p>Welcome to HR Dashboard!</p>  
+</div>  <script>  
+document.addEventListener('DOMContentLoaded', () => {  
+  const loginDiv = document.getElementById('loginDiv');  
+  const loginForm = document.getElementById('loginForm');  
+  const signupForm = document.getElementById('signupForm');  
+  const showLoginBtn = document.getElementById('showLogin');  
+  const showSignupBtn = document.getElementById('showSignup');  
+  const mainApp = document.getElementById('mainApp');  
+  const logoutBtn = document.getElementById('logoutBtn');  
+  
+  // Toggle login/signup forms  
+  showLoginBtn.addEventListener('click', () => {  
+    loginForm.style.display = 'block';  
+    signupForm.style.display = 'none';  
+  });  
+  showSignupBtn.addEventListener('click', () => {  
+    loginForm.style.display = 'none';  
+    signupForm.style.display = 'block';  
+  });  
+  
+  // Auto-login if already logged in  
+  if(localStorage.getItem('isLoggedIn') === 'true'){  
+    loginDiv.style.display = 'none';  
+    mainApp.style.display = 'block';  
+  }  
+  
+  // Sign Up  
+  signupForm.addEventListener('submit', e => {  
+    e.preventDefault();  
+    const user = document.getElementById('hrUserSignup').value.trim();  
+    const pass = document.getElementById('hrPassSignup').value.trim();  
+    if(!user || !pass){ alert('Enter username/password'); return; }  
+    localStorage.setItem('hrUser', user);  
+    localStorage.setItem('hrPass', pass);  
+    alert('Account created! Please login.');  
+    signupForm.reset();  
+    loginForm.style.display = 'block';  
+    signupForm.style.display = 'none';  
+  });  
+  
+  // Login  
+  loginForm.addEventListener('submit', e => {  
+    e.preventDefault();  
+    const user = document.getElementById('hrUserLogin').value.trim();  
+    const pass = document.getElementById('hrPassLogin').value.trim();  
+    const storedUser = localStorage.getItem('hrUser');  
+    const storedPass = localStorage.getItem('hrPass');  
+  
+    if(user === storedUser && pass === storedPass){  
+      localStorage.setItem('isLoggedIn', 'true');  
+      loginDiv.style.display = 'none';  
+      mainApp.style.display = 'block';  
+    } else {  
+      alert('Invalid credentials!');  
+    }  
+  });  
+  
+  // Logout  
+  logoutBtn.addEventListener('click', () => {  
+    localStorage.removeItem('isLoggedIn');  
+    loginDiv.style.display = 'block';  
+    mainApp.style.display = 'none';  
+  });  
+});  
+</script>  
 
 <!-- MAIN DASHBOARD -->
 <div id="mainApp" style="display:none;">
