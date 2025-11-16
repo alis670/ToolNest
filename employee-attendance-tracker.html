@@ -9,8 +9,12 @@
 <style>
 :root {
   --bg:#fff; --text:#000; --card-bg:#f8f9fa; --input-bg:#fff; --input-text:#000; --table-header:#e9ecef;
+  --present:#28a745; --absent:#dc3545; --late:#ffc107;
 }
-body.dark-mode { --bg:#121212; --text:#f5f5f5; --card-bg:#1e1e1e; --input-bg:#2a2a2a; --input-text:#f5f5f5; --table-header:#333; }
+body.dark-mode { 
+  --bg:#121212; --text:#f5f5f5; --card-bg:#1e1e1e; --input-bg:#2a2a2a; --input-text:#f5f5f5; --table-header:#333; 
+  --present:#28a745; --absent:#dc3545; --late:#ffc107;
+}
 body { background:var(--bg); color:var(--text); }
 .card { background:var(--card-bg); color:var(--text); margin-bottom:1rem; }
 input, select { background:var(--input-bg); color:var(--input-text); }
@@ -22,7 +26,7 @@ table th { background:var(--table-header); color:var(--text); }
 .employee-row > div { flex:1 1 120px; min-width:80px; }
 .employee-row button { flex:0 0 auto; }
 @media (max-width:576px){ .employee-row > div { flex:1 1 100%; } }
-td { cursor:pointer; }
+.day-cell { cursor:pointer; text-align:center; padding:5px; border:1px solid #ccc; width:30px; display:inline-block; margin:1px; border-radius:4px; }
 </style>
 </head>
 <body class="container mt-4">
@@ -71,7 +75,7 @@ td { cursor:pointer; }
 <div class="card">
 <h4>Attendance Calendar</h4>
 <div class="row mb-2"><div class="col-md-3"><input type="month" id="attendanceMonth" class="form-control"></div></div>
-<div id="calendar" class="table-responsive"></div>
+<div id="calendar"></div>
 </div>
 
 <div class="card">
@@ -102,68 +106,68 @@ td { cursor:pointer; }
 <div class="modal-content">
 <h5>Mark Attendance <button class="btn-close" onclick="closeModal()">&times;</button></h5>
 <select id="modalEmployee" class="form-select mb-2"></select>
-<select id="modalStatus" class="form-select mb-2"><option value="">Select Status</option><option value="Present">Present</option><option value="Absent">Absent</option><option value="Late">Late</option></select>
+<select id="modalStatus" class="form-select mb-2">
+<option value="">Select Status</option>
+<option value="Present">Present</option>
+<option value="Absent">Absent</option>
+<option value="Late">Late</option>
+</select>
 <input type="number" id="modalLateMinutes" class="form-control mb-2" placeholder="Late minutes">
 <input type="hidden" id="modalDate">
 <button class="btn btn-primary w-100" onclick="saveAttendance()">Save</button>
 </div>
 </div>
 
-<script src="currencies.js"></script>
+<script src="currencies.js" onload="loadCurrencies()"></script>
 <script>
 let employees=[], attendance=[], salaries=[], currencySymbols={}, chartInstance=null;
 
-function loadCurrencies(){
-  if(typeof currencies!=="undefined"){
-    const sel=document.getElementById('empCurrency');
-    currencies.forEach(c=>{
-      const opt=document.createElement('option');
-      opt.value=c.code; opt.text=`${c.code} (${c.symbol})`;
-      sel.appendChild(opt);
-      currencySymbols[c.code]=c.symbol;
-    });
-  }
-}
-
+// Save/load
 function saveData(){localStorage.setItem('employees',JSON.stringify(employees));localStorage.setItem('attendance',JSON.stringify(attendance));localStorage.setItem('salaries',JSON.stringify(salaries));}
+function loadData(){employees=JSON.parse(localStorage.getItem('employees')||"[]");attendance=JSON.parse(localStorage.getItem('attendance')||"[]");salaries=JSON.parse(localStorage.getItem('salaries')||"[]");updateEmployeeTable();updateEmployeeSelect();renderAttendanceTable();renderCalendar();renderChart();}
 
-function loadData(){employees=JSON.parse(localStorage.getItem('employees')||"[]");attendance=JSON.parse(localStorage.getItem('attendance')||"[]");salaries=JSON.parse(localStorage.getItem('salaries')||"[]");updateEmployeeTable();updateEmployeeSelect();renderAttendanceTable();renderChart();}
-
-function updateEmployeeTable(){
-  const table=document.getElementById('employeeTable');
-  table.innerHTML='';
-  employees.forEach((e,i)=>{
-    const row=document.createElement('div'); row.className='employee-row';
-    row.innerHTML=`<div>${e.name}</div><div>${e.dept}</div><div>${e.desig}</div><div>${e.salary.toFixed(2)}</div><div>${e.currency}</div>`;
-    const btn=document.createElement('button'); btn.className='btn btn-danger btn-sm'; btn.innerText='Delete';
-    btn.onclick=()=>{employees.splice(i,1);saveData();updateEmployeeTable();updateEmployeeSelect();renderAttendanceTable();renderChart();};
-    row.appendChild(btn);
-    table.appendChild(row);
-  });
-}
-
+// Employee list responsive
+function updateEmployeeTable(){const table=document.getElementById('employeeTable');table.innerHTML='';employees.forEach((e,i)=>{const row=document.createElement('div');row.className='employee-row';row.innerHTML=`<div>${e.name}</div><div>${e.dept}</div><div>${e.desig}</div><div>${e.salary.toFixed(2)}</div><div>${e.currency}</div>`;const btn=document.createElement('button');btn.className='btn btn-danger btn-sm';btn.innerText='Delete';btn.onclick=()=>{employees.splice(i,1);saveData();updateEmployeeTable();updateEmployeeSelect();renderAttendanceTable();renderChart();};row.appendChild(btn);table.appendChild(row);});}
 function updateEmployeeSelect(){[document.getElementById('modalEmployee'),document.getElementById('salaryEmployee')].forEach(sel=>{sel.innerHTML='<option value="">Select Employee</option>';employees.forEach((e,i)=>{const opt=document.createElement('option');opt.value=i;opt.text=e.name;sel.appendChild(opt);});});}
 
+// Attendance modal
 function openModal(date){document.getElementById('modalDate').value=date;document.getElementById('attendanceModal').style.display='flex';}
 function closeModal(){document.getElementById('attendanceModal').style.display='none';}
-function saveAttendance(){const empIndex=parseInt(document.getElementById('modalEmployee').value);const status=document.getElementById('modalStatus').value;const late=parseInt(document.getElementById('modalLateMinutes').value)||0;const date=document.getElementById('modalDate').value;if(empIndex===""||status===""){alert("Select employee/status");return;}attendance.push({date,empIndex,status,late});saveData();renderAttendanceTable();renderChart();closeModal();}
+function saveAttendance(){
+  const empIndex=parseInt(document.getElementById('modalEmployee').value);
+  const status=document.getElementById('modalStatus').value;
+  const late=parseInt(document.getElementById('modalLateMinutes').value)||0;
+  const date=document.getElementById('modalDate').value;
+  if(isNaN(empIndex)||!status){alert("Select employee/status");return;}
+  attendance.push({date,empIndex,status,late});saveData();renderAttendanceTable();renderCalendar();renderChart();closeModal();
+}
 
-function renderAttendanceTable(){const table=document.getElementById('attendanceTable');table.innerHTML="<tr><th>Date</th><th>Employee</th><th>Status</th><th>Late</th><th>Action</th></tr>";attendance.forEach((a,i)=>{const row=table.insertRow();row.insertCell(0).innerText=a.date;row.insertCell(1).innerText=employees[a.empIndex]?.name||"";row.insertCell(2).innerText=a.status;row.insertCell(3).innerText=a.late;const btn=document.createElement('button');btn.innerText='Delete';btn.className='btn btn-sm btn-danger';btn.onclick=()=>{attendance.splice(i,1);saveData();renderAttendanceTable();renderChart();};row.insertCell(4).appendChild(btn);});}
+// Attendance table
+function renderAttendanceTable(){const table=document.getElementById('attendanceTable');table.innerHTML="<tr><th>Date</th><th>Employee</th><th>Status</th><th>Late</th><th>Action</th></tr>";attendance.forEach((a,i)=>{const row=table.insertRow();row.insertCell(0).innerText=a.date;row.insertCell(1).innerText=employees[a.empIndex]?.name||"";row.insertCell(2).innerText=a.status;row.insertCell(3).innerText=a.late;const btn=document.createElement('button');btn.className='btn btn-sm btn-danger';btn.innerText='Delete';btn.onclick=()=>{attendance.splice(i,1);saveData();renderAttendanceTable();renderCalendar();renderChart();};row.insertCell(4).appendChild(btn);});}
 
-function renderCalendar(){const div=document.getElementById('calendar');const month=document.getElementById('attendanceMonth').value;if(!month){div.innerHTML='';return;}const [y,m]=month.split('-');const days=new Date(y,m,0).getDate();let html='<table class="table table-bordered text-center"><tr>';for(let d=1;d<=days;d++){html+=`<td onclick="openModal('${y}-${m.padStart(2,'0')}-${d.toString().padStart(2,'0')}')">${d}</td>`;if(d%7===0) html+='</tr><tr>';}html+='</tr></table>';div.innerHTML=html;}
+// Calendar with colored days
+function renderCalendar(){
+  const div=document.getElementById('calendar');const month=document.getElementById('attendanceMonth').value; if(!month){div.innerHTML='';return;}
+  const [y,m]=month.split('-');const days=new Date(y,m,0).getDate();
+  let html='<div>';
+  for(let d=1;d<=days;d++){
+    const dayStr=`${y}-${m.padStart(2,'0')}-${d.toString().padStart(2,'0')}`;
+    let att=attendance.find(a=>a.date===dayStr); let color=''; if(att){color=att.status==='Present'?getComputedStyle(document.body).getPropertyValue('--present'):att.status==='Absent'?getComputedStyle(document.body).getPropertyValue('--absent'):getComputedStyle(document.body).getPropertyValue('--late');}
+    html+=`<div class="day-cell" style="background:${color};" onclick="openModal('${dayStr}')">${d}</div>`;
+  }
+  html+='</div>';div.innerHTML=html;
+}
 
-function renderChart(){const ctx=document.getElementById('attendanceChart');let present=0,absent=0,late=0;attendance.forEach(a=>{if(a.status==='Present') present++; else if(a.status==='Absent') absent++; else late++;});if(chartInstance) chartInstance.destroy();chartInstance=new Chart(ctx,{type:'pie',data:{labels:['Present','Absent','Late'],datasets:[{data:[present,absent,late],backgroundColor:['#28a745','#dc3545','#ffc107']}]}});}
-
-document.getElementById('attendanceMonth').addEventListener('change',renderCalendar);
-
+// Chart
+function renderChart(){const ctx=document.getElementById('attendanceChart');let present=0,absent=0,late=0;attendance.forEach(a=>{if(a.status==='Present') present++; else if(a.status==='Absent') absent++; else late++;});if(chartInstance) chartInstance.destroy();chartInstance=new Chart(ctx,{type:'pie',data:{labels:['Present','Absent','Late'],datasets:[{data:[present,absent,late],backgroundColor:[getComputedStyle(document.body).getPropertyValue('--present'),getComputedStyle(document.body).getPropertyValue('--absent'),getComputedStyle(document.body).getPropertyValue('--late')] }]}});}
+  
+// Dashboard logic
 document.addEventListener('DOMContentLoaded',()=>{
-loadCurrencies();
-
 const loginDiv=document.getElementById('loginDiv');const loginForm=document.getElementById('loginForm');const signupForm=document.getElementById('signupForm');const mainApp=document.getElementById('mainApp');const logoutBtn=document.getElementById('logoutBtn');const showLoginBtn=document.getElementById('showLogin');const showSignupBtn=document.getElementById('showSignup');const toggleThemeBtn=document.getElementById('toggleTheme');
 
 showLoginBtn.addEventListener('click',()=>{loginForm.style.display='block';signupForm.style.display='none';});
 showSignupBtn.addEventListener('click',()=>{loginForm.style.display='none';signupForm.style.display='block';});
-toggleThemeBtn.addEventListener('click',()=>{document.body.classList.toggle('dark-mode');});
+toggleThemeBtn.addEventListener('click',()=>{document.body.classList.toggle('dark-mode');renderCalendar();renderChart();});
 
 if(localStorage.getItem('isLoggedIn')==='true'){loginDiv.style.display='none';mainApp.style.display='block';loadData();}
 
