@@ -3,179 +3,266 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Factory Employee Attendance & Salary Manager</title>
+<title>HR Salary System</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-  body { font-family: Arial, sans-serif; background: #f4f4f4; margin:0; padding:0; }
-  .container { max-width: 1200px; margin: auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
-  h1 { text-align:center; }
-  .row { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:10px; }
-  .col { flex:1; min-width:150px; }
-  input, select, button { padding:6px; width:100%; box-sizing:border-box; }
-  table { width:100%; border-collapse: collapse; margin-top:20px; }
-  th, td { border:1px solid #ccc; padding:8px; text-align:center; }
-  th { background:#eee; }
-  button { cursor:pointer; }
-  @media(max-width:600px){ .row{flex-direction:column;} }
+body{background:#f8f9fa;font-family:Arial;}
+.card{padding:20px;margin-bottom:20px;}
+.table th,.table td{vertical-align:middle !important;}
 </style>
 </head>
-<body>
+<body class="container mt-3">
 
-<div class="container">
-  <h1>Factory Employee Attendance & Salary Manager</h1>
-
-  <div class="row">
-    <div class="col">
-      <label>Date:<input type="date" id="attendanceDate"></label>
-    </div>
-    <div class="col">
-      <label>Currency:<select id="currencySelect"></select></label>
-    </div>
-  </div>
-
-  <div class="row">
-    <div class="col"><input type="text" id="empName" placeholder="Employee Name"></div>
-    <div class="col"><input type="text" id="empDesignation" placeholder="Designation"></div>
-    <div class="col"><input type="number" id="empSalary" placeholder="Monthly Salary"></div>
-    <div class="col"><button onclick="addEmployee()">Add Employee</button></div>
-  </div>
-
-  <table id="employeeTable">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Designation</th>
-        <th>Salary</th>
-        <th>Status</th>
-        <th>Late Minutes</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-
-  <button onclick="calculateSalaries()">Calculate Salaries</button>
-  <div id="salaryOutput"></div>
+<!-- HR Login -->
+<div id="loginDiv" class="card">
+<h2>HR Login</h2>
+<form id="loginForm">
+<input type="text" id="hrUser" class="form-control mb-2" placeholder="Username" required>
+<input type="password" id="hrPass" class="form-control mb-2" placeholder="Password" required>
+<button type="submit" class="btn btn-primary">Login</button>
+</form>
 </div>
 
-<!-- Include currencies.js before this script -->
-<script src="currencies.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<div id="mainApp" style="display:none;">
+
+<h2 class="mb-3">HR Dashboard</h2>
+<button id="logoutBtn" class="btn btn-danger mb-3">Logout</button>
+
+<!-- Add Employee -->
+<div class="card">
+<h4>Add Employee</h4>
+<form id="addEmployeeForm" class="mb-3">
+<div class="row">
+<div class="col-md-2 mb-2"><input type="text" id="empName" placeholder="Name" class="form-control" required></div>
+<div class="col-md-2 mb-2"><input type="text" id="empDept" placeholder="Department" class="form-control" required></div>
+<div class="col-md-2 mb-2"><input type="text" id="empDesig" placeholder="Designation" class="form-control" required></div>
+<div class="col-md-2 mb-2"><input type="number" id="empSalary" placeholder="Basic Salary" class="form-control" required></div>
+<div class="col-md-2 mb-2">
+<select id="empCurrency" class="form-select" required>
+<option value="">Select Currency</option>
+<option value="PKR">PKR (₨)</option>
+<option value="USD">USD ($)</option>
+<option value="INR">INR (₹)</option>
+<option value="EUR">EUR (€)</option>
+<option value="GBP">GBP (£)</option>
+</select>
+</div>
+</div>
+<button type="submit" class="btn btn-primary">Add Employee</button>
+</form>
+
+<h4>Employee List</h4>
+<table class="table table-bordered" id="employeeTable">
+<tr><th>Name</th><th>Dept</th><th>Designation</th><th>Salary</th><th>Currency</th><th>Action</th></tr>
+</table>
+</div>
+
+<!-- Attendance -->
+<div class="card">
+<h4>Mark Attendance</h4>
+<form id="attendanceForm" class="mb-3">
+<div class="row">
+<div class="col-md-2 mb-2"><select id="attEmployee" class="form-select" required><option value="">Select Employee</option></select></div>
+<div class="col-md-2 mb-2"><input type="date" id="attDate" class="form-control" required></div>
+<div class="col-md-2 mb-2"><select id="attStatus" class="form-select" required>
+<option value="">Select Status</option>
+<option value="Present">Present</option>
+<option value="Absent">Absent</option>
+<option value="Late">Late</option>
+</select></div>
+<div class="col-md-2 mb-2"><input type="number" id="lateMinutes" placeholder="Late Minutes" class="form-control"></div>
+<div class="col-md-2 mb-2"><input type="month" id="salaryMonth" class="form-control" placeholder="Month"></div>
+<div class="col-md-2 mb-2"><button type="submit" class="btn btn-primary w-100">Add Attendance</button></div>
+</div>
+</form>
+
+<h4>Attendance Records</h4>
+<table class="table table-bordered" id="attendanceTable">
+<tr><th>Date</th><th>Employee</th><th>Status</th><th>Late Minutes</th></tr>
+</table>
+</div>
+
+<!-- Salary Calculation -->
+<div class="card">
+<h4>Calculate Salary</h4>
+<form id="calculateSalaryForm" class="mb-3">
+<div class="row">
+<div class="col-md-2 mb-2"><select id="salaryEmployee" class="form-select" required><option value="">Select Employee</option></select></div>
+<div class="col-md-2 mb-2"><input type="date" id="startDate" class="form-control" placeholder="Start Date" required></div>
+<div class="col-md-2 mb-2"><input type="date" id="endDate" class="form-control" placeholder="End Date" required></div>
+<div class="col-md-2 mb-2"><input type="number" step="0.1" id="overtimeHours" placeholder="Overtime Hours" class="form-control"></div>
+<div class="col-md-2 mb-2"><input type="number" id="bonusAmount" placeholder="Bonus" class="form-control"></div>
+<div class="col-md-2 mb-2"><button type="submit" class="btn btn-success w-100">Calculate Salary</button></div>
+</div>
+</form>
+
+<h4>Salary List</h4>
+<table class="table table-bordered" id="salaryTable">
+<tr><th>Employee</th><th>Month</th><th>Net Salary</th><th>Payslip</th></tr>
+</table>
+</div>
+
+<!-- Attendance Chart -->
+<div class="card">
+<h4>Attendance Chart</h4>
+<canvas id="attendanceChart" height="100"></canvas>
+</div>
 
 <script>
-let employees = JSON.parse(localStorage.getItem('employees')||'[]');
-let selectedCurrency = currencies[0];
+// HR Login
+document.getElementById('loginForm').addEventListener('submit', e=>{
+e.preventDefault();
+const user=document.getElementById('hrUser').value;
+const pass=document.getElementById('hrPass').value;
+if(user==='admin' && pass==='admin123'){
+document.getElementById('loginDiv').style.display='none';
+document.getElementById('mainApp').style.display='block';
+}else{alert('Invalid credentials');}});
 
-// Populate currency dropdown
-const currencySelect = document.getElementById('currencySelect');
-currencies.forEach((c, idx)=>{
-  let opt=document.createElement('option'); opt.value=idx; opt.text=`${c.symbol} - ${c.code}`;
-  currencySelect.add(opt);
+document.getElementById('logoutBtn').addEventListener('click', ()=>{
+document.getElementById('loginDiv').style.display='block';
+document.getElementById('mainApp').style.display='none';
 });
-currencySelect.addEventListener('change',()=>{ selectedCurrency = currencies[currencySelect.value]; renderEmployeeTable(); });
 
-document.getElementById('attendanceDate').valueAsDate=new Date();
+// Data storage
+let employees=[], attendance=[], salaries=[];
+const currencySymbols={"PKR":"₨","USD":"$","INR":"₹","EUR":"€","GBP":"£"};
 
-function saveEmployees(){ localStorage.setItem('employees', JSON.stringify(employees)); }
+// Add Employee
+document.getElementById('addEmployeeForm').addEventListener('submit', e=>{
+e.preventDefault();
+const emp={name:document.getElementById('empName').value,
+dept:document.getElementById('empDept').value,
+desig:document.getElementById('empDesig').value,
+salary:parseFloat(document.getElementById('empSalary').value),
+currency:document.getElementById('empCurrency').value};
+employees.push(emp);
+updateEmployeeTable();
+updateEmployeeSelect();
+e.target.reset();
+});
 
-function addEmployee(){
-  const name=document.getElementById('empName').value.trim();
-  const designation=document.getElementById('empDesignation').value.trim();
-  const salary=parseFloat(document.getElementById('empSalary').value);
-  if(!name||!designation||!salary){ alert('Fill all fields'); return; }
-  const id=Date.now();
-  employees.push({id,name,designation,salary,status:'P',lateMinutes:0});
-  saveEmployees(); renderEmployeeTable();
-  document.getElementById('empName').value=''; document.getElementById('empDesignation').value=''; document.getElementById('empSalary').value='';
+// Update Employee Table
+function updateEmployeeTable(){
+const table=document.getElementById('employeeTable');
+table.innerHTML="<tr><th>Name</th><th>Dept</th><th>Designation</th><th>Salary</th><th>Currency</th><th>Action</th></tr>";
+employees.forEach((e,i)=>{
+const row=table.insertRow();
+row.insertCell(0).innerText=e.name;
+row.insertCell(1).innerText=e.dept;
+row.insertCell(2).innerText=e.desig;
+row.insertCell(3).innerText=e.salary.toFixed(2);
+row.insertCell(4).innerText=e.currency;
+const btn=document.createElement('button'); btn.className='btn btn-danger btn-sm'; btn.innerText='Delete';
+btn.onclick=()=>{employees.splice(i,1);updateEmployeeTable();updateEmployeeSelect();}
+row.insertCell(5).appendChild(btn);
+});
 }
 
-function renderEmployeeTable(){
-  const tbody=document.querySelector('#employeeTable tbody'); tbody.innerHTML='';
-  employees.forEach(emp=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`
-      <td>${emp.name}</td>
-      <td>${emp.designation}</td>
-      <td>${selectedCurrency.symbol}${emp.salary.toFixed(2)}</td>
-      <td>
-        <select onchange="updateStatus(${emp.id},this.value)">
-          <option value="P" ${emp.status=='P'?'selected':''}>Present</option>
-          <option value="A" ${emp.status=='A'?'selected':''}>Absent</option>
-          <option value="L" ${emp.status=='L'?'selected':''}>Late</option>
-        </select>
-      </td>
-      <td><input type="number" value="${emp.lateMinutes}" onchange="updateLate(${emp.id},this.value)"></td>
-      <td><button onclick="removeEmployee(${emp.id})">Delete</button></td>
-    `;
-    tbody.appendChild(tr);
-  });
+// Update Employee selects
+function updateEmployeeSelect(){
+const selects=[document.getElementById('attEmployee'),document.getElementById('salaryEmployee')];
+selects.forEach(sel=>{
+sel.innerHTML='<option value="">Select Employee</option>';
+employees.forEach((e,i)=>{const opt=document.createElement('option');opt.value=i;opt.text=e.name;sel.appendChild(opt);});
+});
 }
 
-function updateStatus(id,status){ let emp=employees.find(e=>e.id===id); emp.status=status; saveEmployees(); }
-function updateLate(id,value){ let emp=employees.find(e=>e.id===id); emp.lateMinutes=parseInt(value)||0; saveEmployees(); }
-function removeEmployee(id){ employees=employees.filter(e=>e.id!==id); saveEmployees(); renderEmployeeTable(); }
+// Add Attendance
+document.getElementById('attendanceForm').addEventListener('submit', e=>{
+e.preventDefault();
+const empIndex=parseInt(document.getElementById('attEmployee').value);
+const record={empIndex,date:document.getElementById('attDate').value,
+status:document.getElementById('attStatus').value,
+lateMinutes:parseInt(document.getElementById('lateMinutes').value)||0,
+month:document.getElementById('salaryMonth').value};
+attendance.push(record);
+updateAttendanceTable();
+updateAttendanceChart();
+e.target.reset();
+});
 
-function calculateSalaries(){
-  const date=new Date(document.getElementById('attendanceDate').value);
-  const totalDays=new Date(date.getFullYear(),date.getMonth()+1,0).getDate();
-  let output='<h3>Salary Report</h3><table border="1" cellpadding="5"><tr><th>Name</th><th>Salary</th><th>Present Days</th><th>Absent Days</th><th>Late Minutes</th><th>Final Salary</th></tr>';
-  employees.forEach(emp=>{
-    const present=emp.status=='A'?0:1;
-    const absent=emp.status=='A'?1:0;
-    const lateDeduction=(emp.lateMinutes/(totalDays*8*60))*emp.salary;
-    const absentDeduction=absent*(emp.salary/totalDays);
-    const finalSalary=emp.salary-absentDeduction-lateDeduction;
-    output+=`<tr>
-      <td>${emp.name}</td>
-      <td>${selectedCurrency.symbol}${emp.salary.toFixed(2)}</td>
-      <td>${present}</td>
-      <td>${absent}</td>
-      <td>${emp.lateMinutes}</td>
-      <td>${selectedCurrency.symbol}${finalSalary.toFixed(2)}</td>
-    </tr>`;
-  });
-  output+='</table><br><button onclick="downloadExcel()">Download Excel</button> <button onclick="downloadPDF()">Download PDF</button>';
-  document.getElementById('salaryOutput').innerHTML=output;
+// Update Attendance Table
+function updateAttendanceTable(){
+const table=document.getElementById('attendanceTable');
+table.innerHTML="<tr><th>Date</th><th>Employee</th><th>Status</th><th>Late Minutes</th></tr>";
+attendance.forEach(a=>{
+const row=table.insertRow();
+row.insertCell(0).innerText=a.date;
+row.insertCell(1).innerText=employees[a.empIndex].name;
+row.insertCell(2).innerText=a.status;
+row.insertCell(3).innerText=a.lateMinutes;
+});
 }
 
-function downloadExcel(){
-  const wb=XLSX.utils.book_new();
-  const wsData=[['Name','Salary','Present Days','Absent Days','Late Minutes','Final Salary']];
-  const date=new Date(document.getElementById('attendanceDate').value);
-  const totalDays=new Date(date.getFullYear(),date.getMonth()+1,0).getDate();
-  employees.forEach(emp=>{
-    const present=emp.status=='A'?0:1;
-    const absent=emp.status=='A'?1:0;
-    const lateDeduction=(emp.lateMinutes/(totalDays*8*60))*emp.salary;
-    const absentDeduction=absent*(emp.salary/totalDays);
-    const finalSalary=emp.salary-absentDeduction-lateDeduction;
-    wsData.push([emp.name, emp.salary, present, absent, emp.lateMinutes, finalSalary]);
-  });
-  const ws=XLSX.utils.aoa_to_sheet(wsData);
-  XLSX.utils.book_append_sheet(wb,ws,'Salaries');
-  XLSX.writeFile(wb,'SalaryReport.xlsx');
+// Calculate Salary
+document.getElementById('calculateSalaryForm').addEventListener('submit', e=>{
+e.preventDefault();
+const empIndex=parseInt(document.getElementById('salaryEmployee').value);
+const emp=employees[empIndex];
+const start=new Date(document.getElementById('startDate').value);
+const end=new Date(document.getElementById('endDate').value);
+const ot=parseFloat(document.getElementById('overtimeHours').value)||0;
+const bonus=parseFloat(document.getElementById('bonusAmount').value)||0;
+
+// calculate deductions
+let deduction=0;
+attendance.forEach(a=>{
+if(a.empIndex===empIndex){
+const d=new Date(a.date);
+if(d>=start && d<=end){
+if(a.status==='Absent') deduction+=emp.salary/30;
+if(a.status==='Late') deduction+=(emp.salary/30)*(a.lateMinutes/480);
+}}});
+const perHour=(emp.salary/30)/8;
+const otPay=ot*perHour*1.5;
+const netSalary=emp.salary-deduction+otPay+bonus;
+salaries.push({empIndex,month:document.getElementById('salaryMonth').value,netSalary});
+updateSalaryTable();
+});
+
+// Update Salary Table
+function updateSalaryTable(){
+const table=document.getElementById('salaryTable');
+table.innerHTML="<tr><th>Employee</th><th>Month</th><th>Net Salary</th><th>Payslip</th></tr>";
+salaries.forEach(s=>{
+const row=table.insertRow();
+row.insertCell(0).innerText=employees[s.empIndex].name;
+row.insertCell(1).innerText=s.month;
+row.insertCell(2).innerText=s.netSalary.toFixed(2);
+const btn=document.createElement('button'); btn.className='btn btn-success btn-sm'; btn.innerText='Download';
+btn.onclick=()=>{generatePDF(employees[s.empIndex],s.netSalary,s.month);}
+row.insertCell(3).appendChild(btn);
+});
 }
 
-function downloadPDF(){
-  const { jsPDF } = window.jspdf;
-  const doc=new jsPDF();
-  let y=10; doc.setFontSize(16); doc.text('Salary Report',10,y); y+=10;
-  doc.setFontSize(12); 
-  const date=new Date(document.getElementById('attendanceDate').value);
-  const totalDays=new Date(date.getFullYear(),date.getMonth()+1,0).getDate();
-  employees.forEach(emp=>{
-    const present=emp.status=='A'?0:1;
-    const absent=emp.status=='A'?1:0;
-    const lateDeduction=(emp.lateMinutes/(totalDays*8*60))*emp.salary;
-    const absentDeduction=absent*(emp.salary/totalDays);
-    const finalSalary=emp.salary-absentDeduction-lateDeduction;
-    doc.text(`${emp.name} | Salary: ${selectedCurrency.symbol}${emp.salary.toFixed(2)} | Present: ${present} | Absent: ${absent} | Late: ${emp.lateMinutes} | Final: ${selectedCurrency.symbol}${finalSalary.toFixed(2)}`,10,y); y+=8;
-    if(y>280){ doc.addPage(); y=10; }
-  });
-  doc.save('SalaryReport.pdf');
+// Generate PDF
+function generatePDF(emp,net,month){
+const { jsPDF } = window.jspdf;
+const doc = new jsPDF();
+doc.setFontSize(16); doc.text("Company Payslip",105,20,null,null,"center");
+doc.setFontSize(12);
+doc.text(`Employee Name: ${emp.name}`,20,40);
+doc.text(`Department: ${emp.dept}`,20,50);
+doc.text(`Designation: ${emp.desig}`,20,60);
+doc.text(`Net Salary: ${net.toFixed(2)} ${emp.currency}`,20,70);
+doc.text(`Month: ${month}`,20,80);
+doc.save(`${emp.name}_payslip.pdf`);
 }
 
-renderEmployeeTable();
+// Attendance Chart
+const ctx=document.getElementById('attendanceChart').getContext('2d');
+const chart=new Chart(ctx,{type:'bar',data:{labels:['Present','Absent','Late'],datasets:[{label:'Days',data:[0,0,0],backgroundColor:['#28a745','#dc3545','#ffc107']}]},options:{responsive:true,scales:{y:{beginAtZero:true,precision:0}}}});
+
+function updateAttendanceChart(){
+const counts={Present:0,Absent:0,Late:0};
+attendance.forEach(a=>counts[a.status]++);
+chart.data.datasets[0].data=[counts.Present,counts.Absent,counts.Late];
+chart.update();
+}
 </script>
+
 </body>
 </html>
