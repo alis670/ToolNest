@@ -17,22 +17,19 @@ body{background:#f8f9fa;font-family:Arial;}
 
 <!-- HR Login/Signup -->
 <div id="loginDiv" class="card">
-<h2>HR Login</h2>
+<h2>HR Login / Sign Up</h2>
 
-<!-- Toggle Buttons -->
 <div class="mb-3">
 <button id="showLogin" class="btn btn-primary btn-sm">Login</button>
 <button id="showSignup" class="btn btn-secondary btn-sm">Sign Up</button>
 </div>
 
-<!-- Login Form -->
 <form id="loginForm" style="display:block;">
 <input type="text" id="hrUserLogin" class="form-control mb-2" placeholder="Username" required>
 <input type="password" id="hrPassLogin" class="form-control mb-2" placeholder="Password" required>
 <button type="submit" class="btn btn-primary">Login</button>
 </form>
 
-<!-- Signup Form -->
 <form id="signupForm" style="display:none;">
 <input type="text" id="hrUserSignup" class="form-control mb-2" placeholder="Choose Username" required>
 <input type="password" id="hrPassSignup" class="form-control mb-2" placeholder="Choose Password" required>
@@ -40,60 +37,8 @@ body{background:#f8f9fa;font-family:Arial;}
 </form>
 </div>
 
+<!-- Main HR Dashboard -->
 <div id="mainApp" style="display:none;">
-<h2 class="mb-3">HR Dashboard</h2>
-<button id="logoutBtn" class="btn btn-danger mb-3">Logout</button>
-
-<!-- Add Employee Section, Attendance, Salary, Charts -->
-<!-- Copy all previous sections here: Add Employee, Employee List, Attendance, Salary, Chart -->
-<!-- For brevity, I will refer you to keep all previous sections from earlier file here -->
-
-</div>
-
-<script>
-// Show login/signup toggle
-document.getElementById('showLogin').onclick=()=>{document.getElementById('loginForm').style.display='block'; document.getElementById('signupForm').style.display='none';};
-document.getElementById('showSignup').onclick=()=>{document.getElementById('loginForm').style.display='none'; document.getElementById('signupForm').style.display='block';};
-
-// Signup form
-document.getElementById('signupForm').addEventListener('submit', e=>{
-e.preventDefault();
-const user=document.getElementById('hrUserSignup').value;
-const pass=document.getElementById('hrPassSignup').value;
-if(!user || !pass){alert('Enter username and password'); return;}
-localStorage.setItem('hrUser',user);
-localStorage.setItem('hrPass',pass);
-alert('HR account created! You can now login.');
-document.getElementById('signupForm').reset();
-document.getElementById('loginForm').style.display='block';
-document.getElementById('signupForm').style.display='none';
-});
-
-// Login form
-document.getElementById('loginForm').addEventListener('submit', e=>{
-e.preventDefault();
-const user=document.getElementById('hrUserLogin').value;
-const pass=document.getElementById('hrPassLogin').value;
-const storedUser=localStorage.getItem('hrUser');
-const storedPass=localStorage.getItem('hrPass');
-if(user===storedUser && pass===storedPass){
-document.getElementById('loginDiv').style.display='none';
-document.getElementById('mainApp').style.display='block';
-}else{alert('Invalid credentials');}
-});
-
-// Logout
-document.getElementById('logoutBtn').onclick=()=>{
-document.getElementById('loginDiv').style.display='block';
-document.getElementById('mainApp').style.display='none';
-};
-</script>
-
-</body>
-</html>
-
-<div id="mainApp" style="display:none;">
-
 <h2 class="mb-3">HR Dashboard</h2>
 <button id="logoutBtn" class="btn btn-danger mb-3">Logout</button>
 
@@ -140,7 +85,7 @@ document.getElementById('mainApp').style.display='none';
 <option value="Late">Late</option>
 </select></div>
 <div class="col-md-2 mb-2"><input type="number" id="lateMinutes" placeholder="Late Minutes" class="form-control"></div>
-<div class="col-md-2 mb-2"><input type="month" id="salaryMonth" class="form-control" placeholder="Month"></div>
+<div class="col-md-2 mb-2"><input type="month" id="salaryMonth" class="form-control"></div>
 <div class="col-md-2 mb-2"><button type="submit" class="btn btn-primary w-100">Add Attendance</button></div>
 </div>
 </form>
@@ -178,22 +123,45 @@ document.getElementById('mainApp').style.display='none';
 </div>
 
 <script>
-// HR Login
-document.getElementById('loginForm').addEventListener('submit', e=>{
-e.preventDefault();
-const user=document.getElementById('hrUser').value;
-const pass=document.getElementById('hrPass').value;
-if(user==='admin' && pass==='admin123'){
-document.getElementById('loginDiv').style.display='none';
-document.getElementById('mainApp').style.display='block';
-}else{alert('Invalid credentials');}});
+// Toggle login/signup
+document.getElementById('showLogin').onclick=()=>{document.getElementById('loginForm').style.display='block';document.getElementById('signupForm').style.display='none';};
+document.getElementById('showSignup').onclick=()=>{document.getElementById('loginForm').style.display='none';document.getElementById('signupForm').style.display='block';};
 
-document.getElementById('logoutBtn').addEventListener('click', ()=>{
-document.getElementById('loginDiv').style.display='block';
-document.getElementById('mainApp').style.display='none';
+// Signup
+document.getElementById('signupForm').addEventListener('submit', e=>{
+e.preventDefault();
+const user=document.getElementById('hrUserSignup').value;
+const pass=document.getElementById('hrPassSignup').value;
+if(!user || !pass){alert('Enter username and password');return;}
+localStorage.setItem('hrUser',user);
+localStorage.setItem('hrPass',pass);
+alert('HR account created! Login now.');
+document.getElementById('signupForm').reset();
+document.getElementById('loginForm').style.display='block';
+document.getElementById('signupForm').style.display='none';
 });
 
-// Data storage
+// Login
+document.getElementById('loginForm').addEventListener('submit', e=>{
+e.preventDefault();
+const user=document.getElementById('hrUserLogin').value;
+const pass=document.getElementById('hrPassLogin').value;
+const storedUser=localStorage.getItem('hrUser');
+const storedPass=localStorage.getItem('hrPass');
+if(user===storedUser && pass===storedPass){
+document.getElementById('loginDiv').style.display='none';
+document.getElementById('mainApp').style.display='block';
+}else{alert('Invalid credentials');}
+});
+
+// Logout
+document.getElementById('logoutBtn').onclick=()=>{
+document.getElementById('loginDiv').style.display='block';
+document.getElementById('mainApp').style.display='none';
+};
+
+// --- HR Dashboard JS ---
+
 let employees=[], attendance=[], salaries=[];
 const currencySymbols={"PKR":"₨","USD":"$","INR":"₹","EUR":"€","GBP":"£"};
 
@@ -206,12 +174,11 @@ desig:document.getElementById('empDesig').value,
 salary:parseFloat(document.getElementById('empSalary').value),
 currency:document.getElementById('empCurrency').value};
 employees.push(emp);
-updateEmployeeTable();
-updateEmployeeSelect();
+updateEmployeeTable(); updateEmployeeSelect();
 e.target.reset();
 });
 
-// Update Employee Table
+// Employee Table & Select Update
 function updateEmployeeTable(){
 const table=document.getElementById('employeeTable');
 table.innerHTML="<tr><th>Name</th><th>Dept</th><th>Designation</th><th>Salary</th><th>Currency</th><th>Action</th></tr>";
@@ -222,22 +189,18 @@ row.insertCell(1).innerText=e.dept;
 row.insertCell(2).innerText=e.desig;
 row.insertCell(3).innerText=e.salary.toFixed(2);
 row.insertCell(4).innerText=e.currency;
-const btn=document.createElement('button'); btn.className='btn btn-danger btn-sm'; btn.innerText='Delete';
-btn.onclick=()=>{employees.splice(i,1);updateEmployeeTable();updateEmployeeSelect();}
+const btn=document.createElement('button');btn.className='btn btn-danger btn-sm';btn.innerText='Delete';
+btn.onclick=()=>{employees.splice(i,1);updateEmployeeTable();updateEmployeeSelect();};
 row.insertCell(5).appendChild(btn);
 });
 }
-
-// Update Employee selects
 function updateEmployeeSelect(){
 const selects=[document.getElementById('attEmployee'),document.getElementById('salaryEmployee')];
-selects.forEach(sel=>{
-sel.innerHTML='<option value="">Select Employee</option>';
-employees.forEach((e,i)=>{const opt=document.createElement('option');opt.value=i;opt.text=e.name;sel.appendChild(opt);});
-});
+selects.forEach(sel=>{sel.innerHTML='<option value="">Select Employee</option>';
+employees.forEach((e,i)=>{const opt=document.createElement('option');opt.value=i;opt.text=e.name;sel.appendChild(opt);});});
 }
 
-// Add Attendance
+// Attendance
 document.getElementById('attendanceForm').addEventListener('submit', e=>{
 e.preventDefault();
 const empIndex=parseInt(document.getElementById('attEmployee').value);
@@ -246,25 +209,19 @@ status:document.getElementById('attStatus').value,
 lateMinutes:parseInt(document.getElementById('lateMinutes').value)||0,
 month:document.getElementById('salaryMonth').value};
 attendance.push(record);
-updateAttendanceTable();
-updateAttendanceChart();
-e.target.reset();
+updateAttendanceTable(); updateAttendanceChart(); e.target.reset();
 });
-
-// Update Attendance Table
 function updateAttendanceTable(){
 const table=document.getElementById('attendanceTable');
 table.innerHTML="<tr><th>Date</th><th>Employee</th><th>Status</th><th>Late Minutes</th></tr>";
-attendance.forEach(a=>{
-const row=table.insertRow();
+attendance.forEach(a=>{const row=table.insertRow();
 row.insertCell(0).innerText=a.date;
 row.insertCell(1).innerText=employees[a.empIndex].name;
 row.insertCell(2).innerText=a.status;
-row.insertCell(3).innerText=a.lateMinutes;
-});
+row.insertCell(3).innerText=a.lateMinutes;});
 }
 
-// Calculate Salary
+// Salary
 document.getElementById('calculateSalaryForm').addEventListener('submit', e=>{
 e.preventDefault();
 const empIndex=parseInt(document.getElementById('salaryEmployee').value);
@@ -273,24 +230,16 @@ const start=new Date(document.getElementById('startDate').value);
 const end=new Date(document.getElementById('endDate').value);
 const ot=parseFloat(document.getElementById('overtimeHours').value)||0;
 const bonus=parseFloat(document.getElementById('bonusAmount').value)||0;
-
-// calculate deductions
 let deduction=0;
-attendance.forEach(a=>{
-if(a.empIndex===empIndex){
-const d=new Date(a.date);
-if(d>=start && d<=end){
-if(a.status==='Absent') deduction+=emp.salary/30;
-if(a.status==='Late') deduction+=(emp.salary/30)*(a.lateMinutes/480);
-}}});
+attendance.forEach(a=>{if(a.empIndex===empIndex){const d=new Date(a.date);
+if(d>=start && d<=end){if(a.status==='Absent') deduction+=emp.salary/30;
+if(a.status==='Late') deduction+=(emp.salary/30)*(a.lateMinutes/480);}}});
 const perHour=(emp.salary/30)/8;
 const otPay=ot*perHour*1.5;
 const netSalary=emp.salary-deduction+otPay+bonus;
 salaries.push({empIndex,month:document.getElementById('salaryMonth').value,netSalary});
 updateSalaryTable();
 });
-
-// Update Salary Table
 function updateSalaryTable(){
 const table=document.getElementById('salaryTable');
 table.innerHTML="<tr><th>Employee</th><th>Month</th><th>Net Salary</th><th>Payslip</th></tr>";
@@ -299,19 +248,16 @@ const row=table.insertRow();
 row.insertCell(0).innerText=employees[s.empIndex].name;
 row.insertCell(1).innerText=s.month;
 row.insertCell(2).innerText=s.netSalary.toFixed(2);
-const btn=document.createElement('button'); btn.className='btn btn-success btn-sm'; btn.innerText='Download';
-btn.onclick=()=>{generatePDF(employees[s.empIndex],s.netSalary,s.month);}
+const btn=document.createElement('button');btn.className='btn btn-success btn-sm';btn.innerText='Download';
+btn.onclick=()=>{generatePDF(employees[s.empIndex],s.netSalary,s.month);};
 row.insertCell(3).appendChild(btn);
 });
 }
-
-// Generate PDF
 function generatePDF(emp,net,month){
 const { jsPDF } = window.jspdf;
-const doc = new jsPDF();
-doc.setFontSize(16); doc.text("Company Payslip",105,20,null,null,"center");
-doc.setFontSize(12);
-doc.text(`Employee Name: ${emp.name}`,20,40);
+const doc=new jsPDF();
+doc.setFontSize(16);doc.text("Company Payslip",105,20,null,null,"center");
+doc.setFontSize(12);doc.text(`Employee Name: ${emp.name}`,20,40);
 doc.text(`Department: ${emp.dept}`,20,50);
 doc.text(`Designation: ${emp.desig}`,20,60);
 doc.text(`Net Salary: ${net.toFixed(2)} ${emp.currency}`,20,70);
@@ -322,13 +268,7 @@ doc.save(`${emp.name}_payslip.pdf`);
 // Attendance Chart
 const ctx=document.getElementById('attendanceChart').getContext('2d');
 const chart=new Chart(ctx,{type:'bar',data:{labels:['Present','Absent','Late'],datasets:[{label:'Days',data:[0,0,0],backgroundColor:['#28a745','#dc3545','#ffc107']}]},options:{responsive:true,scales:{y:{beginAtZero:true,precision:0}}}});
-
-function updateAttendanceChart(){
-const counts={Present:0,Absent:0,Late:0};
-attendance.forEach(a=>counts[a.status]++);
-chart.data.datasets[0].data=[counts.Present,counts.Absent,counts.Late];
-chart.update();
-}
+function updateAttendanceChart(){const counts={Present:0,Absent:0,Late:0};attendance.forEach(a=>counts[a.status]++);chart.data.datasets[0].data=[counts.Present,counts.Absent,counts.Late];chart.update();}
 </script>
 
 </body>
