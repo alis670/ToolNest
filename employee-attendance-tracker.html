@@ -21,12 +21,10 @@
 </head>
 <body class="light container mt-4">
 
-<!-- DARK/LIGHT TOGGLE -->
 <div class="mb-3 d-flex justify-content-end">
   <button id="toggleTheme" class="btn btn-secondary btn-sm">Dark/Light Mode</button>
 </div>
 
-<!-- LOGIN/SIGNUP -->
 <div id="loginDiv" class="card p-4">
 <h2>HR Login / Sign Up</h2>
 <div class="mb-3">
@@ -34,7 +32,7 @@
   <button id="showSignup" class="btn btn-secondary btn-sm">Sign Up</button>
 </div>
 
-<form id="loginForm" style="display:block;">
+<form id="loginForm">
   <input type="text" id="hrUserLogin" class="form-control mb-2" placeholder="Username" required>
   <input type="password" id="hrPassLogin" class="form-control mb-2" placeholder="Password" required>
   <button type="submit" class="btn btn-primary">Login</button>
@@ -47,12 +45,10 @@
 </form>
 </div>
 
-<!-- MAIN DASHBOARD -->
 <div id="mainApp" style="display:none;">
 <h2 class="mb-3">HR Dashboard</h2>
 <button id="logoutBtn" class="btn btn-danger mb-3">Logout</button>
 
-<!-- ADD EMPLOYEE -->
 <div class="card p-3">
 <h4>Add Employee</h4>
 <form id="addEmployeeForm">
@@ -74,7 +70,6 @@
 </table>
 </div>
 
-<!-- ATTENDANCE -->
 <div class="card p-3">
 <h4>Attendance Calendar</h4>
 <div class="row mb-2">
@@ -90,7 +85,6 @@
 </table>
 </div>
 
-<!-- SALARY CALCULATION -->
 <div class="card p-3">
 <h4>Calculate Salary</h4>
 <form id="calculateSalaryForm">
@@ -114,42 +108,16 @@
 </table>
 </div>
 
-<!-- ATTENDANCE MODAL -->
-<div class="modal" id="attendanceModal">
-<div class="modal-dialog">
-<div class="modal-content">
-<div class="modal-header">
-<h5 class="modal-title">Mark Attendance</h5>
-<button type="button" class="btn-close" onclick="closeModal()"></button>
-</div>
-<div class="modal-body">
-<select id="modalEmployee" class="form-select mb-2"></select>
-<select id="modalStatus" class="form-select mb-2">
-<option value="">Select Status</option>
-<option value="Present">Present</option>
-<option value="Absent">Absent</option>
-<option value="Late">Late</option>
-</select>
-<input type="number" id="modalLateMinutes" class="form-control mb-2" placeholder="Late minutes">
-<input type="hidden" id="modalDate">
-<button class="btn btn-primary w-100" onclick="saveAttendance()">Save</button>
-</div>
-</div>
-</div>
-</div>
-
-<script src="loadcurrencies.js"></script>
 <script>
 let employees=[], attendance=[], salaries=[];
 
 // DARK/LIGHT MODE
-const toggleTheme=document.getElementById('toggleTheme');
-toggleTheme.addEventListener('click',()=>{
+document.getElementById('toggleTheme').addEventListener('click',()=>{
   document.body.classList.toggle('dark');
   document.body.classList.toggle('light');
 });
 
-// LOAD DATA
+// UTILITY
 function saveData(){ localStorage.setItem('employees',JSON.stringify(employees)); localStorage.setItem('attendance',JSON.stringify(attendance)); }
 function loadData(){ 
   employees=JSON.parse(localStorage.getItem('employees')||'[]');
@@ -157,65 +125,8 @@ function loadData(){
   updateEmployeeTable(); updateEmployeeSelect(); renderAttendanceTable();
 }
 
-// UPDATE EMPLOYEE TABLE
-function updateEmployeeTable(){
-  const table=document.getElementById('employeeTable');
-  table.innerHTML="<tr><th>Name</th><th>Dept</th><th>Designation</th><th>Salary</th><th>Currency</th><th>Action</th></tr>";
-  employees.forEach((e,i)=>{
-    const row=table.insertRow();
-    row.insertCell(0).innerText=e.name;
-    row.insertCell(1).innerText=e.dept;
-    row.insertCell(2).innerText=e.desig;
-    row.insertCell(3).innerText=e.salary.toFixed(2);
-    row.insertCell(4).innerText=e.currency;
-    const btn=document.createElement('button');
-    btn.className='btn btn-danger btn-sm';
-    btn.innerText='Delete';
-    btn.onclick=()=>{ employees.splice(i,1); updateEmployeeTable(); updateEmployeeSelect(); saveData(); };
-    row.insertCell(5).appendChild(btn);
-  });
-}
-
-// UPDATE SELECTS
-function updateEmployeeSelect(){
-  const selects=[document.getElementById('modalEmployee'),document.getElementById('salaryEmployee')];
-  selects.forEach(sel=>{
-    sel.innerHTML='<option value="">Select Employee</option>';
-    employees.forEach((e,i)=>{ const opt=document.createElement('option'); opt.value=i; opt.text=e.name; sel.appendChild(opt); });
-  });
-}
-
-// ATTENDANCE MODAL
-function openModal(date){ document.getElementById('modalDate').value=date; document.getElementById('attendanceModal').style.display='flex'; }
-function closeModal(){ document.getElementById('attendanceModal').style.display='none'; }
-function saveAttendance(){
-  const empIndex=document.getElementById('modalEmployee').value;
-  const status=document.getElementById('modalStatus').value;
-  const lateMins=parseInt(document.getElementById('modalLateMinutes').value)||0;
-  const date=document.getElementById('modalDate').value;
-  if(empIndex===""||status===""){ alert("Select employee and status"); return; }
-  attendance.push({date,empIndex:parseInt(empIndex),status,late:lateMins});
-  renderAttendanceTable();
-  closeModal(); saveData();
-}
-
-// RENDER ATTENDANCE TABLE
-function renderAttendanceTable(){
-  const table=document.getElementById('attendanceTable');
-  table.innerHTML="<tr><th>Date</th><th>Employee</th><th>Status</th><th>Late Minutes</th></tr>";
-  attendance.forEach(a=>{
-    const row=table.insertRow();
-    row.insertCell(0).innerText=a.date;
-    row.insertCell(1).innerText=employees[a.empIndex]?.name||"";
-    row.insertCell(2).innerText=a.status;
-    row.insertCell(3).innerText=a.late;
-  });
-}
-
-// DASHBOARD LOGIN/SIGNUP
-document.addEventListener('DOMContentLoaded',()=>{
-  populateCurrencyDropdown('empCurrency'); // from loadcurrencies.js
-
+// LOGIN/SIGNUP
+function initAuth(){
   const loginDiv=document.getElementById('loginDiv');
   const loginForm=document.getElementById('loginForm');
   const signupForm=document.getElementById('signupForm');
@@ -246,49 +157,114 @@ document.addEventListener('DOMContentLoaded',()=>{
     const pass=document.getElementById('hrPassLogin').value.trim();
     const storedUser=localStorage.getItem('hrUser');
     const storedPass=localStorage.getItem('hrPass');
-    if(user===storedUser && pass===storedPass){ localStorage.setItem('isLoggedIn','true'); loginDiv.style.display='none'; mainApp.style.display='block'; loadData(); }
-    else{ alert('Invalid credentials!'); }
+    if(user===storedUser && pass===storedPass){ 
+      localStorage.setItem('isLoggedIn','true'); 
+      loginDiv.style.display='none'; mainApp.style.display='block'; loadData(); 
+    } else { alert('Invalid credentials!'); }
   });
 
-  logoutBtn.addEventListener('click',()=>{ localStorage.removeItem('isLoggedIn'); loginDiv.style.display='block'; mainApp.style.display='none'; });
-
-  // ADD EMPLOYEE
-  const addForm=document.getElementById('addEmployeeForm');
-  addForm.addEventListener('submit',e=>{
-    e.preventDefault();
-    const emp={ name:document.getElementById('empName').value,
-                dept:document.getElementById('empDept').value,
-                desig:document.getElementById('empDesig').value,
-                salary:parseFloat(document.getElementById('empSalary').value),
-                currency:document.getElementById('empCurrency').value };
-    employees.push(emp);
-    updateEmployeeTable();
-    updateEmployeeSelect();
-    saveData();
-    addForm.reset();
+  logoutBtn.addEventListener('click',()=>{ 
+    localStorage.removeItem('isLoggedIn'); 
+    loginDiv.style.display='block'; mainApp.style.display='none'; 
   });
+}
 
-  // ATTENDANCE MONTH SELECTION
-  const monthInput=document.getElementById('attendanceMonth');
-  monthInput.addEventListener('change',()=>{
-    const selectedMonth=monthInput.value;
-    const calendar=document.getElementById('calendar');
-    calendar.innerHTML="";
-    if(!selectedMonth) return;
-    const date=new Date(selectedMonth+'-01');
-    const year=date.getFullYear();
-    const month=date.getMonth();
-    const days=new Date(year, month+1,0).getDate();
-    let html='<table class="table table-bordered"><tr>';
-    for(let d=1; d<=days; d++){
-      html+=`<td class="attendance-cell" onclick="openModal('${year}-${(month+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}')">${d}</td>`;
-      if(d%7===0) html+='</tr><tr>';
-    }
-    html+='</tr></table>';
-    calendar.innerHTML=html;
+// EMPLOYEE TABLE
+function updateEmployeeTable(){
+  const table=document.getElementById('employeeTable');
+  table.innerHTML="<tr><th>Name</th><th>Dept</th><th>Designation</th><th>Salary</th><th>Currency</th><th>Action</th></tr>";
+  employees.forEach((e,i)=>{
+    const row=table.insertRow();
+    row.insertCell(0).innerText=e.name;
+    row.insertCell(1).innerText=e.dept;
+    row.insertCell(2).innerText=e.desig;
+    row.insertCell(3).innerText=e.salary.toFixed(2);
+    row.insertCell(4).innerText=e.currency;
+    const btn=document.createElement('button');
+    btn.className='btn btn-danger btn-sm';
+    btn.innerText='Delete';
+    btn.onclick=()=>{ employees.splice(i,1); updateEmployeeTable(); updateEmployeeSelect(); saveData(); };
+    row.insertCell(5).appendChild(btn);
   });
+}
+
+function updateEmployeeSelect(){
+  const selects=[document.getElementById('modalEmployee'),document.getElementById('salaryEmployee')];
+  selects.forEach(sel=>{
+    sel.innerHTML='<option value="">Select Employee</option>';
+    employees.forEach((e,i)=>{ const opt=document.createElement('option'); opt.value=i; opt.text=e.name; sel.appendChild(opt); });
+  });
+}
+
+// ATTENDANCE
+function renderAttendanceTable(){
+  const table=document.getElementById('attendanceTable');
+  table.innerHTML="<tr><th>Date</th><th>Employee</th><th>Status</th><th>Late Minutes</th></tr>";
+  attendance.forEach(a=>{
+    const row=table.insertRow();
+    row.insertCell(0).innerText=a.date;
+    row.insertCell(1).innerText=employees[a.empIndex]?.name||"";
+    row.insertCell(2).innerText=a.status;
+    row.insertCell(3).innerText=a.late;
+  });
+}
+
+function openModal(date){
+  const empSel=document.getElementById('modalEmployee');
+  const statusSel=document.getElementById('modalStatus');
+  const lateInput=document.getElementById('modalLateMinutes');
+  const modalDate=document.getElementById('modalDate');
+  modalDate.value=date;
+  empSel.value=""; statusSel.value=""; lateInput.value="";
+  document.getElementById('attendanceModal').style.display='flex';
+}
+function closeModal(){ document.getElementById('attendanceModal').style.display='none'; }
+function saveAttendance(){
+  const empIndex=parseInt(document.getElementById('modalEmployee').value);
+  const status=document.getElementById('modalStatus').value;
+  const late=parseInt(document.getElementById('modalLateMinutes').value)||0;
+  const date=document.getElementById('modalDate').value;
+  if(isNaN(empIndex)||!status){ alert("Select employee and status"); return; }
+  attendance.push({date,empIndex,status,late});
+  renderAttendanceTable(); closeModal(); saveData();
+}
+
+// ADD EMPLOYEE
+document.getElementById('addEmployeeForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const emp={ name:document.getElementById('empName').value,
+              dept:document.getElementById('empDept').value,
+              desig:document.getElementById('empDesig').value,
+              salary:parseFloat(document.getElementById('empSalary').value),
+              currency:document.getElementById('empCurrency').value };
+  employees.push(emp);
+  updateEmployeeTable(); updateEmployeeSelect(); saveData();
+  e.target.reset();
+});
+
+// ATTENDANCE MONTH
+document.getElementById('attendanceMonth').addEventListener('change',function(){
+  const month=this.value;
+  const calendar=document.getElementById('calendar');
+  calendar.innerHTML="";
+  if(!month) return;
+  const date=new Date(month+'-01');
+  const year=date.getFullYear();
+  const m=date.getMonth();
+  const days=new Date(year,m+1,0).getDate();
+  let html='<table class="table table-bordered"><tr>';
+  for(let d=1; d<=days; d++){
+    html+=`<td class="attendance-cell" onclick="openModal('${year}-${(m+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}')">${d}</td>`;
+    if(d%7===0) html+='</tr><tr>';
+  }
+  html+='</tr></table>';
+  calendar.innerHTML=html;
+});
+
+// INIT
+document.addEventListener('DOMContentLoaded',()=>{
+  initAuth();
 });
 </script>
-
 </body>
 </html>
