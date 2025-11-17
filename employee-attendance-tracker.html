@@ -79,3 +79,273 @@ input,select,textarea{background:var(--input-bg); color:var(--input-text);}
     <h6>Employee List</h6>
     <div id="employeeTable" class="mt-2"></div>
   </div>
+<!-- ATTENDANCE -->
+  <div class="card p-3">
+    <h5>Attendance Calendar</h5>
+    <div class="row mb-2 align-items-center">
+      <div class="col-md-3">
+        <label class="small-muted">Month</label>
+        <input id="attendanceMonth" type="month" class="form-control">
+      </div>
+      <div class="col-md-3">
+        <label class="small-muted">Quick select employee (for marking)</label>
+        <select id="quickEmployee" class="form-select"><option value="">Select Employee</option></select>
+      </div>
+      <div class="col-6 text-end small-muted">
+        <span class="summary-badge" id="selectedMonthDisplay"></span>
+        <span class="summary-badge" id="selectedRangeDisplay"></span>
+      </div>
+    </div>
+
+    <div id="calendar" class="mt-2"></div>
+  </div>
+
+  <div class="card p-3">
+    <h5>Attendance Records</h5>
+    <div class="table-responsive">
+      <table id="attendanceTable" class="table table-bordered mb-0">
+        <thead><tr><th>Date</th><th>Employee</th><th>Status</th><th>Late (min)</th><th>Action</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+<!-- Attendance modal -->
+<div class="modal" id="attendanceModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);justify-content:center;align-items:center;">
+  <div class="modal-content card p-3" style="width:300px;position:relative;">
+    <div class="d-flex align-items-start">
+      <h6 class="me-auto">Mark Attendance</h6>
+      <button class="btn-close" onclick="closeModal()"></button>
+    </div>
+    <div class="mt-2">
+      <select id="modalEmployee" class="form-select mb-2"></select>
+      <select id="modalStatus" class="form-select mb-2">
+        <option value="">Select Status</option>
+        <option value="Present">Present</option>
+        <option value="Absent">Absent</option>
+        <option value="Late">Late</option>
+      </select>
+      <input id="modalLateMinutes" type="number" class="form-control mb-2" placeholder="Late minutes (if Late)">
+      <input id="modalDate" type="hidden">
+      <button class="btn btn-primary w-100" onclick="saveAttendance()">Save</button>
+    </div>
+  </div>
+</div>
+  <!-- SALARY -->
+  <div class="card p-3">
+    <h5>Calculate Salary</h5>
+    <form id="calculateSalaryForm" class="row g-2 align-items-center mb-2">
+      <div class="col-6 col-md-2">
+        <label class="small-muted">Employee</label>
+        <select id="salaryEmployee" class="form-select" required><option value="">Select Employee</option></select>
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="small-muted">Start Date</label>
+        <input id="startDate" type="date" class="form-control" required>
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="small-muted">End Date</label>
+        <input id="endDate" type="date" class="form-control" required>
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="small-muted">Overtime (amount)</label>
+        <input id="overtimeHours" type="number" step="0.1" class="form-control" placeholder="Overtime pay">
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="small-muted">Bonus (amount)</label>
+        <input id="bonusAmount" type="number" class="form-control" placeholder="Bonus">
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="small-muted">&nbsp;</label>
+        <button class="btn btn-success w-100">Calculate</button>
+      </div>
+    </form>
+
+    <div id="salaryBreakdownCard" class="card p-3 mb-3" style="display:none;">
+      <h6>Salary Breakdown</h6>
+      <div class="row">
+        <div class="col-6 col-md-3"><div class="small-muted">Present days</div><strong id="presentCount">0</strong></div>
+        <div class="col-6 col-md-3"><div class="small-muted">Late days</div><strong id="lateCount">0</strong></div>
+        <div class="col-6 col-md-3"><div class="small-muted">Late minutes (total)</div><strong id="lateMinutes">0</strong></div>
+        <div class="col-6 col-md-3"><div class="small-muted">Absent days</div><strong id="absentCount">0</strong></div>
+      </div>
+      <hr>
+      <div class="row">
+        <div class="col-6 col-md-3"><div class="small-muted">Basic earned</div><strong id="basicSalary">0</strong></div>
+        <div class="col-6 col-md-3"><div class="small-muted">Late deduction</div><strong id="lateDeduction">0</strong></div>
+        <div class="col-6 col-md-3"><div class="small-muted">Absent deduction</div><strong id="absentDeduction">0</strong></div>
+        <div class="col-6 col-md-3"><div class="small-muted">Overtime</div><strong id="overtimePay">0</strong></div>
+      </div>
+      <div class="row mt-2">
+        <div class="col-6 col-md-3"><div class="small-muted">Bonus</div><strong id="bonusPay">0</strong></div>
+        <div class="col-6 col-md-3"><div class="small-muted">Total payable</div><strong id="totalPayable">0</strong></div>
+      </div>
+    </div>
+
+    <h6>Salary List</h6>
+    <div class="table-responsive">
+      <table id="salaryTable" class="table table-bordered mb-0">
+        <thead><tr><th>Employee</th><th>Range</th><th>Total</th><th>Action</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Attendance Chart -->
+  <div class="card p-3">
+    <h5>Attendance Chart</h5>
+    <canvas id="attendanceChart" height="100"></canvas>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// ===== DATA =====
+let employees=[], attendance=[], salaries=[], chartInstance=null;
+
+// ===== HELPERS =====
+function saveData(){
+  localStorage.setItem('employees', JSON.stringify(employees));
+  localStorage.setItem('attendance', JSON.stringify(attendance));
+  localStorage.setItem('salaries', JSON.stringify(salaries));
+}
+function loadData(){
+  employees = JSON.parse(localStorage.getItem('employees')||'[]');
+  attendance = JSON.parse(localStorage.getItem('attendance')||'[]');
+  salaries = JSON.parse(localStorage.getItem('salaries')||'[]');
+  updateEmployeeTable(); updateEmployeeSelects(); renderAttendanceTable(); renderCalendar(); renderChart(); renderSalaryTable();
+}
+
+// ===== EMPLOYEES =====
+function updateEmployeeTable(){
+  const wrap=document.getElementById('employeeTable'); wrap.innerHTML='';
+  employees.forEach((e,i)=>{
+    const row=document.createElement('div'); row.className='employee-row';
+    row.innerHTML=`<div><strong>${e.name}</strong></div>
+                   <div class="small-muted">${e.dept}</div>
+                   <div class="small-muted">${e.desig}</div>
+                   <div>${Number(e.salary).toFixed(2)}</div>
+                   <div>${e.currency||''}</div>`;
+    const btn=document.createElement('button'); btn.className='btn btn-sm btn-danger'; btn.innerText='Delete';
+    btn.onclick=()=>{employees.splice(i,1); saveData(); updateEmployeeTable(); updateEmployeeSelects(); renderAttendanceTable(); renderCalendar(); renderChart(); renderSalaryTable();}
+    row.appendChild(btn); wrap.appendChild(row);
+  });
+}
+function updateEmployeeSelects(){
+  const modalEmp=document.getElementById('modalEmployee');
+  const salaryEmp=document.getElementById('salaryEmployee');
+  const quick=document.getElementById('quickEmployee');
+  [modalEmp,salaryEmp,quick].forEach(sel=>{
+    if(!sel) return;
+    sel.innerHTML='<option value="">Select Employee</option>';
+    employees.forEach((e,i)=>{const opt=document.createElement('option'); opt.value=i; opt.text=e.name; sel.appendChild(opt);});
+  });
+}
+
+// ===== ATTENDANCE =====
+function openModal(date){ document.getElementById('modalDate').value=date; document.getElementById('attendanceModal').style.display='flex'; updateEmployeeSelects(); }
+function closeModal(){ document.getElementById('attendanceModal').style.display='none'; }
+function saveAttendance(){
+  const empIndex=parseInt(document.getElementById('modalEmployee').value);
+  const status=document.getElementById('modalStatus').value;
+  const late=parseInt(document.getElementById('modalLateMinutes').value)||0;
+  const date=document.getElementById('modalDate').value;
+  if(isNaN(empIndex)||!status){ alert('Select employee and status'); return; }
+  const idx=attendance.findIndex(a=>a.date===date && a.empIndex===empIndex);
+  if(idx>=0){ attendance[idx].status=status; attendance[idx].late=late; } else { attendance.push({date,empIndex,status,late}); }
+  saveData(); renderAttendanceTable(); renderCalendar(); renderChart(); closeModal();
+}
+function renderAttendanceTable(){ 
+  const tbody=document.querySelector('#attendanceTable tbody'); tbody.innerHTML='';
+  attendance.forEach((a,i)=>{
+    const tr=document.createElement('tr'); const name=employees[a.empIndex]?.name||'[removed]';
+    tr.innerHTML=`<td>${a.date}</td><td>${name}</td><td>${a.status}</td><td>${a.late}</td><td></td>`;
+    const btn=document.createElement('button'); btn.className='btn btn-sm btn-danger'; btn.innerText='Delete';
+    btn.onclick=()=>{ attendance.splice(i,1); saveData(); renderAttendanceTable(); renderCalendar(); renderChart(); };
+    tr.lastElementChild.appendChild(btn); tbody.appendChild(tr);
+  });
+}
+function renderAttendanceTableFiltered(empIndex){
+  const tbody=document.querySelector('#attendanceTable tbody'); tbody.innerHTML='';
+  attendance.forEach((a,i)=>{
+    if(a.empIndex!==empIndex) return;
+    const tr=document.createElement('tr'); const name=employees[a.empIndex]?.name||'[removed]';
+    tr.innerHTML=`<td>${a.date}</td><td>${name}</td><td>${a.status}</td><td>${a.late}</td><td></td>`;
+    const btn=document.createElement('button'); btn.className='btn btn-sm btn-danger'; btn.innerText='Delete';
+    btn.onclick=()=>{ attendance.splice(i,1); saveData(); renderAttendanceTableFiltered(empIndex); renderCalendar(); renderChart(); };
+    tr.lastElementChild.appendChild(btn); tbody.appendChild(tr);
+  });
+}
+
+// ===== CALENDAR =====
+function renderCalendar(){
+  const monthInput=document.getElementById('attendanceMonth').value;
+  const calendarDiv=document.getElementById('calendar'); const selDisplay=document.getElementById('selectedMonthDisplay'); const rangeDisplay=document.getElementById('selectedRangeDisplay');
+  if(!monthInput){ calendarDiv.innerHTML='<div class="small-muted">Select a month to view calendar.</div>'; selDisplay.innerText=''; rangeDisplay.innerText=''; return; }
+  const [y,m]=monthInput.split('-'); const days=new Date(y,m,0).getDate();
+  selDisplay.innerText=`${y}-${m}`; rangeDisplay.innerText=`${y}-${m}-01 → ${y}-${String(days).padStart(2,'0')}`;
+  let html='<div>';
+  for(let d=1; d<=days; d++){
+    const dd=String(d).padStart(2,'0'); const dayStr=`${y}-${String(m).padStart(2,'0')}-${dd}`;
+    const att=attendance.find(a=>a.date===dayStr);
+    let bg='transparent';
+    if(att){ if(att.status==='Present') bg=getComputedStyle(document.body).getPropertyValue('--present'); else if(att.status==='Absent') bg=getComputedStyle(document.body).getPropertyValue('--absent'); else bg=getComputedStyle(document.body).getPropertyValue('--late'); }
+    html+=`<div class="day-cell" style="background:${bg};" onclick="openModal('${dayStr}')">${d}</div>`;
+  }
+  html+='</div>'; calendarDiv.innerHTML=html;
+}
+
+// ===== SALARY =====
+function calculateSalaryDetailed(empIndex,startStr,endStr,overtimeAmount,bonusAmount){
+  const emp=employees[empIndex]; if(!emp) return null; const startDate=new Date(startStr); const endDate=new Date(endStr);
+  const dailySalary=Number(emp.salary)/30; let present=0,lateDays=0,absent=0,lateMinutesTotal=0; let basic=0,lateDeduction=0,absentDeduction=0;
+  attendance.forEach(a=>{ if(a.empIndex!==empIndex) return; const ad=new Date(a.date); if(ad<startDate||ad>endDate) return;
+    if(a.status==='Present'){ present++; basic+=dailySalary; } else if(a.status==='Late'){ lateDays++; const mins=Number(a.late)||0; lateMinutesTotal+=mins; basic+=dailySalary; lateDeduction+=(mins/480)*dailySalary; }
+    else if(a.status==='Absent'){ absent++; absentDeduction+=dailySalary; }
+  });
+  const overtime=parseFloat(overtimeAmount)||0; const bonus=parseFloat(bonusAmount)||0; const totalPayable=basic-lateDeduction-absentDeduction+overtime+bonus;
+  return { present, lateDays, absent, lateMinutesTotal, basic:basic.toFixed(2), lateDeduction:lateDeduction.toFixed(2), absentDeduction:absentDeduction.toFixed(2), overtimePay:overtime.toFixed(2), bonusPay:bonus.toFixed(2), totalPayable:totalPayable.toFixed(2) };
+}
+
+function renderSalaryTable(){ const tbody=document.querySelector('#salaryTable tbody'); tbody.innerHTML='';
+  salaries.forEach((s,i)=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td>${employees[s.empIndex]?.name||'[removed]'}</td><td>${s.range}</td><td>${s.total}</td><td></td>`;
+    const btn=document.createElement('button'); btn.className='btn btn-sm btn-danger'; btn.innerText='Delete';
+    btn.onclick=()=>{ salaries.splice(i,1); saveData(); renderSalaryTable(); };
+    tr.children[3].appendChild(btn); tbody.appendChild(tr);
+  });
+}
+
+// ===== CHART =====
+function renderChart(){
+  const ctx=document.getElementById('attendanceChart'); let present=0,absent=0,late=0;
+  attendance.forEach(a=>{ if(a.status==='Present') present++; else if(a.status==='Absent') absent++; else late++; });
+  if(chartInstance) chartInstance.destroy();
+  chartInstance=new Chart(ctx,{ type:'pie', data:{ labels:['Present','Absent','Late'], datasets:[{ data:[present,absent,late], backgroundColor:[ getComputedStyle(document.body).getPropertyValue('--present'), getComputedStyle(document.body).getPropertyValue('--absent'), getComputedStyle(document.body).getPropertyValue('--late') ]}]}});
+}
+
+// ===== EVENTS =====
+document.addEventListener('DOMContentLoaded',()=>{
+  loadData();
+  document.getElementById('attendanceMonth').addEventListener('change',renderCalendar);
+  document.getElementById('quickEmployee').addEventListener('change',function(){
+    const val=parseInt(this.value); if(!isNaN(val)) renderAttendanceTableFiltered(val); else renderAttendanceTable();
+  });
+  document.getElementById('salaryEmployee').addEventListener('change',function(){ const v=parseInt(this.value); if(!isNaN(v)) renderAttendanceTableFiltered(v); else renderAttendanceTable(); document.getElementById('salaryBreakdownCard').style.display='none'; });
+  document.getElementById('calculateSalaryForm').addEventListener('submit',e=>{
+    e.preventDefault(); const empIndex=parseInt(document.getElementById('salaryEmployee').value);
+    const start=document.getElementById('startDate').value; const end=document.getElementById('endDate').value;
+    const overtime=document.getElementById('overtimeHours').value; const bonus=document.getElementById('bonusAmount').value;
+    const res=calculateSalaryDetailed(empIndex,start,end,overtime,bonus); if(!res) return alert('Calculation failed');
+    document.getElementById('salaryBreakdownCard').style.display='block';
+    document.getElementById('presentCount').innerText=res.present; document.getElementById('lateCount').innerText=res.lateDays;
+    document.getElementById('lateMinutes').innerText=res.lateMinutesTotal; document.getElementById('absentCount').innerText=res.absent;
+    document.getElementById('basicSalary').innerText=res.basic; document.getElementById('lateDeduction').innerText=res.lateDeduction;
+    document.getElementById('absentDeduction').innerText=res.absentDeduction; document.getElementById('overtimePay').innerText=res.overtimePay;
+    document.getElementById('bonusPay').innerText=res.bonusPay; document.getElementById('totalPayable').innerText=res.totalPayable;
+    const rangeLabel=`${start} → ${end}`; salaries.push({empIndex,range:rangeLabel,total:res.totalPayable,breakdown:res}); saveData(); renderSalaryTable();
+  });
+});
+
+window.openModal=openModal; window.closeModal=closeModal; window.saveAttendance=saveAttendance;
+</script>
+</body>
+</html>
