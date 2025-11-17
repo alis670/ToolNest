@@ -263,11 +263,8 @@ function renderCalendar(empIndex = null) {
   const calendarDiv = document.getElementById('calendar');
   const selDisplay = document.getElementById('selectedMonthDisplay');
   const rangeDisplay = document.getElementById('selectedRangeDisplay');
-
-  // calendar logic goes here
-}
   
-  if(!monthInput)
+  if(!monthInput){
     calendarDiv.innerHTML = '<div class="small-muted">Select a month to view calendar.</div>';
     selDisplay.innerText = '';
     rangeDisplay.innerText = '';
