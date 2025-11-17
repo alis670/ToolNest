@@ -282,8 +282,7 @@ function renderCalendar(empIndex = null){
   const end = `${y}-${String(daysInMonth).padStart(2,'0')}-${String(daysInMonth).padStart(2,'0')}`; // note: kept original pattern
   rangeDisplay.innerText = `${y}-${mStr}-01 → ${y}-${mStr}-${String(daysInMonth).padStart(2,'0')}`;
 
-  // weekdays array for labels
-  const weekdays = [const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
   // build grid: show weekday headings first (Mon..Sun) then calendar cells positioned by weekday
   // determine which weekday the 1st lands on
@@ -291,10 +290,12 @@ function renderCalendar(empIndex = null){
 
   // create a 7-column flex-grid (rows created automatically by wrapping)
   let html = '<div style="display:flex;gap:6px;margin-bottom:6px;">';
-  // weekday headings (short)
-  for(let wd=0; wd<7; wd++){
-
-    <div style="font-size:0.68rem;opacity:0.85">${weekdays[new Date(y, m - 1, d).getDay()]}</div>
+  
+  html += '<div style="display:flex;gap:6px;margin-bottom:6px;">';
+for(let wd = 0; wd < 7; wd++){
+    html += `<div style="font-size:0.68rem;opacity:0.85">${weekdays[wd]}</div>`;
+}
+html += '</div>';
 
   // container for days (flex wrap to next line automatically)
   html += `<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start;">`;
