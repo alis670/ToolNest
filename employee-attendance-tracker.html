@@ -227,61 +227,109 @@ function loadData(){
   updateEmployeeTable(); updateEmployeeSelects(); renderAttendanceTable(); renderCalendar(); renderChart(); renderSalaryTable();
 }
 
-/* ====== EMPLOYEES ====== */
+<!-- only the relevant changes applied in your original file -->
+<script>
+/* ====== EMPLOYEE TABLE: clickable names, list names only ===== */
 function updateEmployeeTable(){
   const wrap = document.getElementById('employeeTable');
   wrap.innerHTML = '';
   employees.forEach((e,i)=>{
     const row = document.createElement('div');
     row.className = 'employee-row';
-    row.innerHTML = `<div><strong>${e.name}</strong></div>
-                     <div class="small-muted">${e.dept}</div>
-                     <div class="small-muted">${e.desig}</div>
-                     <div>${Number(e.salary).toFixed(2)}</div>
-                     <div>${e.currency||''}</div>`;
-    const btn = document.createElement('button'); btn.className='btn btn-sm btn-danger'; btn.innerText='Delete';
-    btn.onclick = ()=>{ employees.splice(i,1); saveData(); updateEmployeeTable(); updateEmployeeSelects(); renderAttendanceTable(); renderCalendar(); renderChart(); renderSalaryTable(); };
-    row.appendChild(btn);
+    // clickable name only
+    row.innerHTML = `<div><strong style="cursor:pointer;color:#0d6efd;" onclick="selectEmployee(${i})">${e.name}</strong></div>`;
     wrap.appendChild(row);
   });
 }
-function updateEmployeeSelects(){
-  const modalEmp = document.getElementById('modalEmployee');
-  const salaryEmp = document.getElementById('salaryEmployee');
-  const quick = document.getElementById('quickEmployee');
-  [modalEmp, salaryEmp, quick].forEach(sel=>{
-    if(!sel) return;
-    sel.innerHTML = '<option value="">Select Employee</option>';
-    employees.forEach((e,i)=>{
-      const opt = document.createElement('option'); opt.value = i; opt.text = e.name; sel.appendChild(opt);
-    });
+
+/* ====== SELECT EMPLOYEE ===== */
+function selectEmployee(empIndex){
+  if(isNaN(empIndex)) return;
+  // filter attendance table
+  renderAttendanceTableFiltered(empIndex);
+  // render calendar for this employee only
+  renderCalendar(empIndex);
+  // hide salary breakdown
+  document.getElementById('salaryBreakdownCard').style.display = 'none';
+}
+
+/* ====== FILTERED CALENDAR ===== */
+function renderCalendar(empIndex=null){
+  const monthInput = document.getElementById('attendanceMonth').value;
+  const calendarDiv = document.getElementById('calendar');
+  const selDisplay = document.getElementById('selectedMonthDisplay');
+  const rangeDisplay = document.getElementById('selectedRangeDisplay');
+
+  if(!monthInput){ 
+    calendarDiv.innerHTML = '<div class="small-muted">Select a month to view calendar.</div>'; 
+    selDisplay.innerText=''; 
+    rangeDisplay.innerText=''; 
+    return; 
+  }
+
+  const [y,m] = monthInput.split('-');
+  const days = new Date(y, m, 0).getDate();
+
+  selDisplay.innerText = `${y}-${m}`;
+  const start = `${y}-${m}-01`;
+  const end = `${y}-${String(m).padStart(2,'0')}-${String(days).padStart(2,'0')}`;
+  rangeDisplay.innerText = `${start} → ${end}`;
+
+  // build calendar header with weekdays
+  const weekdays = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  let html = '<div class="d-flex mb-1">';
+  weekdays.forEach(day=>{ html += `<div class="day-cell" style="font-weight:bold;background:#e9ecef;">${day.slice(0,3)}</div>`; });
+  html += '</div><div class="d-flex flex-wrap">';
+
+  for(let d=1; d<=days; d++){
+    const dd = String(d).padStart(2,'0');
+    const dayStr = `${y}-${String(m).padStart(2,'0')}-${dd}`;
+    let att;
+    if(empIndex!==null){
+      att = attendance.find(a=>a.date===dayStr && a.empIndex===empIndex);
+    } else {
+      att = attendance.find(a=>a.date===dayStr);
+    }
+    let bg = 'transparent';
+    if(att){
+      if(att.status === 'Present') bg = getComputedStyle(document.body).getPropertyValue('--present');
+      else if(att.status === 'Absent') bg = getComputedStyle(document.body).getPropertyValue('--absent');
+      else bg = getComputedStyle(document.body).getPropertyValue('--late');
+    }
+    html += `<div class="day-cell" style="background:${bg};" onclick="openModal('${dayStr}')">${d}</div>`;
+  }
+  html += '</div>';
+  calendarDiv.innerHTML = html;
+}
+
+/* ====== ATTENDANCE TABLE FILTERED ===== */
+function renderAttendanceTableFiltered(empIndex){
+  const tbody = document.querySelector('#attendanceTable tbody');
+  tbody.innerHTML = '';
+  attendance.forEach((a,i)=>{
+    if(a.empIndex !== empIndex) return;
+    const tr = document.createElement('tr');
+    const name = employees[a.empIndex]?.name || '[removed]';
+    tr.innerHTML = `<td>${a.date}</td><td>${name}</td><td>${a.status}</td><td>${a.late}</td><td></td>`;
+    const btn = document.createElement('button'); 
+    btn.className='btn btn-sm btn-danger'; 
+    btn.innerText='Delete';
+    btn.onclick = ()=>{
+      attendance.splice(i,1); 
+      saveData(); 
+      renderAttendanceTableFiltered(empIndex); 
+      renderCalendar(empIndex); 
+      renderChart(); 
+    };
+    tr.lastElementChild.appendChild(btn);
+    tbody.appendChild(tr);
   });
 }
 
-/* ====== ATTENDANCE ====== */
-function openModal(date){
-  document.getElementById('modalDate').value = date;
-  document.getElementById('attendanceModal').style.display = 'flex';
-  updateEmployeeSelects(); // ensure modal has list
-}
-function closeModal(){ document.getElementById('attendanceModal').style.display = 'none'; }
-
-function saveAttendance(){
-  const empIndex = parseInt(document.getElementById('modalEmployee').value);
-  const status = document.getElementById('modalStatus').value;
-  const late = parseInt(document.getElementById('modalLateMinutes').value)||0;
-  const date = document.getElementById('modalDate').value;
-  if(isNaN(empIndex) || !status){ alert('Select employee and status'); return; }
-  const idx = attendance.findIndex(a=>a.date===date && a.empIndex===empIndex);
-  if(idx>=0){
-    attendance[idx].status = status;
-    attendance[idx].late = late;
-  } else {
-    attendance.push({ date, empIndex, status, late });
-  }
-  saveData();
-  renderAttendanceTable(); renderCalendar(); renderChart(); closeModal();
-}
+/* ====== INITIAL CALENDAR HIDDEN ===== */
+document.getElementById('attendanceMonth').value = ''; // no default month
+document.getElementById('calendar').innerHTML = '<div class="small-muted">Select a month to view calendar.</div>';
+</script>
 
 /* Render attendance table for all employees */
 function renderAttendanceTable(){
