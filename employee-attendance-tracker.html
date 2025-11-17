@@ -322,28 +322,67 @@ function renderChart(){
   chartInstance=new Chart(ctx,{ type:'pie', data:{ labels:['Present','Absent','Late'], datasets:[{ data:[present,absent,late], backgroundColor:[ getComputedStyle(document.body).getPropertyValue('--present'), getComputedStyle(document.body).getPropertyValue('--absent'), getComputedStyle(document.body).getPropertyValue('--late') ]}]}});
 }
 
-// ===== EVENTS =====
-document.addEventListener('DOMContentLoaded',()=>{
-  loadData();
-  document.getElementById('attendanceMonth').addEventListener('change',renderCalendar);
-  document.getElementById('quickEmployee').addEventListener('change',function(){
-    const val=parseInt(this.value); if(!isNaN(val)) renderAttendanceTableFiltered(val); else renderAttendanceTable();
+/* ====== EVENTS & INIT ====== */
+document.addEventListener('DOMContentLoaded', ()=>{
+  // populate currencies (loadCurrencies.js must define populateCurrencyDropdown)
+  try{ if(typeof populateCurrencyDropdown === 'function') populateCurrencyDropdown('empCurrency'); } catch(e){ console.warn('populateCurrencyDropdown not available', e); }
+
+  // login/signup toggles
+  const loginForm = document.getElementById('loginForm');
+  const signupForm = document.getElementById('signupForm');
+  const showLogin = document.getElementById('showLogin');
+  const showSignup = document.getElementById('showSignup');
+  const toggleTheme = document.getElementById('toggleTheme');
+  const loginDiv = document.getElementById('loginDiv');
+  const mainApp = document.getElementById('mainApp');
+
+  showLogin.onclick = ()=>{ loginForm.style.display='block'; signupForm.style.display='none'; };
+  showSignup.onclick = ()=>{ signupForm.style.display='block'; loginForm.style.display='none'; };
+  toggleTheme.onclick = ()=>{ document.body.classList.toggle('dark-mode'); renderCalendar(); renderChart(); };
+
+  // auto-login if set
+  if(localStorage.getItem('isLoggedIn') === 'true'){
+    loginDiv.style.display = 'none';
+    mainApp.style.display = 'block';
+    loadData();
+  }
+
+  // signup
+  signupForm.addEventListener('submit', e=>{
+    e.preventDefault();
+    const user = document.getElementById('hrUserSignup').value.trim();
+    const pass = document.getElementById('hrPassSignup').value.trim();
+    if(!user || !pass){ alert('Enter username/password'); return; }
+    localStorage.setItem('hrUser', user);
+    localStorage.setItem('hrPass', pass);
+    alert('Account created! Please login.');
+    signupForm.reset();
+    loginForm.style.display='block'; signupForm.style.display='none';
   });
-  document.getElementById('salaryEmployee').addEventListener('change',function(){ const v=parseInt(this.value); if(!isNaN(v)) renderAttendanceTableFiltered(v); else renderAttendanceTable(); document.getElementById('salaryBreakdownCard').style.display='none'; });
-  document.getElementById('calculateSalaryForm').addEventListener('submit',e=>{
-    e.preventDefault(); const empIndex=parseInt(document.getElementById('salaryEmployee').value);
-    const start=document.getElementById('startDate').value; const end=document.getElementById('endDate').value;
-    const overtime=document.getElementById('overtimeHours').value; const bonus=document.getElementById('bonusAmount').value;
-    const res=calculateSalaryDetailed(empIndex,start,end,overtime,bonus); if(!res) return alert('Calculation failed');
-    document.getElementById('salaryBreakdownCard').style.display='block';
-    document.getElementById('presentCount').innerText=res.present; document.getElementById('lateCount').innerText=res.lateDays;
-    document.getElementById('lateMinutes').innerText=res.lateMinutesTotal; document.getElementById('absentCount').innerText=res.absent;
-    document.getElementById('basicSalary').innerText=res.basic; document.getElementById('lateDeduction').innerText=res.lateDeduction;
-    document.getElementById('absentDeduction').innerText=res.absentDeduction; document.getElementById('overtimePay').innerText=res.overtimePay;
-    document.getElementById('bonusPay').innerText=res.bonusPay; document.getElementById('totalPayable').innerText=res.totalPayable;
-    const rangeLabel=`${start} → ${end}`; salaries.push({empIndex,range:rangeLabel,total:res.totalPayable,breakdown:res}); saveData(); renderSalaryTable();
+
+  // login
+  loginForm.addEventListener('submit', e=>{
+    e.preventDefault();
+    const user = document.getElementById('hrUserLogin').value.trim();
+    const pass = document.getElementById('hrPassLogin').value.trim();
+    const storedUser = localStorage.getItem('hrUser');
+    const storedPass = localStorage.getItem('hrPass');
+    if(user === storedUser && pass === storedPass){
+      localStorage.setItem('isLoggedIn','true');
+      loginDiv.style.display = 'none';
+      mainApp.style.display = 'block';
+      loadData();
+    } else {
+      alert('Invalid credentials!');
+    }
   });
-});
+
+  // logout
+  document.getElementById('logoutBtn').onclick = ()=>{
+    localStorage.removeItem('isLoggedIn');
+    loginDiv.style.display = 'block';
+    mainApp.style.display = 'none';
+  };
 
 window.openModal=openModal; window.closeModal=closeModal; window.saveAttendance=saveAttendance;
 </script>
