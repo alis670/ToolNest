@@ -257,14 +257,15 @@ function selectEmployee(empIndex){
   document.getElementById('salaryBreakdownCard').style.display = 'none';
 }
 
-(updated: show "1 Friday", "2 Saturday", ...*/)
-function renderCalendar(empIndex = null)
-  const monthInput = document.getElementById('attendanceMonth').value);
+/updated: show "1 Friday", "2 Saturday", ...*/
+function renderCalendar(empIndex = null){
+  const monthInput = document.getElementById('attendanceMonth').value
   const calendarDiv = document.getElementById('calendar');
   const selDisplay = document.getElementById('selectedMonthDisplay');
-  const rangeDisplay = document.getElementById('selectedRangeDisplay');
-
-  if(!monthInput){
+const rangeDisplay = document.getElementById('selectedRangeDisplay');
+}
+  
+  if(!monthInput)
     calendarDiv.innerHTML = '<div class="small-muted">Select a month to view calendar.</div>';
     selDisplay.innerText = '';
     rangeDisplay.innerText = '';
