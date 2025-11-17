@@ -283,6 +283,7 @@ function saveAttendance(){
   renderAttendanceTable(); renderCalendar(); renderChart(); closeModal();
 }
 
+/* Render attendance table for all employees */
 function renderAttendanceTable(){
   const tbody = document.querySelector('#attendanceTable tbody');
   tbody.innerHTML = '';
@@ -292,6 +293,22 @@ function renderAttendanceTable(){
     tr.innerHTML = `<td>${a.date}</td><td>${name}</td><td>${a.status}</td><td>${a.late}</td><td></td>`;
     const btn = document.createElement('button'); btn.className='btn btn-sm btn-danger'; btn.innerText='Delete';
     btn.onclick = ()=>{ attendance.splice(i,1); saveData(); renderAttendanceTable(); renderCalendar(); renderChart(); };
+    tr.lastElementChild.appendChild(btn);
+    tbody.appendChild(tr);
+  });
+}
+
+/* Render attendance table filtered by employee index */
+function renderAttendanceTableFiltered(empIndex){
+  const tbody = document.querySelector('#attendanceTable tbody');
+  tbody.innerHTML = '';
+  attendance.forEach((a,i)=>{
+    if(a.empIndex !== empIndex) return;
+    const tr = document.createElement('tr');
+    const name = employees[a.empIndex]?.name || '[removed]';
+    tr.innerHTML = `<td>${a.date}</td><td>${name}</td><td>${a.status}</td><td>${a.late}</td><td></td>`;
+    const btn = document.createElement('button'); btn.className='btn btn-sm btn-danger'; btn.innerText='Delete';
+    btn.onclick = ()=>{ attendance.splice(i,1); saveData(); /* re-filter after delete */ renderAttendanceTableFiltered(empIndex); renderCalendar(); renderChart(); };
     tr.lastElementChild.appendChild(btn);
     tbody.appendChild(tr);
   });
@@ -505,6 +522,13 @@ document.addEventListener('DOMContentLoaded', ()=>{
     const val = this.value;
     if(val){
       document.getElementById('modalEmployee').value = val;
+      // filter attendance table for this employee
+      const idx = parseInt(val);
+      if(!isNaN(idx)) renderAttendanceTableFiltered(idx);
+      // hide breakdown when switching employee
+      document.getElementById('salaryBreakdownCard').style.display = 'none';
+    } else {
+      renderAttendanceTable(); // show all if none selected
     }
   });
 
@@ -528,7 +552,20 @@ document.addEventListener('DOMContentLoaded', ()=>{
     selectedRangeDisplay.innerText = `${y}-${mm}-01 → ${y}-${mm}-${String(days).padStart(2,'0')}`;
   }
   attendanceMonth.addEventListener('change', updateSelectedRangeDisplay);
-  salaryEmployee.addEventListener('change', updateSelectedRangeDisplay);
+
+  // When salary employee changes -> filter attendance table and clear breakdown
+  salaryEmployee.addEventListener('change', function(){
+    const v = this.value;
+    if(v === '' || v === null){
+      renderAttendanceTable(); // show all
+    } else {
+      const idx = parseInt(v);
+      if(!isNaN(idx)) renderAttendanceTableFiltered(idx);
+    }
+    // Hide salary breakdown on switching employee
+    document.getElementById('salaryBreakdownCard').style.display = 'none';
+    updateSelectedRangeDisplay();
+  });
 
   // calculate salary submit
   document.getElementById('calculateSalaryForm').addEventListener('submit', e=>{
