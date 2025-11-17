@@ -333,12 +333,6 @@ function renderCalendar(empIndex = null){
 
   html += '</div>';
   calendarDiv.innerHTML = html;
-
-  // Optional: small hover effect
-  document.querySelectorAll('.day-cell').forEach(cell => {
-    cell.onmouseover = () => cell.style.transform = 'scale(1.05)';
-    cell.onmouseout = () => cell.style.transform = 'scale(1)';
-  });
   }
 
 /* ====== ATTENDANCE TABLE (all) ===== */
