@@ -322,12 +322,13 @@ function renderCalendar(empIndex = null){
     }
 
     html += `
-      <div class="day-cell" 
-           style="background:${bgColor};border-radius:8px;padding:6px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:transform 0.1s;">
-        <div style="font-weight:700;font-size:0.85rem;">${d}</div>
-        <div style="font-size:0.65rem;color:rgba(0,0,0,0.7);margin-top:2px;">${weekdayLabel}</div>
-        ${statusTag}
-      </div>`;
+  <div class="day-cell" 
+       onclick="openModal('${dayStr}')"
+       style="background:${bgColor};border-radius:8px;padding:6px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:transform 0.1s;">
+    <div style="font-weight:700;font-size:0.85rem;">${d}</div>
+    <div style="font-size:0.65rem;color:rgba(0,0,0,0.7);margin-top:2px;">${weekdayLabel}</div>
+    ${statusTag}
+  </div>`;      
   }
 
   html += '</div>';
