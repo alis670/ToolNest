@@ -257,7 +257,7 @@ function selectEmployee(empIndex){
   document.getElementById('salaryBreakdownCard').style.display = 'none';
 }
 
-/* ====== FILTERED CALENDAR (updated: show "1 Friday", "2 Saturday", ...) ====== */
+(updated: show "1 Friday", "2 Saturday", ...) ====== */
 function renderCalendar(empIndex = null){
   const monthInput = document.getElementById('attendanceMonth').value;
   const calendarDiv = document.getElementById('calendar');
@@ -358,10 +358,6 @@ function renderCalendar(empIndex = null){
                ${statusTag}
              </div>`;
   }
-
-  html += '</div>';
-  calendarDiv.innerHTML = html;
-}
 
 /* ====== ATTENDANCE TABLE (all) ===== */
 function renderAttendanceTable(){
