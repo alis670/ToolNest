@@ -256,6 +256,7 @@ function selectEmployee(empIndex){
   // hide salary breakdown
   document.getElementById('salaryBreakdownCard').style.display = 'none';
 }
+/* ====== RENDER CALENDAR (Professional & Responsive) ====== */
 function renderCalendar(empIndex = null){
   const monthInput = document.getElementById('attendanceMonth').value;
   const calendarDiv = document.getElementById('calendar');
@@ -269,63 +270,75 @@ function renderCalendar(empIndex = null){
     return;
   }
 
-  const [y, mStr] = monthInput.split('-');
-  const m = parseInt(mStr, 10);
-  const daysInMonth = new Date(y, m, 0).getDate();
+  // Parse month/year
+  const [year, monthStr] = monthInput.split('-');
+  const month = parseInt(monthStr, 10);
+  const daysInMonth = new Date(year, month, 0).getDate();
 
-  selDisplay.innerText = `${y}-${mStr}`;
-  rangeDisplay.innerText = `${y}-${mStr}-01 → ${y}-${mStr}-${String(daysInMonth).padStart(2,'0')}`;
+  selDisplay.innerText = `${year}-${monthStr}`;
+  rangeDisplay.innerText = `${year}-${monthStr}-01 → ${year}-${monthStr}-${String(daysInMonth).padStart(2,'0')}`;
 
   const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const firstWeekday = new Date(y, m - 1, 1).getDay();
+  const firstWeekday = new Date(year, month - 1, 1).getDay();
 
-  // Grid container for the calendar (responsive)
-  let html = `<div style="display:grid;grid-template-columns:repeat(7, 1fr);gap:3px;margin-bottom:6px;">`;
+  // Start responsive grid
+  let html = `<div style="display:grid;grid-template-columns:repeat(7, 1fr);gap:4px;">`;
 
-  // Weekday headings
+  // Weekday headers
   weekdays.forEach(day => {
-    html += `<div style="font-size:0.65rem;text-align:center;font-weight:600;opacity:0.8;">${day}</div>`;
+    html += `<div style="font-size:0.7rem;font-weight:600;text-align:center;color:rgba(0,0,0,0.6);padding:4px 0;">${day}</div>`;
   });
 
-  // Empty placeholders before the first day
+  // Empty cells for first week offset
   for(let i=0; i<firstWeekday; i++){
-    html += `<div style="visibility:hidden;padding:2px;"></div>`;
+    html += `<div></div>`;
   }
 
-  // Days
+  // Render each day
   for(let d=1; d<=daysInMonth; d++){
-    const dd = String(d).padStart(2,'0');
-    const dayStr = `${y}-${String(m).padStart(2,'0')}-${dd}`;
+    const dayStr = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
 
     let att = null;
     if(empIndex !== null) att = attendance.find(a => a.date === dayStr && a.empIndex === empIndex);
     else att = attendance.find(a => a.date === dayStr);
 
-    let bg = 'transparent';
+    let bgColor = 'transparent';
     if(att){
-      const p = getComputedStyle(document.body).getPropertyValue('--present').trim();
-      const aC = getComputedStyle(document.body).getPropertyValue('--absent').trim();
-      const l = getComputedStyle(document.body).getPropertyValue('--late').trim();
-      if(att.status === 'Present') bg = p || '#28a745';
-      else if(att.status === 'Absent') bg = aC || '#dc3545';
-      else bg = l || '#ffc107';
+      const present = getComputedStyle(document.body).getPropertyValue('--present').trim() || '#28a745';
+      const absent = getComputedStyle(document.body).getPropertyValue('--absent').trim() || '#dc3545';
+      const late = getComputedStyle(document.body).getPropertyValue('--late').trim() || '#ffc107';
+      if(att.status === 'Present') bgColor = present;
+      else if(att.status === 'Absent') bgColor = absent;
+      else bgColor = late;
     }
 
-    const weekdayLabel = weekdays[new Date(y, m - 1, d).getDay()];
+    const weekdayLabel = weekdays[new Date(year, month - 1, d).getDay()];
+
     let statusTag = '';
     if(att){
-      statusTag = `<div style="font-size:0.55rem;margin-top:2px;padding:1px 4px;border-radius:4px;background:rgba(0,0,0,0.06);white-space:nowrap;">${att.status}${att.status==='Late' ? ' ('+ (att.late||0) +'m)' : ''}</div>`;
+      statusTag = `<div style="font-size:0.6rem;margin-top:2px;padding:1px 4px;border-radius:4px;background:rgba(0,0,0,0.07);white-space:nowrap;">
+                     ${att.status}${att.status==='Late' ? ` (${att.late||0}m)` : ''}
+                   </div>`;
     }
 
-    html += `<div class="day-cell" style="background:${bg};padding:2px;cursor:pointer;text-align:center;font-size:0.7rem;" onclick="openModal('${dayStr}')">
-               <div style="font-weight:600;">${d}</div>
-               <div style="opacity:0.8;">${weekdayLabel}</div>
-               ${statusTag}
-             </div>`;
+    html += `
+      <div class="day-cell" 
+           style="background:${bgColor};border-radius:8px;padding:6px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:transform 0.1s;">
+        <div style="font-weight:700;font-size:0.85rem;">${d}</div>
+        <div style="font-size:0.65rem;color:rgba(0,0,0,0.7);margin-top:2px;">${weekdayLabel}</div>
+        ${statusTag}
+      </div>
+    `;
   }
 
   html += '</div>';
   calendarDiv.innerHTML = html;
+
+  // Optional: small hover effect
+  document.querySelectorAll('.day-cell').forEach(cell => {
+    cell.onmouseover = () => cell.style.transform = 'scale(1.05)';
+    cell.onmouseout = () => cell.style.transform = 'scale(1)';
+  });
   }
 
 /* ====== ATTENDANCE TABLE (all) ===== */
