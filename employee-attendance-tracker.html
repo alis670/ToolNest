@@ -517,20 +517,42 @@ document.addEventListener('DOMContentLoaded', ()=>{
   // when month changes -> re-render calendar
   document.getElementById('attendanceMonth').addEventListener('change', renderCalendar);
 
-  // quickEmployee: when chosen, pre-select in modalEmployee for quick marking
-  document.getElementById('quickEmployee').addEventListener('change', function(){
-    const val = this.value;
-    if(val){
-      document.getElementById('modalEmployee').value = val;
-      // filter attendance table for this employee
-      const idx = parseInt(val);
-      if(!isNaN(idx)) renderAttendanceTableFiltered(idx);
-      // hide breakdown when switching employee
-      document.getElementById('salaryBreakdownCard').style.display = 'none';
-    } else {
-      renderAttendanceTable(); // show all if none selected
-    }
-  });
+  // --- INSERT HERE ---
+// Clear & refresh attendance table when switching employee
+document.getElementById('quickEmployee').addEventListener('change', function(){
+  const val = this.value;
+  const empIndex = parseInt(val);
+  const tbody = document.querySelector('#attendanceTable tbody');
+  tbody.innerHTML = ''; // clear table
+
+  if(!isNaN(empIndex)){
+    // render only selected employee
+    attendance.forEach((a,i)=>{
+      if(a.empIndex !== empIndex) return;
+      const tr = document.createElement('tr');
+      const name = employees[a.empIndex]?.name || '[removed]';
+      tr.innerHTML = `<td>${a.date}</td><td>${name}</td><td>${a.status}</td><td>${a.late}</td><td></td>`;
+      const btn = document.createElement('button');
+      btn.className='btn btn-sm btn-danger';
+      btn.innerText='Delete';
+      btn.onclick = ()=>{ 
+        attendance.splice(i,1); 
+        saveData(); 
+        renderAttendanceTableFiltered(empIndex); 
+        renderCalendar(); 
+        renderChart(); 
+      };
+      tr.lastElementChild.appendChild(btn);
+      tbody.appendChild(tr);
+    });
+  } else {
+    // if none selected, show all
+    renderAttendanceTable();
+  }
+
+  // hide salary breakdown when switching
+  document.getElementById('salaryBreakdownCard').style.display = 'none';
+});
 
   // salaryEmployee / dates interactions: show selected month range helper
   const salaryEmployee = document.getElementById('salaryEmployee');
