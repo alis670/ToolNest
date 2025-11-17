@@ -24,6 +24,11 @@ input,select,textarea{background:var(--input-bg); color:var(--input-text);}
 .summary-badge{display:inline-block;padding:6px 10px;border-radius:8px;background:rgba(0,0,0,0.03);margin-right:6px;}
 @media (max-width:576px){ .employee-row>div{flex:1 1 100%;} .day-cell{width:28px;height:28px;padding:4px;} }
 .small-muted{font-size:0.85rem;color:rgba(0,0,0,0.5);}
+
+/* minimal modal styles so show/hide works without touching markup */
+#attendanceModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); align-items:center; justify-content:center; z-index:1050; }
+#attendanceModal .modal-content{ background:var(--card-bg); color:var(--text); padding:16px; border-radius:8px; max-width:380px; width:90%; margin:auto; box-shadow:0 10px 30px rgba(0,0,0,0.2);}
+#attendanceModal .btn-close{border:none;background:transparent;font-size:1.1rem;}
 </style>
 </head>
 <body class="container mt-4">
@@ -228,8 +233,6 @@ function loadData(){
   updateEmployeeTable(); updateEmployeeSelects(); renderAttendanceTable(); renderCalendar(); renderChart(); renderSalaryTable();
 }
 
-<!-- only the relevant changes applied in your original file -->
-<script>
 /* ====== EMPLOYEE TABLE: clickable names, list names only ===== */
 function updateEmployeeTable(){
   const wrap = document.getElementById('employeeTable');
@@ -303,6 +306,21 @@ function renderCalendar(empIndex=null){
   calendarDiv.innerHTML = html;
 }
 
+/* ====== ATTENDANCE TABLE (all) ===== */
+function renderAttendanceTable(){
+  const tbody = document.querySelector('#attendanceTable tbody');
+  tbody.innerHTML = '';
+  attendance.forEach((a,i)=>{
+    const tr = document.createElement('tr');
+    const name = employees[a.empIndex]?.name || '[removed]';
+    tr.innerHTML = `<td>${a.date}</td><td>${name}</td><td>${a.status}</td><td>${a.late || 0}</td><td></td>`;
+    const btn = document.createElement('button'); btn.className='btn btn-sm btn-danger'; btn.innerText='Delete';
+    btn.onclick = ()=>{ attendance.splice(i,1); saveData(); renderAttendanceTable(); renderCalendar(); renderChart(); };
+    tr.lastElementChild.appendChild(btn);
+    tbody.appendChild(tr);
+  });
+}
+
 /* ====== ATTENDANCE TABLE FILTERED ===== */
 function renderAttendanceTableFiltered(empIndex){
   const tbody = document.querySelector('#attendanceTable tbody');
@@ -311,80 +329,12 @@ function renderAttendanceTableFiltered(empIndex){
     if(a.empIndex !== empIndex) return;
     const tr = document.createElement('tr');
     const name = employees[a.empIndex]?.name || '[removed]';
-    tr.innerHTML = `<td>${a.date}</td><td>${name}</td><td>${a.status}</td><td>${a.late}</td><td></td>`;
-    const btn = document.createElement('button'); 
-    btn.className='btn btn-sm btn-danger'; 
-    btn.innerText='Delete';
-    btn.onclick = ()=>{
-      attendance.splice(i,1); 
-      saveData(); 
-      renderAttendanceTableFiltered(empIndex); 
-      renderCalendar(empIndex); 
-      renderChart(); 
-    };
-    tr.lastElementChild.appendChild(btn);
-    tbody.appendChild(tr);
-  });
-}
-
-/* ====== INITIAL CALENDAR HIDDEN ===== */
-document.getElementById('attendanceMonth').value = ''; // no default month
-document.getElementById('calendar').innerHTML = '<div class="small-muted">Select a month to view calendar.</div>';
-</script>
-
-/* Render attendance table for all employees */
-function renderAttendanceTable(){
-  const tbody = document.querySelector('#attendanceTable tbody');
-  tbody.innerHTML = '';
-  attendance.forEach((a,i)=>{
-    const tr = document.createElement('tr');
-    const name = employees[a.empIndex]?.name || '[removed]';
-    tr.innerHTML = `<td>${a.date}</td><td>${name}</td><td>${a.status}</td><td>${a.late}</td><td></td>`;
+    tr.innerHTML = `<td>${a.date}</td><td>${name}</td><td>${a.status}</td><td>${a.late || 0}</td><td></td>`;
     const btn = document.createElement('button'); btn.className='btn btn-sm btn-danger'; btn.innerText='Delete';
-    btn.onclick = ()=>{ attendance.splice(i,1); saveData(); renderAttendanceTable(); renderCalendar(); renderChart(); };
+    btn.onclick = ()=>{ attendance.splice(i,1); saveData(); /* re-filter after delete */ renderAttendanceTableFiltered(empIndex); renderCalendar(empIndex); renderChart(); };
     tr.lastElementChild.appendChild(btn);
     tbody.appendChild(tr);
   });
-}
-
-/* Render attendance table filtered by employee index */
-function renderAttendanceTableFiltered(empIndex){
-  const tbody = document.querySelector('#attendanceTable tbody');
-  tbody.innerHTML = '';
-  attendance.forEach((a,i)=>{
-    if(a.empIndex !== empIndex) return;
-    const tr = document.createElement('tr');
-    const name = employees[a.empIndex]?.name || '[removed]';
-    tr.innerHTML = `<td>${a.date}</td><td>${name}</td><td>${a.status}</td><td>${a.late}</td><td></td>`;
-    const btn = document.createElement('button'); btn.className='btn btn-sm btn-danger'; btn.innerText='Delete';
-    btn.onclick = ()=>{ attendance.splice(i,1); saveData(); /* re-filter after delete */ renderAttendanceTableFiltered(empIndex); renderCalendar(); renderChart(); };
-    tr.lastElementChild.appendChild(btn);
-    tbody.appendChild(tr);
-  });
-}
-
-  // show month info
-  selDisplay.innerText = `${y}-${m}`;
-  const start = `${y}-${m}-01`;
-  const end = `${y}-${String(m).padStart(2,'0')}-${String(days).padStart(2,'0')}`;
-  rangeDisplay.innerText = `${start} → ${end}`;
-
-  // build calendar row of day-cells
-  let html = '<div>';
-  for(let d=1; d<=days; d++){
-    const dd = String(d).padStart(2,'0');
-    const dayStr = `${y}-${String(m).padStart(2,'0')}-${dd}`;
-    const att = attendance.find(a=>a.date===dayStr);
-    let bg = 'transparent';
-    if(att){
-      if(att.status === 'Present') bg = getComputedStyle(document.body).getPropertyValue('--present');
-      else if(att.status === 'Absent') bg = getComputedStyle(document.body).getPropertyValue('--absent');
-      else bg = getComputedStyle(document.body).getPropertyValue('--late');
-    }
-    html += `<div class="day-cell" style="background:${bg};" onclick="openModal('${dayStr}')">${d}</div>`;
-  }
-  html += '</div>';
-  calendarDiv.innerHTML = html;
 }
 
 /* ====== SALARY CALCULATION ======
@@ -465,6 +415,82 @@ function renderChart(){
       getComputedStyle(document.body).getPropertyValue('--absent'),
       getComputedStyle(document.body).getPropertyValue('--late')
     ]}]}
+  });
+}
+
+/* ====== MODAL FUNCTIONS (added missing ones) ====== */
+function openModal(dateStr){
+  // populate modal employee select
+  updateEmployeeSelects(); // ensures modalEmployee has current list
+  document.getElementById('modalDate').value = dateStr;
+  document.getElementById('modalLateMinutes').value = '';
+  document.getElementById('modalStatus').value = '';
+  // if quickEmployee selected, set that by default
+  const quickVal = document.getElementById('quickEmployee')?.value;
+  if(quickVal !== '' && !isNaN(parseInt(quickVal))){
+    document.getElementById('modalEmployee').value = quickVal;
+  } else {
+    // keep first option
+    document.getElementById('modalEmployee').selectedIndex = 0;
+  }
+  document.getElementById('attendanceModal').style.display = 'flex';
+}
+
+function closeModal(){
+  document.getElementById('attendanceModal').style.display = 'none';
+}
+
+function saveAttendance(){
+  const empIndex = parseInt(document.getElementById('modalEmployee').value);
+  const status = document.getElementById('modalStatus').value;
+  const late = parseInt(document.getElementById('modalLateMinutes').value) || 0;
+  const date = document.getElementById('modalDate').value;
+  if(isNaN(empIndex) || !status || !date){ alert('Select employee, status and ensure date'); return; }
+
+  // if exists for same emp/date - replace
+  const existingIndex = attendance.findIndex(a=>a.empIndex===empIndex && a.date===date);
+  const record = { empIndex, date, status, late };
+  if(existingIndex !== -1){
+    attendance[existingIndex] = record;
+  } else {
+    attendance.push(record);
+  }
+  saveData();
+  closeModal();
+  renderAttendanceTable();
+  renderCalendar();
+  renderChart();
+}
+
+/* ====== Utility: update employee selects (quickEmployee, modalEmployee, salaryEmployee) ====== */
+function updateEmployeeSelects(){
+  const quick = document.getElementById('quickEmployee');
+  const modal = document.getElementById('modalEmployee');
+  const salary = document.getElementById('salaryEmployee');
+
+  if(quick){ quick.innerHTML = '<option value="">Select Employee</option>'; }
+  if(modal){ modal.innerHTML = ''; }
+  if(salary){ salary.innerHTML = '<option value="">Select Employee</option>'; }
+
+  employees.forEach((e,i)=>{
+    if(quick){
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.text = e.name;
+      quick.appendChild(opt);
+    }
+    if(modal){
+      const opt2 = document.createElement('option');
+      opt2.value = i;
+      opt2.text = e.name;
+      modal.appendChild(opt2);
+    }
+    if(salary){
+      const opt3 = document.createElement('option');
+      opt3.value = i;
+      opt3.text = e.name;
+      salary.appendChild(opt3);
+    }
   });
 }
 
@@ -557,42 +583,41 @@ document.addEventListener('DOMContentLoaded', ()=>{
   // when month changes -> re-render calendar
   document.getElementById('attendanceMonth').addEventListener('change', renderCalendar);
 
-  // --- INSERT HERE ---
-// Clear & refresh attendance table when switching employee
-document.getElementById('quickEmployee').addEventListener('change', function(){
-  const val = this.value;
-  const empIndex = parseInt(val);
-  const tbody = document.querySelector('#attendanceTable tbody');
-  tbody.innerHTML = ''; // clear table
+  // Clear & refresh attendance table when switching employee
+  document.getElementById('quickEmployee').addEventListener('change', function(){
+    const val = this.value;
+    const empIndex = parseInt(val);
+    const tbody = document.querySelector('#attendanceTable tbody');
+    tbody.innerHTML = ''; // clear table
 
-  if(!isNaN(empIndex)){
-    // render only selected employee
-    attendance.forEach((a,i)=>{
-      if(a.empIndex !== empIndex) return;
-      const tr = document.createElement('tr');
-      const name = employees[a.empIndex]?.name || '[removed]';
-      tr.innerHTML = `<td>${a.date}</td><td>${name}</td><td>${a.status}</td><td>${a.late}</td><td></td>`;
-      const btn = document.createElement('button');
-      btn.className='btn btn-sm btn-danger';
-      btn.innerText='Delete';
-      btn.onclick = ()=>{ 
-        attendance.splice(i,1); 
-        saveData(); 
-        renderAttendanceTableFiltered(empIndex); 
-        renderCalendar(); 
-        renderChart(); 
-      };
-      tr.lastElementChild.appendChild(btn);
-      tbody.appendChild(tr);
-    });
-  } else {
-    // if none selected, show all
-    renderAttendanceTable();
-  }
+    if(!isNaN(empIndex)){
+      // render only selected employee
+      attendance.forEach((a,i)=>{
+        if(a.empIndex !== empIndex) return;
+        const tr = document.createElement('tr');
+        const name = employees[a.empIndex]?.name || '[removed]';
+        tr.innerHTML = `<td>${a.date}</td><td>${name}</td><td>${a.status}</td><td>${a.late || 0}</td><td></td>`;
+        const btn = document.createElement('button');
+        btn.className='btn btn-sm btn-danger';
+        btn.innerText='Delete';
+        btn.onclick = ()=>{ 
+          attendance.splice(i,1); 
+          saveData(); 
+          renderAttendanceTableFiltered(empIndex); 
+          renderCalendar(); 
+          renderChart(); 
+        };
+        tr.lastElementChild.appendChild(btn);
+        tbody.appendChild(tr);
+      });
+    } else {
+      // if none selected, show all
+      renderAttendanceTable();
+    }
 
-  // hide salary breakdown when switching
-  document.getElementById('salaryBreakdownCard').style.display = 'none';
-});
+    // hide salary breakdown when switching
+    document.getElementById('salaryBreakdownCard').style.display = 'none';
+  });
 
   // salaryEmployee / dates interactions: show selected month range helper
   const salaryEmployee = document.getElementById('salaryEmployee');
@@ -671,7 +696,7 @@ document.getElementById('quickEmployee').addEventListener('change', function(){
   loadData();
 });
 
-/* expose openModal globally so inline onclick works */
+/* expose modal functions globally so inline onclick works */
 window.openModal = openModal;
 window.closeModal = closeModal;
 window.saveAttendance = saveAttendance;
