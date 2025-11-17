@@ -256,38 +256,6 @@ function selectEmployee(empIndex){
   // hide salary breakdown
   document.getElementById('salaryBreakdownCard').style.display = 'none';
 }
-
-/* updated: show "1 Friday", "2 Saturday", ... */
-function renderCalendar(empIndex = null){
-  const monthInput = document.getElementById('attendanceMonth').value;
-  const calendarDiv = document.getElementById('calendar');
-  const selDisplay = document.getElementById('selectedMonthDisplay');
-  const rangeDisplay = document.getElementById('selectedRangeDisplay');
-  
-  if(!monthInput){
-    calendarDiv.innerHTML = '<div class="small-muted">Select a month to view calendar.</div>';
-    selDisplay.innerText = '';
-    rangeDisplay.innerText = '';
-    return;
-  }
-
-  // parse year and month
-  const [y, mStr] = monthInput.split('-');
-  const m = parseInt(mStr, 10); // 1-12
-  const daysInMonth = new Date(y, m, 0).getDate();
-
-  // header displays
-  selDisplay.innerText = `${y}-${mStr}`;
-  const start = `${y}-${mStr}-01`;
-  const end = `${y}-${String(daysInMonth).padStart(2,'0')}-${String(daysInMonth).padStart(2,'0')}`; // note: kept original pattern
-  rangeDisplay.innerText = `${y}-${mStr}-01 → ${y}-${mStr}-${String(daysInMonth).padStart(2,'0')}`;
-
-  const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-
-  // build grid: show weekday headings first (Mon..Sun) then calendar cells positioned by weekday
-  // determine which weekday the 1st lands on
-  const firstWeekday = new Date(y, m - 1, 1).getDay(); // 0=Sun .. 6=Sat
-
 function renderCalendar(empIndex = null){
   const monthInput = document.getElementById('attendanceMonth').value;
   const calendarDiv = document.getElementById('calendar');
@@ -358,6 +326,10 @@ function renderCalendar(empIndex = null){
                ${statusTag}
              </div>`;
   }
+
+  html += '</div>';
+  calendarDiv.innerHTML = html;
+}
 
 /* ====== ATTENDANCE TABLE (all) ===== */
 function renderAttendanceTable(){
