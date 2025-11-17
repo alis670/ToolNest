@@ -283,7 +283,7 @@ function renderCalendar(empIndex = null){
   rangeDisplay.innerText = `${y}-${mStr}-01 → ${y}-${mStr}-${String(daysInMonth).padStart(2,'0')}`;
 
   // weekdays array for labels
-  const weekdays = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const weekdays = [const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
   // build grid: show weekday headings first (Mon..Sun) then calendar cells positioned by weekday
   // determine which weekday the 1st lands on
