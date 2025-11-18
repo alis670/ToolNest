@@ -321,16 +321,26 @@ function renderCalendar(empIndex = null){
                    </div>`;
     }
 
-    html += `
+  html += `
   <div class="day-cell" 
        onclick="openModal('${dayStr}')"
-       style="background:${bgColor};border-radius:8px;padding:6px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:transform 0.1s;">
-    <div style="font-weight:700;font-size:0.85rem;">${d}</div>
-    <div style="font-size:0.65rem;color:rgba(0,0,0,0.7);margin-top:2px;">${weekdayLabel}</div>
+       style="
+         background:${bgColor};
+         border-radius:12px;
+         padding:10px 4px;
+         height:80px;
+         display:flex;
+         flex-direction:column;
+         align-items:center;
+         justify-content:space-between;
+         cursor:pointer;
+         transition:transform 0.1s;
+       ">
+    <div style="font-weight:700;font-size:0.95rem;">${d}</div>
+    <div style="font-size:0.70rem;color:rgba(0,0,0,0.65);margin-top:2px;">${weekdayLabel}</div>
     ${statusTag}
   </div>
-  `;      
-  }
+`;
 
   html += '</div>';
   calendarDiv.innerHTML = html;
