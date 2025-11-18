@@ -326,20 +326,45 @@ function renderCalendar(empIndex = null){
        onclick="openModal('${dayStr}')"
        style="
          background:${bgColor};
-         width:60px;
-         height:60px;
+         width:48px;
+         height:48px;
          border-radius:10px;
-         padding:6px 4px;
+         padding:4px;
          display:flex;
          flex-direction:column;
          align-items:center;
-         justify-content:space-between;
+         justify-content:center;
          cursor:pointer;
-         transition:transform 0.1s;
+         position:relative;
        ">
-    <div style="font-weight:700;font-size:0.90rem;">${d}</div>
-    <div style="font-size:0.65rem;color:rgba(0,0,0,0.7);">${weekdayLabel}</div>
-    ${statusTag}
+
+    <div style="font-weight:700;font-size:0.80rem;line-height:1;">${d}</div>
+    <div style="font-size:0.60rem;color:rgba(0,0,0,0.65);line-height:1;margin-top:1px;">
+        ${weekdayLabel}
+    </div>
+
+    ${att ? `
+      <div style="
+        position:absolute;
+        bottom:2px;
+        background:#ffffffd9;
+        padding:1px 4px;
+        font-size:0.55rem;
+        border-radius:4px;
+        display:flex;
+        align-items:center;
+        gap:3px;
+      ">
+        <span style="
+          width:6px;
+          height:6px;
+          border-radius:50%;
+          background:${bgColor};
+        "></span>
+        ${att.status}
+      </div>
+    ` : ''}
+
   </div>
 `;
 }
