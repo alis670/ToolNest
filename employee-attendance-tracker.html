@@ -24,13 +24,44 @@ body { padding: 20px; transition: background-color 0.3s, color 0.3s; }
 <body>
 
 <!-- Login -->
+<!-- Login / Sign-Up -->
 <div class="container mb-5" id="loginScreen">
-    <h3>HR Login</h3>
-    <div class="mb-3">
-        <button class="btn btn-primary" id="loginBtn">Login</button>
+    <h3 id="authTitle">HR Login</h3>
+    
+    <!-- Login Form -->
+    <div id="loginForm">
+        <div class="mb-3">
+            <input type="text" id="loginUsername" class="form-control" placeholder="Username">
+        </div>
+        <div class="mb-3">
+            <input type="password" id="loginPassword" class="form-control" placeholder="Password">
+        </div>
+        <div class="mb-3">
+            <button class="btn btn-primary w-100" id="loginBtn">Login</button>
+        </div>
+        <div class="text-center">
+            <a href="#" id="showSignUp">Don't have an account? Sign Up</a>
+        </div>
     </div>
+
+    <!-- Sign-Up Form -->
+    <div id="signUpForm" style="display:none;">
+        <div class="mb-3">
+            <input type="text" id="signUpUsername" class="form-control" placeholder="Username">
+        </div>
+        <div class="mb-3">
+            <input type="password" id="signUpPassword" class="form-control" placeholder="Password">
+        </div>
+        <div class="mb-3">
+            <button class="btn btn-success w-100" id="signUpBtn">Sign Up</button>
+        </div>
+        <div class="text-center">
+            <a href="#" id="showLogin">Already have an account? Login</a>
+        </div>
+    </div>
+
     <div class="mb-3">
-        <button class="btn btn-outline-dark" id="toggleDark">Toggle Dark Mode</button>
+        <button class="btn btn-outline-dark w-100" id="toggleDark">Toggle Dark Mode</button>
     </div>
 </div>
 
