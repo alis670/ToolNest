@@ -188,16 +188,48 @@ document.getElementById('toggleDark').addEventListener('click', () => {
     document.body.classList.toggle('dark-mode', darkMode);
 });
 
-// Login / Logout
-document.getElementById('loginBtn').addEventListener('click', () => { 
-    document.getElementById('loginScreen').style.display='none';
-    document.getElementById('dashboard').style.display='block';
-});
-document.getElementById('logoutBtn').addEventListener('click', () => { 
-    document.getElementById('loginScreen').style.display='block';
-    document.getElementById('dashboard').style.display='none';
+const loginFormDiv = document.getElementById('loginForm');
+const signUpFormDiv = document.getElementById('signUpForm');
+const authTitle = document.getElementById('authTitle');
+
+document.getElementById('showSignUp').addEventListener('click', e => {
+    e.preventDefault();
+    loginFormDiv.style.display = 'none';
+    signUpFormDiv.style.display = 'block';
+    authTitle.textContent = 'HR Sign-Up';
 });
 
+document.getElementById('showLogin').addEventListener('click', e => {
+    e.preventDefault();
+    signUpFormDiv.style.display = 'none';
+    loginFormDiv.style.display = 'block';
+    authTitle.textContent = 'HR Login';
+});
+
+// Simple in-memory signup & login (for demo)
+let users = []; // {username, password}
+
+document.getElementById('signUpBtn').addEventListener('click', () => {
+    const username = document.getElementById('signUpUsername').value.trim();
+    const password = document.getElementById('signUpPassword').value.trim();
+    if(!username || !password) return alert('Enter username & password');
+    if(users.find(u=>u.username===username)) return alert('Username already exists');
+    users.push({username,password});
+    alert('Sign-Up successful! You can now login.');
+    document.getElementById('showLogin').click();
+});
+
+document.getElementById('loginBtn').addEventListener('click', () => {
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value.trim();
+    if(users.find(u=>u.username===username && u.password===password)){
+        document.getElementById('loginScreen').style.display='none';
+        document.getElementById('dashboard').style.display='block';
+    } else {
+        alert('Invalid username or password');
+    }
+});
+    
 // Employee Management
 const addEmployeeForm = document.getElementById('addEmployeeForm');
 const employeeTableDiv = document.getElementById('employeeTable');
