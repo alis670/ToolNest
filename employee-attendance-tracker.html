@@ -1,438 +1,495 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Modern HR Dashboard</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Premium HR Dashboard</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-body { padding: 20px; transition: background-color 0.3s, color 0.3s; }
-.small-muted { font-size: 0.85rem; color: #6c757d; }
-.calendar-wrap { margin-top: 15px; }
-.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
-.calendar-grid div { border: 1px solid #ccc; padding: 10px; text-align: center; cursor: pointer; border-radius:5px; }
-.calendar-grid .present { background-color: #d4edda; }
-.calendar-grid .absent { background-color: #f8d7da; }
-.calendar-grid .late { background-color: #fff3cd; }
-.calendar-grid .sunday-work { background-color: #cfe2ff; }
-.dark-mode { background-color: #121212; color: #f1f1f1; }
-.dark-mode .calendar-grid div { border-color: #444; }
+:root{
+  --bg:#fff; --text:#000; --card-bg:#f8f9fa; --input-bg:#fff; --input-text:#000; --table-header:#e9ecef;
+  --present:#28a745; --absent:#dc3545; --late:#ffc107;
+}
+body.dark-mode{
+  --bg:#111; --text:#f2f2f2; --card-bg:#1a1a1a; --input-bg:#222; --input-text:#f2f2f2; --table-header:#262626;
+}
+body{background:var(--bg); color:var(--text); font-family:Inter,system-ui,Arial; padding-bottom:40px;}
+.card{background:var(--card-bg); color:var(--text); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,0.06); margin-bottom:1rem;}
+input,select,textarea{background:var(--input-bg); color:var(--input-text);}
+.employee-row{display:flex;flex-wrap:wrap;gap:0.5rem;border-bottom:1px solid rgba(0,0,0,0.06);padding:0.6rem 0;align-items:center;}
+.employee-row>div{flex:1 1 120px;min-width:90px;}
+.employee-row button{flex:0 0 auto;}
+.day-cell{cursor:pointer;text-align:center;padding:6px;border-radius:6px;margin:3px;display:inline-block;width:34px;height:34px;line-height:20px;border:1px solid rgba(0,0,0,0.08);}
+.summary-badge{display:inline-block;padding:6px 10px;border-radius:8px;background:rgba(0,0,0,0.03);margin-right:6px;}
+@media (max-width:576px){ .employee-row>div{flex:1 1 100%;} .day-cell{width:28px;height:28px;padding:4px;} }
+.small-muted{font-size:0.85rem;color:rgba(0,0,0,0.5);}
+
+/* minimal modal styles so show/hide works without touching markup */
+#attendanceModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); align-items:center; justify-content:center; z-index:1050; }
+#attendanceModal .modal-content{ background:var(--card-bg); color:var(--text); padding:16px; border-radius:8px; max-width:380px; width:90%; margin:auto; box-shadow:0 10px 30px rgba(0,0,0,0.2);}
+#attendanceModal .btn-close{border:none;background:transparent;font-size:1.1rem;}
 </style>
 </head>
-<body>
+<body class="container mt-4">
 
-<!-- Login -->
-<!-- Login / Sign-Up -->
-<div class="container mb-5" id="loginScreen">
-    <h3 id="authTitle">HR Login</h3>
+<!-- LOGIN / SIGNUP -->
+<div id="loginDiv" class="card p-4">
+  <h3>HR Login / Sign Up</h3>
+  <div class="d-flex align-items-center mb-3">
+    <div class="me-2">
+      <button id="showLogin" class="btn btn-primary btn-sm">Login</button>
+      <button id="showSignup" class="btn btn-outline-secondary btn-sm">Sign Up</button>
+    </div>
+    <div class="ms-auto">
+      <button id="toggleTheme" class="btn btn-dark btn-sm">Toggle Dark Mode</button>
+    </div>
+  </div>
+
+  <form id="loginForm" style="display:block;">
+    <input id="hrUserLogin" class="form-control mb-2" placeholder="Username" required>
+    <input id="hrPassLogin" type="password" class="form-control mb-2" placeholder="Password" required>
+    <button class="btn btn-primary">Login</button>
+  </form>
+
+  <form id="signupForm" style="display:none;">
+    <input id="hrUserSignup" class="form-control mb-2" placeholder="Choose Username" required>
+    <input id="hrPassSignup" type="password" class="form-control mb-2" placeholder="Choose Password" required>
+    <button class="btn btn-success">Sign Up</button>
+  </form>
+</div>
+
+<!-- DASHBOARD -->
+<div id="mainApp" style="display:none;">
+  <div class="d-flex align-items-center mb-3">
+    <h2 class="me-auto">HR Dashboard</h2>
+    <button id="logoutBtn" class="btn btn-danger">Logout</button>
+  </div>
+
+  <!-- EMPLOYEE -->
+  <div class="card p-3">
+    <h5>Add Employee</h5>
+    <form id="addEmployeeForm" class="row g-2 align-items-center">
+      <div class="col-6 col-md-2"><input id="empName" class="form-control" placeholder="Name" required></div>
+      <div class="col-6 col-md-2"><input id="empDept" class="form-control" placeholder="Department" required></div>
+      <div class="col-6 col-md-2"><input id="empDesig" class="form-control" placeholder="Designation" required></div>
+      <div class="col-6 col-md-2"><input id="empSalary" type="number" class="form-control" placeholder="Basic Salary" required></div>
+      <div class="col-6 col-md-2"><select id="empCurrency" class="form-select" required></select></div>
+      <div class="col-6 col-md-2"><button class="btn btn-primary w-100">Add</button></div>
+    </form>
+
+    <hr>
+
+    <h6>Employee List</h6>
+    <div id="employeeTable" class="mt-2"></div>
+  </div>
+
+  <!-- ATTENDANCE -->
+  <div class="card p-3">
+    <h5>Attendance Calendar</h5>
+    <div class="row mb-2 align-items-center">
+      <div class="col-md-3">
+        <label class="small-muted">Month</label>
+        <input id="attendanceMonth" type="month" class="form-control">
+      </div>
+      <div class="col-md-3">
+        <label class="small-muted">Quick select employee (for marking)</label>
+        <select id="quickEmployee" class="form-select"><option value="">Select Employee</option></select>
+      </div>
+      <div class="col-md-6 text-end small-muted">
+        <span class="summary-badge" id="selectedMonthDisplay"></span>
+        <span class="summary-badge" id="selectedRangeDisplay"></span>
+      </div>
+    </div>
+
+    <div id="calendar" class="mt-2"></div>
+  </div>
+
+  <div class="card p-3">
+    <h5>Attendance Records</h5>
+    <div class="table-responsive">
+      <table id="attendanceTable" class="table table-bordered mb-0">
+        <thead><tr><th>Date</th><th>Employee</th><th>Status</th><th>Late (min)</th><th>Action</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SALARY -->
+  <div class="card p-3">
+    <h5>Calculate Salary</h5>
+
+    <form id="calculateSalaryForm" class="row g-2 align-items-center mb-2">
+      <div class="col-6 col-md-2">
+        <label class="small-muted">Employee</label>
+        <select id="salaryEmployee" class="form-select" required><option value="">Select Employee</option></select>
+      </div>
+
+      <div class="col-6 col-md-2">
+        <label class="small-muted">Start Date</label>
+        <input id="startDate" type="date" class="form-control" required>
+      </div>
+
+      <div class="col-6 col-md-2">
+        <label class="small-muted">End Date</label>
+        <input id="endDate" type="date" class="form-control" required>
+      </div>
+
+      <div class="col-6 col-md-2">
+        <label class="small-muted">Overtime (amount)</label>
+        <input id="overtimeHours" type="number" step="0.1" class="form-control" placeholder="Overtime pay">
+      </div>
+
+      <div class="col-6 col-md-2">
+        <label class="small-muted">Bonus (amount)</label>
+        <input id="bonusAmount" type="number" class="form-control" placeholder="Bonus">
+      </div>
+
+      <div class="col-6 col-md-2">
+        <label class="small-muted">&nbsp;</label>
+        <button class="btn btn-success w-100">Calculate</button>
+      </div>
+    </form>
+
+    <!-- Salary breakdown (option C: below the form) -->
+    <div id="salaryBreakdownCard" class="card p-3 mb-3" style="display:none;">
+      <h6>Salary Breakdown</h6>
+      <div class="row">
+        <div class="col-6 col-md-3"><div class="small-muted">Present days</div><strong id="presentCount">0</strong></div>
+        <div class="col-6 col-md-3"><div class="small-muted">Late days</div><strong id="lateCount">0</strong></div>
+        <div class="col-6 col-md-3"><div class="small-muted">Late minutes (total)</div><strong id="lateMinutes">0</strong></div>
+        <div class="col-6 col-md-3"><div class="small-muted">Absent days</div><strong id="absentCount">0</strong></div>
+      </div>
+
+      <hr>
+
+      <div class="row">
+        <div class="col-6 col-md-3"><div class="small-muted">Basic earned</div><strong id="basicSalary">0</strong></div>
+        <div class="col-6 col-md-3"><div class="small-muted">Late deduction</div><strong id="lateDeduction">0</strong></div>
+        <div class="col-6 col-md-3"><div class="small-muted">Absent deduction</div><strong id="absentDeduction">0</strong></div>
+        <div class="col-6 col-md-3"><div class="small-muted">Overtime</div><strong id="overtimePay">0</strong></div>
+      </div>
+
+      <div class="row mt-2">
+        <div class="col-6 col-md-3"><div class="small-muted">Bonus</div><strong id="bonusPay">0</strong></div>
+        <div class="col-6 col-md-3"><div class="small-muted">Total payable</div><strong id="totalPayable">0</strong></div>
+      </div>
+    </div>
+
+    <h6>Salary List</h6>
+    <div class="table-responsive">
+      <table id="salaryTable" class="table table-bordered mb-0">
+        <thead><tr><th>Employee</th><th>Range</th><th>Total</th><th>Action</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Attendance Chart -->
+  <div class="card p-3">
+    <h5>Attendance Chart</h5>
+    <canvas id="attendanceChart" height="100"></canvas>
+  </div>
+</div>
+
+<!-- Attendance modal -->
+<div class="modal" id="attendanceModal">
+  <div class="modal-content">
+    <div class="d-flex align-items-start">
+      <h6 class="me-auto">Mark Attendance</h6>
+      <button class="btn-close" onclick="closeModal()">&times;</button>
+    </div>
     
-    <!-- Login Form -->
-    <div id="loginForm">
-        <div class="mb-3">
-            <input type="text" id="loginUsername" class="form-control" placeholder="Username">
-        </div>
-        <div class="mb-3">
-            <input type="password" id="loginPassword" class="form-control" placeholder="Password">
-        </div>
-        <div class="mb-3">
-            <button class="btn btn-primary w-100" id="loginBtn">Login</button>
-        </div>
-        <div class="text-center">
-            <a href="#" id="showSignUp">Don't have an account? Sign Up</a>
-        </div>
+    <div class="mt-2">
+      <select id="modalEmployee" class="form-select mb-2"></select>
+      <select id="modalStatus" class="form-select mb-2">
+        <option value="">Select Status</option>
+        <option value="Present">Present</option>
+        <option value="Absent">Absent</option>
+        <option value="Late">Late</option>
+      </select>
+      <input id="modalLateMinutes" type="number" class="form-control mb-2" placeholder="Late minutes (if Late)">
+      <input id="modalDate" type="hidden">
+      <button class="btn btn-primary w-100" onclick="saveAttendance()">Save</button>
     </div>
-
-    <!-- Sign-Up Form -->
-    <div id="signUpForm" style="display:none;">
-        <div class="mb-3">
-            <input type="text" id="signUpUsername" class="form-control" placeholder="Username">
-        </div>
-        <div class="mb-3">
-            <input type="password" id="signUpPassword" class="form-control" placeholder="Password">
-        </div>
-        <div class="mb-3">
-            <button class="btn btn-success w-100" id="signUpBtn">Sign Up</button>
-        </div>
-        <div class="text-center">
-            <a href="#" id="showLogin">Already have an account? Login</a>
-        </div>
-    </div>
-
-    <div class="mb-3">
-        <button class="btn btn-outline-dark w-100" id="toggleDark">Toggle Dark Mode</button>
-    </div>
+  </div>
 </div>
 
-<!-- Dashboard -->
-<div class="container" id="dashboard" style="display:none;">
-
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>Modern HR Dashboard</h3>
-        <button class="btn btn-danger" id="logoutBtn">Logout</button>
-    </div>
-
-    <!-- Employee Management -->
-    <div class="mb-4">
-        <h5>Employees</h5>
-        <form id="addEmployeeForm" class="row g-2 align-items-center mb-2">
-            <div class="col-md-3">
-                <input type="text" class="form-control" id="empName" placeholder="Name" required>
-            </div>
-            <div class="col-md-3">
-                <input type="email" class="form-control" id="empEmail" placeholder="Email" required>
-            </div>
-            <div class="col-md-3">
-                <input type="text" class="form-control" id="empDept" placeholder="Department">
-            </div>
-            <div class="col-md-3">
-                <button class="btn btn-success w-100">Add Employee</button>
-            </div>
-        </form>
-        <input type="text" class="form-control mb-2" id="searchEmployee" placeholder="Search employee">
-        <div id="employeeTable"></div>
-    </div>
-
-    <!-- Attendance -->
-    <div class="mb-4">
-        <h5>Attendance</h5>
-        <div class="row g-2 align-items-center mb-2">
-            <div class="col-md-3">
-                <label class="small-muted">Month</label>
-                <input type="month" class="form-control" id="attendanceMonth">
-            </div>
-            <div class="col-md-3">
-                <label class="small-muted">Select Employee</label>
-                <select class="form-select" id="selectEmpForAttendance">
-                    <option value="">Select Employee</option>
-                </select>
-            </div>
-        </div>
-        <div class="mb-2">
-            <button class="btn btn-outline-primary me-2" id="scanEntry">Scan Entry</button>
-            <button class="btn btn-outline-success" id="scanExit">Scan Exit</button>
-        </div>
-        <div class="calendar-wrap">
-            <div id="calendar" class="calendar-grid"></div>
-        </div>
-    </div>
-
-    <!-- Salary Calculation -->
-    <div class="mb-4">
-        <h5>Salary Calculation</h5>
-        <form id="calculateSalaryForm" class="row g-2 align-items-center mb-2">
-            <div class="col-6 col-md-2">
-                <label class="small-muted">Employee</label>
-                <select id="salaryEmployee" class="form-select" required>
-                    <option value="">Select Employee</option>
-                </select>
-            </div>
-            <div class="col-6 col-md-2">
-                <label class="small-muted">Start Date</label>
-                <input id="startDate" type="date" class="form-control" required>
-            </div>
-            <div class="col-6 col-md-2">
-                <label class="small-muted">End Date</label>
-                <input id="endDate" type="date" class="form-control" required>
-            </div>
-            <div class="col-6 col-md-2">
-                <label class="small-muted">Bonus</label>
-                <input id="bonusAmount" type="number" class="form-control" placeholder="Bonus">
-            </div>
-            <div class="col-6 col-md-2">
-                <label class="small-muted">&nbsp;</label>
-                <button class="btn btn-success w-100">Calculate</button>
-            </div>
-        </form>
-
-        <div id="salaryBreakdownCard" class="card p-3 mb-3" style="display:none;">
-            <h6>Salary Breakdown</h6>
-            <div class="row">
-                <div class="col-6 col-md-3"><div class="small-muted">Present days</div><strong id="presentCount">0</strong></div>
-                <div class="col-6 col-md-3"><div class="small-muted">Late days</div><strong id="lateCount">0</strong></div>
-                <div class="col-6 col-md-3"><div class="small-muted">Overtime hours</div><strong id="overtimeHours">0</strong></div>
-                <div class="col-6 col-md-3"><div class="small-muted">Sunday bonus days</div><strong id="sundayBonus">0</strong></div>
-            </div>
-            <hr>
-            <div class="row">
-                <div class="col-6 col-md-3"><div class="small-muted">Base Salary</div><strong id="baseSalary">0</strong></div>
-                <div class="col-6 col-md-3"><div class="small-muted">Late Deduction</div><strong id="lateDeduction">0</strong></div>
-                <div class="col-6 col-md-3"><div class="small-muted">Overtime Pay</div><strong id="overtimePay">0</strong></div>
-                <div class="col-6 col-md-3"><div class="small-muted">Bonus</div><strong id="bonusPay">0</strong></div>
-            </div>
-            <div class="row mt-2">
-                <div class="col-6 col-md-3"><div class="small-muted">Total Payable</div><strong id="totalPayable">0</strong></div>
-                <div class="col-6 col-md-3 ms-auto text-end"><button id="exportPdfBtn" class="btn btn-outline-primary">Export Salary Slip (PDF)</button></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Attendance Chart -->
-    <div class="mb-4">
-        <h5>Attendance Chart</h5>
-        <canvas id="attendanceChart" height="100"></canvas>
-    </div>
-
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="loadCurrencies.js"></script>
 <script>
-let employees = [];
-let attendance = {}; // { empId: { 'YYYY-MM-DD': {entry:'time', exit:'time'} } }
-let darkMode = false;
+/* ====== DATA ====== */
+let employees = [], attendance = [], salaries = [], chartInstance = null;
 
-// Dark mode toggle
-document.getElementById('toggleDark').addEventListener('click', () => {
-    darkMode = !darkMode;
-    document.body.classList.toggle('dark-mode', darkMode);
-});
-
-const loginFormDiv = document.getElementById('loginForm');
-const signUpFormDiv = document.getElementById('signUpForm');
-const authTitle = document.getElementById('authTitle');
-
-document.getElementById('showSignUp').addEventListener('click', e => {
-    e.preventDefault();
-    loginFormDiv.style.display = 'none';
-    signUpFormDiv.style.display = 'block';
-    authTitle.textContent = 'HR Sign-Up';
-});
-
-document.getElementById('showLogin').addEventListener('click', e => {
-    e.preventDefault();
-    signUpFormDiv.style.display = 'none';
-    loginFormDiv.style.display = 'block';
-    authTitle.textContent = 'HR Login';
-});
-
-// Simple in-memory signup & login (for demo)
-let users = []; // {username, password}
-
-document.getElementById('signUpBtn').addEventListener('click', () => {
-    const username = document.getElementById('signUpUsername').value.trim();
-    const password = document.getElementById('signUpPassword').value.trim();
-    if(!username || !password) return alert('Enter username & password');
-    if(users.find(u=>u.username===username)) return alert('Username already exists');
-    users.push({username,password});
-    alert('Sign-Up successful! You can now login.');
-    document.getElementById('showLogin').click();
-});
-
-document.getElementById('loginBtn').addEventListener('click', () => {
-    const username = document.getElementById('loginUsername').value.trim();
-    const password = document.getElementById('loginPassword').value.trim();
-    if(users.find(u=>u.username===username && u.password===password)){
-        document.getElementById('loginScreen').style.display='none';
-        document.getElementById('dashboard').style.display='block';
-    } else {
-        alert('Invalid username or password');
-    }
-});
-    
-// Employee Management
-const addEmployeeForm = document.getElementById('addEmployeeForm');
-const employeeTableDiv = document.getElementById('employeeTable');
-const selectEmpForAttendance = document.getElementById('selectEmpForAttendance');
-const salaryEmployee = document.getElementById('salaryEmployee');
-const searchEmployeeInput = document.getElementById('searchEmployee');
-
-addEmployeeForm.addEventListener('submit', e => {
-    e.preventDefault();
-    const name = document.getElementById('empName').value.trim();
-    const email = document.getElementById('empEmail').value.trim();
-    const dept = document.getElementById('empDept').value.trim();
-    if(name && email){
-        const id = Date.now();
-        employees.push({id,name,email,dept});
-        attendance[id] = {};
-        updateEmployeeList();
-        addEmployeeForm.reset();
-    }
-});
-
-function updateEmployeeList(){
-    const searchTerm = searchEmployeeInput.value.toLowerCase();
-    employeeTableDiv.innerHTML = employees.filter(emp=>emp.name.toLowerCase().includes(searchTerm)||emp.email.toLowerCase().includes(searchTerm)).map(emp => `
-        <div class="d-flex justify-content-between align-items-center border p-2 mb-1 rounded">
-            <div><strong>${emp.name}</strong> (${emp.email}) - ${emp.dept || 'N/A'}</div>
-            <div>
-                <button class="btn btn-sm btn-info me-1" onclick="viewEmployee(${emp.id})">View</button>
-                <button class="btn btn-sm btn-warning me-1" onclick="editEmployee(${emp.id})">Edit</button>
-                <button class="btn btn-sm btn-danger" onclick="deleteEmployee(${emp.id})">Delete</button>
-            </div>
-        </div>
-    `).join('');
-    selectEmpForAttendance.innerHTML = `<option value="">Select Employee</option>` + employees.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
-    salaryEmployee.innerHTML = `<option value="">Select Employee</option>` + employees.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
+/* ====== HELPERS ====== */
+function saveData(){
+  localStorage.setItem('employees', JSON.stringify(employees));
+  localStorage.setItem('attendance', JSON.stringify(attendance));
+  localStorage.setItem('salaries', JSON.stringify(salaries));
 }
-searchEmployeeInput.addEventListener('input', updateEmployeeList);
-
-function viewEmployee(id){
-    const emp = employees.find(e=>e.id==id);
-    alert(`Employee Info:\nName: ${emp.name}\nEmail: ${emp.email}\nDept: ${emp.dept}`);
+function loadData(){
+  employees = JSON.parse(localStorage.getItem('employees')||'[]');
+  attendance = JSON.parse(localStorage.getItem('attendance')||'[]');
+  salaries = JSON.parse(localStorage.getItem('salaries')||'[]');
+  updateEmployeeTable(); updateEmployeeSelects(); renderAttendanceTable(); renderCalendar(); renderChart(); renderSalaryTable();
 }
 
-function editEmployee(id){
-    const emp = employees.find(e=>e.id==id);
-    const newName = prompt("Edit Name", emp.name);
-    const newEmail = prompt("Edit Email", emp.email);
-    const newDept = prompt("Edit Dept", emp.dept);
-    if(newName) emp.name=newName;
-    if(newEmail) emp.email=newEmail;
-    if(newDept!=null) emp.dept=newDept;
-    updateEmployeeList();
+/* ====== EMPLOYEE TABLE: clickable names, list names only ===== */
+function updateEmployeeTable(){
+  const wrap = document.getElementById('employeeTable');
+  wrap.innerHTML = '';
+  employees.forEach((e,i)=>{
+    const row = document.createElement('div');
+    row.className = 'employee-row';
+    // clickable name only
+    row.innerHTML = `<div><strong style="cursor:pointer;color:#0d6efd;" onclick="selectEmployee(${i})">${e.name}</strong></div>`;
+    wrap.appendChild(row);
+  });
 }
 
-function deleteEmployee(id){
-    if(confirm("Delete this employee?")){
-        employees = employees.filter(e=>e.id!=id);
-        delete attendance[id];
-        updateEmployeeList();
-    }
+/* ====== SELECT EMPLOYEE ===== */
+function selectEmployee(empIndex){
+  if(isNaN(empIndex)) return;
+  // filter attendance table
+  renderAttendanceTableFiltered(empIndex);
+  // render calendar for this employee only
+  renderCalendar(empIndex);
+  // hide salary breakdown
+  document.getElementById('salaryBreakdownCard').style.display = 'none';
 }
+/* ====== RENDER CALENDAR (Professional & Responsive) ====== */
+function renderCalendar(empIndex = null){
+  const monthInput = document.getElementById('attendanceMonth').value;
+  const calendarDiv = document.getElementById('calendar');
+  const selDisplay = document.getElementById('selectedMonthDisplay');
+  const rangeDisplay = document.getElementById('selectedRangeDisplay');
 
-// Attendance
-const calendarDiv = document.getElementById('calendar');
-const attendanceMonth = document.getElementById('attendanceMonth');
+  if(!monthInput){
+    calendarDiv.innerHTML = '<div class="small-muted">Select a month to view calendar.</div>';
+    selDisplay.innerText = '';
+    rangeDisplay.innerText = '';
+    return;
+  }
 
-function buildCalendar(){
-    const monthValue = attendanceMonth.value;
-    const empId = selectEmpForAttendance.value;
-    if(!monthValue || !empId) return;
-    const [year,month] = monthValue.split('-').map(Number);
-    const date = new Date(year, month-1, 1);
-    const daysInMonth = new Date(year, month, 0).getDate();
-    calendarDiv.innerHTML='';
-    for(let i=1;i<=daysInMonth;i++){
-        const d = new Date(year, month-1, i);
-        const key = `${year}-${month}-${i}`;
-        const div = document.createElement('div');
-        div.textContent = i;
-        const att = attendance[empId][key];
-        if(att){
-            if(att.entry && att.exit) div.classList.add('present');
-            else if(att.entry) div.classList.add('late');
-        }
-        if(d.getDay()==0 && att && att.entry) div.classList.add('sunday-work');
-        calendarDiv.appendChild(div);
+  // Parse month/year
+  const [year, monthStr] = monthInput.split('-');
+  const month = parseInt(monthStr, 10);
+  const daysInMonth = new Date(year, month, 0).getDate();
+
+  selDisplay.innerText = `${year}-${monthStr}`;
+  rangeDisplay.innerText = `${year}-${monthStr}-01 → ${year}-${monthStr}-${String(daysInMonth).padStart(2,'0')}`;
+
+  const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const firstWeekday = new Date(year, month - 1, 1).getDay();
+
+  // Start responsive grid
+  let html = `<div style="display:grid;grid-template-columns:repeat(7, 1fr);gap:4px;">`;
+
+  // Weekday headers
+  weekdays.forEach(day => {
+    html += `<div style="font-size:0.7rem;font-weight:600;text-align:center;color:rgba(0,0,0,0.6);padding:4px 0;">${day}</div>`;
+  });
+
+  // Empty cells for first week offset
+  for(let i=0; i<firstWeekday; i++){
+    html += `<div></div>`;
+  }
+
+  // Render each day
+  for(let d=1; d<=daysInMonth; d++){
+    const dayStr = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+
+    let att = null;
+    if(empIndex !== null) att = attendance.find(a => a.date === dayStr && a.empIndex === empIndex);
+    else att = attendance.find(a => a.date === dayStr);
+
+    let bgColor = 'transparent';
+    if(att){
+      const present = getComputedStyle(document.body).getPropertyValue('--present').trim() || '#28a745';
+      const absent = getComputedStyle(document.body).getPropertyValue('--absent').trim() || '#dc3545';
+      const late = getComputedStyle(document.body).getPropertyValue('--late').trim() || '#ffc107';
+      if(att.status === 'Present') bgColor = present;
+      else if(att.status === 'Absent') bgColor = absent;
+      else bgColor = late;
     }
+
+    const weekdayLabel = weekdays[new Date(year, month - 1, d).getDay()];
+
+    let statusTag = '';
+    if(att){
+      statusTag = `<div style="font-size:0.6rem;margin-top:2px;padding:1px 4px;border-radius:4px;background:rgba(0,0,0,0.07);white-space:nowrap;">
+                     ${att.status}${att.status==='Late' ? ` (${att.late||0}m)` : ''}
+                   </div>`;
+    }
+
+  html += `
+  <div class="day-cell" 
+       onclick="openModal('${dayStr}')"
+       style="
+         background:${bgColor};
+         aspect-ratio:1/1;
+         width:100%;
+         max-width:48px;
+         border-radius:10px;
+         padding:4px;
+         display:flex;
+         flex-direction:column;
+         align-items:center;
+         justify-content:center;
+         cursor:pointer;
+         position:relative;
+       ">
+
+    <div style="font-weight:700;font-size:0.80rem;line-height:1;">${d}</div>
+
+    <div style="font-size:0.60rem;color:rgba(0,0,0,0.65);line-height:1;margin-top:1px;">
+      ${weekdayLabel}
+    </div>
+
+    ${att ? `
+      <div style="
+        position:absolute;
+        bottom:2px;
+        background:#ffffffd9;
+        padding:1px 4px;
+        font-size:0.55rem;
+        border-radius:4px;
+        display:flex;
+        align-items:center;
+        gap:3px;
+      ">
+        <span style="
+          width:6px;
+          height:6px;
+          border-radius:50%;
+          background:${bgColor};
+        "></span>
+        ${att.status}
+      </div>
+    ` : ''}
+
+  </div>
+`;
 }
-
-attendanceMonth.addEventListener('change', buildCalendar);
-selectEmpForAttendance.addEventListener('change', buildCalendar);
-
-// Scan Entry/Exit simulation
-document.getElementById('scanEntry').addEventListener('click', ()=>{
-    const empId = selectEmpForAttendance.value;
-    const date = new Date();
-    if(!empId) return alert('Select employee');
-    const key = `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}`;
-    attendance[empId][key] = attendance[empId][key] || {};
-    attendance[empId][key].entry = date.toLocaleTimeString();
-    alert(`Entry time recorded for ${employees.find(e=>e.id==empId).name}: ${attendance[empId][key].entry}`);
-    buildCalendar();
-});
-
-document.getElementById('scanExit').addEventListener('click', ()=>{
-    const empId = selectEmpForAttendance.value;
-    const date = new Date();
-    if(!empId) return alert('Select employee');
-    const key = `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}`;
-    if(!attendance[empId][key] || !attendance[empId][key].entry) return alert('No entry recorded for today');
-    attendance[empId][key].exit = date.toLocaleTimeString();
-    alert(`Exit time recorded for ${employees.find(e=>e.id==empId).name}: ${attendance[empId][key].exit}`);
-    buildCalendar();
-});
-
-// Salary Calculation
-const calculateSalaryForm = document.getElementById('calculateSalaryForm');
-const salaryBreakdownCard = document.getElementById('salaryBreakdownCard');
-
-calculateSalaryForm.addEventListener('submit', e=>{
-    e.preventDefault();
-    const empId = salaryEmployee.value;
-    const start = new Date(document.getElementById('startDate').value);
-    const end = new Date(document.getElementById('endDate').value);
-    const bonus = parseFloat(document.getElementById('bonusAmount').value)||0;
-    if(!empId || !start || !end) return;
-
-    let present=0, late=0, overtime=0, sundayBonus=0;
-    for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){
-        const key = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
-        const att = attendance[empId][key];
-        if(att && att.entry && att.exit){
-            present++;
-            const entryH = parseInt(att.entry.split(':')[0]);
-            if(entryH>9) late++;
-            const exitH = parseInt(att.exit.split(':')[0]);
-            if(exitH>17) overtime++;
-            if(d.getDay()==0) sundayBonus++;
-        }
-    }
-
-    const baseSalary = present*1000;
-    const lateDeduction = late*50;
-    const overtimePay = overtime*100;
-    const totalPayable = baseSalary + overtimePay + bonus + (sundayBonus*100) - lateDeduction;
-
-    salaryBreakdownCard.style.display='block';
-    document.getElementById('presentCount').textContent=present;
-    document.getElementById('lateCount').textContent=late;
-    document.getElementById('overtimeHours').textContent=overtime;
-    document.getElementById('sundayBonus').textContent=sundayBonus;
-    document.getElementById('baseSalary').textContent=baseSalary;
-    document.getElementById('lateDeduction').textContent=lateDeduction;
-    document.getElementById('overtimePay').textContent=overtimePay;
-    document.getElementById('bonusPay').textContent=bonus;
-    document.getElementById('totalPayable').textContent=totalPayable;
-});
-
-// Export PDF
-document.getElementById('exportPdfBtn').addEventListener('click', ()=>{
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.text('Salary Slip',20,20);
-    doc.text(`Employee: ${salaryEmployee.selectedOptions[0].text}`,20,30);
-    doc.text(`Present Days: ${document.getElementById('presentCount').textContent}`,20,40);
-    doc.text(`Late Days: ${document.getElementById('lateCount').textContent}`,20,50);
-    doc.text(`Overtime Hours: ${document.getElementById('overtimeHours').textContent}`,20,60);
-    doc.text(`Sunday Bonus Days: ${document.getElementById('sundayBonus').textContent}`,20,70);
-    doc.text(`Total Payable: ${document.getElementById('totalPayable').textContent}`,20,80);
-    doc.save('salary-slip.pdf');
-});
-
-// Attendance Chart
-const ctx = document.getElementById('attendanceChart').getContext('2d');
-const attendanceChart = new Chart(ctx,{
-    type:'bar',
-    data:{labels:['Present','Late','Overtime','Sunday Bonus'],datasets:[{label:'Attendance',data:[0,0,0,0],backgroundColor:['green','orange','blue','purple']}]},
-    options:{responsive:true,plugins:{legend:{display:false}}}
-});
   
- functionupdateChart(empId){
-    if(!empId) return;
-    let present=0, late=0, overtime=0, sundayBonus=0;
-    for(let key in attendance[empId]){
-        const att = attendance[empId][key];
-        if(att && att.entry && att.exit){
-            present++;
-            const entryH = parseInt(att.entry.split(':')[0]);
-            if(entryH>9) late++;
-            const exitH = parseInt(att.exit.split(':')[0]);
-            if(exitH>17) overtime++;
-            const dParts = key.split('-');
-            const d = new Date(dParts[0], dParts[1]-1, dParts[2]);
-            if(d.getDay()===0) sundayBonus++;
-        }
-    }
-    attendanceChart.data.datasets[0].data = [present, late, overtime, sundayBonus];
-    attendanceChart.update();
+  html += '</div>';
+  calendarDiv.innerHTML = html;
+  }
+
+/* ====== ATTENDANCE TABLE (all) ===== */
+function renderAttendanceTable(){
+  const tbody = document.querySelector('#attendanceTable tbody');
+  tbody.innerHTML = '';
+  attendance.forEach((a,i)=>{
+    const tr = document.createElement('tr');
+    const name = employees[a.empIndex]?.name || '[removed]';
+    tr.innerHTML = `<td>${a.date}</td><td>${name}</td><td>${a.status}</td><td>${a.late || 0}</td><td></td>`;
+    const btn = document.createElement('button'); btn.className='btn btn-sm btn-danger'; btn.innerText='Delete';
+    btn.onclick = ()=>{ attendance.splice(i,1); saveData(); renderAttendanceTable(); renderCalendar(); renderChart(); };
+    tr.lastElementChild.appendChild(btn);
+    tbody.appendChild(tr);
+  });
 }
 
-selectEmpForAttendance.addEventListener('change', () => updateChart(selectEmpForAttendance.value));
-salaryEmployee.addEventListener('change', () => updateChart(salaryEmployee.value));
+/* ====== ATTENDANCE TABLE FILTERED ===== */
+function renderAttendanceTableFiltered(empIndex){
+  const tbody = document.querySelector('#attendanceTable tbody');
+  tbody.innerHTML = '';
+  attendance.forEach((a,i)=>{
+    if(a.empIndex !== empIndex) return;
+    const tr = document.createElement('tr');
+    const name = employees[a.empIndex]?.name || '[removed]';
+    tr.innerHTML = `<td>${a.date}</td><td>${name}</td><td>${a.status}</td><td>${a.late || 0}</td><td></td>`;
+    const btn = document.createElement('button'); btn.className='btn btn-sm btn-danger'; btn.innerText='Delete';
+    btn.onclick = ()=>{ attendance.splice(i,1); saveData(); /* re-filter after delete */ renderAttendanceTableFiltered(empIndex); renderCalendar(empIndex); renderChart(); };
+    tr.lastElementChild.appendChild(btn);
+    tbody.appendChild(tr);
+  });
+}
 
-</script>
-</body>
-</html>
+/* ====== SALARY CALCULATION ======
+   - Late deduction is proportional to late minutes:
+     deduction = (lateMinutes / 480) * dailySalary  (480 = 8 hours x 60)
+   - Absent deduction = full daily salary per absent day
+   - Basic earned = sum of dailySalary for Present/Late days
+   - Overtime & Bonus added as amounts
+*/
+function calculateSalaryDetailed(empIndex,startStr,endStr,overtimeAmount,bonusAmount){
+  const emp = employees[empIndex];
+  if(!emp) return null;
+  const startDate = new Date(startStr);
+  const endDate = new Date(endStr);
+  const dailySalary = Number(emp.salary) / 30;
+
+  let present = 0, lateDays = 0, absent = 0, lateMinutesTotal = 0;
+  let basic = 0, lateDeduction = 0, absentDeduction = 0;
+
+  attendance.forEach(a=>{
+    if(a.empIndex !== empIndex) return;
+    const ad = new Date(a.date);
+    if(ad < startDate || ad > endDate) return;
+    if(a.status === 'Present'){
+      present++; basic += dailySalary;
+    } else if(a.status === 'Late'){
+      lateDays++;
+      const mins = Number(a.late) || 0;
+      lateMinutesTotal += mins;
+      basic += dailySalary;
+      // proportional deduction for minutes late
+      lateDeduction += (mins / 480) * dailySalary;
+    } else if(a.status === 'Absent'){
+      absent++;
+      absentDeduction += dailySalary;
+    }
+  });
+
+  const overtime = parseFloat(overtimeAmount) || 0;
+  const bonus = parseFloat(bonusAmount) || 0;
+  const totalPayable = basic - lateDeduction - absentDeduction + overtime + bonus;
+
+  return {
+    present, lateDays, absent, lateMinutesTotal,
+    basic: basic.toFixed(2),
+    lateDeduction: lateDeduction.toFixed(2),
+    absentDeduction: absentDeduction.toFixed(2),
+    overtimePay: overtime.toFixed(2),
+    bonusPay: bonus.toFixed(2),
+    totalPayable: totalPayable.toFixed(2)
+  };
+}
+
+/* ====== RENDER SALARY TABLE ====== */
+function renderSalaryTable(){
+  const tbody = document.querySelector('#salaryTable tbody');
+  tbody.innerHTML = '';
+  salaries.forEach((s,i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${employees[s.empIndex]?.name||'[removed]'}</td><td>${s.range}</td><td>${s.total}</td><td></td>`;
+    const btn = document.createElement('button'); btn.className='btn btn-sm btn-danger'; btn.innerText='Delete';
+    btn.onclick = ()=>{ salaries.splice(i,1); saveData(); renderSalaryTable(); };
+    tr.children[3].appendChild(btn);
+    tbody.appendChild(tr);
+  });
+}
+
+/* ====== CHART ====== */
+function renderChart(){
+  const ctx = document.getElementById('attendanceChart');
+  let present=0, absent=0, late=0;
+  attendance.forEach(a=>{ if(a.status==='Present') present++; else if(a.status==='Absent') absent++; else late++; });
+  if(chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(ctx, {
+    type:'pie',
+    data:{ labels:['Present','Absent','Late'], datasets:[{ data:[present,absent,late], backgroundColor:[
+      getComputedStyle(document.body).getPropertyValue('--present'),
+      getComputedStyle(document.body).getPropertyValue('--absent'),
+      getComputedStyle(document.body).getPropertyValue('--late')
+    ]}]}
+  });
+}
+
+/* ====== MODAL FUNCTIONS (added missing ones) ====== */
+function openModal(dateStr){
+  // populate modal employee select
+  updateEmployeeSelects(); // ensures modalEmployee has current list
+  document.getElementById('modalDate').value = dateStr;
+  document.getElementById('modalLateMinut
