@@ -8,32 +8,94 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 :root{
-  --bg:#fff; --text:#000; --card-bg:#f8f9fa; --input-bg:#fff; --input-text:#000; --table-header:#e9ecef;
+  --bg:#fff; --text:#111; --card-bg:#f8f9fa; --input-bg:#fff; --input-text:#000; --table-header:#e9ecef;
   --present:#28a745; --absent:#dc3545; --late:#ffc107;
+  --present-rgba: rgba(40,167,69,0.12);
+  --absent-rgba: rgba(220,53,69,0.12);
+  --late-rgba: rgba(255,193,7,0.12);
 }
 body.dark-mode{
-  --bg:#111; --text:#f2f2f2; --card-bg:#1a1a1a; --input-bg:#222; --input-text:#f2f2f2; --table-header:#262626;
+  --bg:#0f1113; --text:#e8eef1; --card-bg:#121416; --input-bg:#15181a; --input-text:#e8eef1; --table-header:#1c1c1c;
+  --present-rgba: rgba(40,167,69,0.14);
+  --absent-rgba: rgba(220,53,69,0.14);
+  --late-rgba: rgba(255,193,7,0.14);
 }
 body{background:var(--bg); color:var(--text); font-family:Inter,system-ui,Arial; padding-bottom:40px;}
 .card{background:var(--card-bg); color:var(--text); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,0.06); margin-bottom:1rem;}
 input,select,textarea{background:var(--input-bg); color:var(--input-text);}
-.employee-row{display:flex;flex-wrap:wrap;gap:0.5rem;border-bottom:1px solid rgba(0,0,0,0.06);padding:0.6rem 0;align-items:center;}
-.employee-row>div{flex:1 1 120px;min-width:90px;}
-.employee-row button{flex:0 0 auto;}
-.day-cell{cursor:pointer;text-align:center;padding:6px;border-radius:6px;margin:3px;display:inline-block;width:34px;height:34px;line-height:20px;border:1px solid rgba(0,0,0,0.08);}
-.summary-badge{display:inline-block;padding:6px 10px;border-radius:8px;background:rgba(0,0,0,0.03);margin-right:6px;}
-@media (max-width:576px){ .employee-row>div{flex:1 1 100%;} .day-cell{width:28px;height:28px;padding:4px;} }
-.small-muted{font-size:0.85rem;color:rgba(0,0,0,0.5);}
+.employee-row{display:flex;flex-wrap:wrap;gap:0.5rem;border-bottom:1px solid rgba(0,0,0,0.06);padding:0.55rem 0;align-items:center;}
+.employee-row>div{flex:1 1 120px;min-width:120px;}
+.employee-actions{display:flex;gap:6px;align-items:center;}
+.employee-actions button{flex:0 0 auto;}
+/* default day cell (small, square) */
+.day-cell{
+  cursor:pointer;
+  text-align:center;
+  border-radius:10px;
+  margin:3px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  border:1px solid rgba(0,0,0,0.06);
+  padding:6px;
+  position:relative;
+  transition:transform .08s;
+  background:transparent;
+  overflow:visible;
+}
+/* visual date text */
+.day-cell .date-num{font-weight:700;font-size:0.9rem;line-height:1;color:var(--text);}
+.day-cell .weekday{font-size:0.62rem;color:rgba(0,0,0,0.6);margin-top:2px;}
+/* small colored corner dot and status pill */
+.status-dot{
+  position:absolute;
+  top:6px;
+  right:6px;
+  width:8px;height:8px;border-radius:50%;box-shadow:0 0 0 2px rgba(0,0,0,0.03) inset;
+}
+.status-pill{
+  position:absolute;
+  bottom:4px;
+  left:50%;
+  transform:translateX(-50%);
+  background:rgba(255,255,255,0.95);
+  padding:2px 6px;border-radius:6px;
+  font-size:0.62rem;color:var(--text);
+  box-shadow:0 2px 6px rgba(0,0,0,0.06);
+  white-space:nowrap;
+}
+/* calendar container responsiveness */
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:start;}
+.calendar-weekhead{font-size:0.72rem;font-weight:700;text-align:center;color:rgba(0,0,0,0.6);padding:6px 0;}
+/* set square cells that shrink on mobile */
+.calendar-grid .day-wrapper{display:flex;justify-content:center;}
+.day-cell{width:100%;max-width:64px;aspect-ratio:1/1;}
+@media (max-width:800px){
+  .day-cell{max-width:54px;}
+  .calendar-grid{gap:4px;}
+  .calendar-weekhead{font-size:0.65rem;}
+}
+@media (max-width:480px){
+  .day-cell{max-width:44px;padding:4px;}
+  .day-cell .weekday{display:none;}
+  .calendar-weekhead{font-size:0.62rem;}
+}
+/* summary badges */
+.summary-badge{display:inline-block;padding:6px 10px;border-radius:8px;background:rgba(0,0,0,0.03);margin-right:6px;font-size:0.85rem;color:rgba(0,0,0,0.7);}
 
-/* minimal modal styles so show/hide works without touching markup */
-#attendanceModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); align-items:center; justify-content:center; z-index:1050; }
-#attendanceModal .modal-content{ background:var(--card-bg); color:var(--text); padding:16px; border-radius:8px; max-width:380px; width:90%; margin:auto; box-shadow:0 10px 30px rgba(0,0,0,0.2);}
-#attendanceModal .btn-close{border:none;background:transparent;font-size:1.1rem;}
+/* Employee detail modal */
+#employeeDetailModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);align-items:center;justify-content:center;z-index:1060;}
+#employeeDetailModal .modal-card{max-width:820px;width:96%;background:var(--card-bg);border-radius:10px;padding:16px;box-shadow:0 20px 50px rgba(0,0,0,0.35);color:var(--text);}
+
+/* small helpers */
+.small-muted{font-size:0.85rem;color:rgba(0,0,0,0.5);}
+.btn-ghost{background:transparent;border:1px solid rgba(0,0,0,0.06);padding:6px 10px;border-radius:8px;}
 </style>
 </head>
 <body class="container mt-4">
 
-<!-- LOGIN / SIGNUP -->
+<!-- LOGIN / SIGNUP (unchanged) -->
 <div id="loginDiv" class="card p-4">
   <h3>HR Login / Sign Up</h3>
   <div class="d-flex align-items-center mb-3">
@@ -63,7 +125,11 @@ input,select,textarea{background:var(--input-bg); color:var(--input-text);}
 <div id="mainApp" style="display:none;">
   <div class="d-flex align-items-center mb-3">
     <h2 class="me-auto">HR Dashboard</h2>
-    <button id="logoutBtn" class="btn btn-danger">Logout</button>
+    <div class="d-flex gap-2 align-items-center">
+      <button id="toggleAttendanceTable" class="btn btn-outline-secondary btn-sm">Show All Attendance</button>
+      <button id="exportAll" class="btn btn-sm btn-ghost">Export CSV</button>
+      <button id="logoutBtn" class="btn btn-danger">Logout</button>
+    </div>
   </div>
 
   <!-- EMPLOYEE -->
@@ -102,11 +168,12 @@ input,select,textarea{background:var(--input-bg); color:var(--input-text);}
       </div>
     </div>
 
-    <div id="calendar" class="mt-2"></div>
+    <div id="calendarContainer" class="mt-2"></div>
   </div>
 
-  <div class="card p-3">
-    <h5>Attendance Records</h5>
+  <!-- Attendance Records (hidden by default) -->
+  <div id="attendanceRecordsCard" class="card p-3" style="display:none;">
+    <h5>Attendance Records (All)</h5>
     <div class="table-responsive">
       <table id="attendanceTable" class="table table-bordered mb-0">
         <thead><tr><th>Date</th><th>Employee</th><th>Status</th><th>Late (min)</th><th>Action</th></tr></thead>
@@ -215,10 +282,48 @@ input,select,textarea{background:var(--input-bg); color:var(--input-text);}
   </div>
 </div>
 
+<!-- Employee detail modal -->
+<div id="employeeDetailModal">
+  <div class="modal-card">
+    <div class="d-flex align-items-start mb-2">
+      <h5 id="detailName" class="me-auto"></h5>
+      <div>
+        <button class="btn btn-outline-secondary btn-sm me-2" onclick="closeEmployeeDetail()">Close</button>
+        <button id="deleteEmployeeFromDetail" class="btn btn-danger btn-sm">Delete</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-5">
+        <div class="card p-3 mb-3">
+          <h6>Employee Info</h6>
+          <div><strong>Department:</strong> <span id="detailDept"></span></div>
+          <div><strong>Designation:</strong> <span id="detailDesig"></span></div>
+          <div><strong>Basic Salary:</strong> <span id="detailSalary"></span></div>
+          <div><strong>Currency:</strong> <span id="detailCurrency"></span></div>
+        </div>
+      </div>
+      <div class="col-md-7">
+        <div class="card p-3 mb-3">
+          <h6>Attendance (this employee)</h6>
+          <div class="table-responsive" style="max-height:260px;overflow:auto;">
+            <table class="table table-sm mb-0">
+              <thead><tr><th>Date</th><th>Status</th><th>Late</th><th>Action</th></tr></thead>
+              <tbody id="detailAttendanceBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <script src="loadCurrencies.js"></script>
 <script>
 /* ====== DATA ====== */
 let employees = [], attendance = [], salaries = [], chartInstance = null;
+let showAttendanceTable = false; // default hidden
 
 /* ====== HELPERS ====== */
 function saveData(){
@@ -230,49 +335,117 @@ function loadData(){
   employees = JSON.parse(localStorage.getItem('employees')||'[]');
   attendance = JSON.parse(localStorage.getItem('attendance')||'[]');
   salaries = JSON.parse(localStorage.getItem('salaries')||'[]');
-  updateEmployeeTable(); updateEmployeeSelects(); renderAttendanceTable(); renderCalendar(); renderChart(); renderSalaryTable();
+  updateEmployeeTable();
+  updateEmployeeSelects();
+  renderAttendanceTable();
+  renderCalendar();
+  renderChart();
+  renderSalaryTable();
 }
 
-/* ====== EMPLOYEE TABLE: clickable names, list names only ===== */
+/* ====== EMPLOYEE TABLE (view + delete) ====== */
 function updateEmployeeTable(){
   const wrap = document.getElementById('employeeTable');
   wrap.innerHTML = '';
+  if(employees.length === 0){
+    wrap.innerHTML = '<div class="small-muted">No employees yet.</div>';
+    return;
+  }
   employees.forEach((e,i)=>{
     const row = document.createElement('div');
     row.className = 'employee-row';
-    // clickable name only
-    row.innerHTML = `<div><strong style="cursor:pointer;color:#0d6efd;" onclick="selectEmployee(${i})">${e.name}</strong></div>`;
+    row.innerHTML = `
+      <div><strong style="cursor:pointer;color:#0d6efd;" onclick="viewEmployee(${i})">${e.name}</strong></div>
+      <div class="employee-actions">
+        <button class="btn btn-sm btn-outline-primary" onclick="viewEmployee(${i})">View</button>
+        <button class="btn btn-sm btn-danger" onclick="confirmDeleteEmployee(${i})">Delete</button>
+      </div>
+    `;
     wrap.appendChild(row);
   });
 }
 
-/* ====== SELECT EMPLOYEE ===== */
-function selectEmployee(empIndex){
-  if(isNaN(empIndex)) return;
-  // filter attendance table
-  renderAttendanceTableFiltered(empIndex);
-  // render calendar for this employee only
-  renderCalendar(empIndex);
-  // hide salary breakdown
-  document.getElementById('salaryBreakdownCard').style.display = 'none';
+/* ====== VIEW EMPLOYEE (detail modal) ====== */
+function viewEmployee(empIndex){
+  const emp = employees[empIndex];
+  if(!emp) return;
+  document.getElementById('detailName').innerText = emp.name;
+  document.getElementById('detailDept').innerText = emp.dept || '-';
+  document.getElementById('detailDesig').innerText = emp.desig || '-';
+  document.getElementById('detailSalary').innerText = emp.salary || '0';
+  document.getElementById('detailCurrency').innerText = emp.currency || '-';
+  // populate attendance for this employee
+  const tbody = document.getElementById('detailAttendanceBody');
+  tbody.innerHTML = '';
+  const empAttendance = attendance.filter(a=>a.empIndex === empIndex).sort((a,b)=>b.date.localeCompare(a.date));
+  if(empAttendance.length === 0){
+    tbody.innerHTML = '<tr><td colspan="4" class="small-muted">No attendance for this employee.</td></tr>';
+  } else {
+    empAttendance.forEach((a,idx)=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${a.date}</td><td>${a.status}</td><td>${a.late||0}</td><td></td>`;
+      const del = document.createElement('button');
+      del.className = 'btn btn-sm btn-danger';
+      del.innerText = 'Delete';
+      del.onclick = ()=>{ 
+        const indexAll = attendance.findIndex(x=>x.empIndex===a.empIndex && x.date===a.date);
+        if(indexAll !== -1) attendance.splice(indexAll,1);
+        saveData(); renderCalendar(); renderChart(); viewEmployee(empIndex); renderAttendanceTableFiltered(empIndex);
+      };
+      tr.lastElementChild.appendChild(del);
+      tbody.appendChild(tr);
+    });
+  }
+
+  // open modal
+  document.getElementById('employeeDetailModal').style.display = 'flex';
+  // wire delete-from-detail button
+  document.getElementById('deleteEmployeeFromDetail').onclick = ()=>confirmDeleteEmployee(empIndex,true);
 }
-/* ====== RENDER CALENDAR (Professional & Responsive) ====== */
+
+/* close detail */
+function closeEmployeeDetail(){
+  document.getElementById('employeeDetailModal').style.display = 'none';
+}
+
+/* ====== CONFIRM + DELETE EMPLOYEE ====== */
+function confirmDeleteEmployee(index, fromDetail=false){
+  if(!confirm('Delete this employee and all related records? This cannot be undone.')) return;
+  // remove salaries related
+  salaries = salaries.filter(s=>s.empIndex !== index);
+  // remove attendance and adjust empIndex for later employees
+  attendance = attendance.filter(a => a.empIndex !== index);
+  // remove employee
+  employees.splice(index,1);
+  // after removal: shift empIndex in attendance and salaries > index
+  attendance = attendance.map(a => ({...a, empIndex: a.empIndex > index ? a.empIndex - 1 : a.empIndex}));
+  salaries = salaries.map(s => ({...s, empIndex: s.empIndex > index ? s.empIndex - 1 : s.empIndex}));
+  saveData();
+  updateEmployeeTable();
+  updateEmployeeSelects();
+  renderAttendanceTable();
+  renderCalendar();
+  renderChart();
+  renderSalaryTable();
+  if(fromDetail) closeEmployeeDetail();
+}
+
+/* ====== RENDER CALENDAR (professional + responsive) ====== */
 function renderCalendar(empIndex = null){
   const monthInput = document.getElementById('attendanceMonth').value;
-  const calendarDiv = document.getElementById('calendar');
+  const container = document.getElementById('calendarContainer');
   const selDisplay = document.getElementById('selectedMonthDisplay');
   const rangeDisplay = document.getElementById('selectedRangeDisplay');
 
   if(!monthInput){
-    calendarDiv.innerHTML = '<div class="small-muted">Select a month to view calendar.</div>';
+    container.innerHTML = '<div class="small-muted">Select a month to view calendar.</div>';
     selDisplay.innerText = '';
     rangeDisplay.innerText = '';
     return;
   }
 
-  // Parse month/year
   const [year, monthStr] = monthInput.split('-');
-  const month = parseInt(monthStr, 10);
+  const month = parseInt(monthStr,10);
   const daysInMonth = new Date(year, month, 0).getDate();
 
   selDisplay.innerText = `${year}-${monthStr}`;
@@ -281,138 +454,103 @@ function renderCalendar(empIndex = null){
   const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const firstWeekday = new Date(year, month - 1, 1).getDay();
 
-  // Start responsive grid
-  let html = `<div style="display:grid;grid-template-columns:repeat(7, 1fr);gap:4px;">`;
+  let html = `<div class="calendar-grid">`;
+  // week headers
+  weekdays.forEach(w => html += `<div class="calendar-weekhead">${w}</div>`);
 
-  // Weekday headers
-  weekdays.forEach(day => {
-    html += `<div style="font-size:0.7rem;font-weight:600;text-align:center;color:rgba(0,0,0,0.6);padding:4px 0;">${day}</div>`;
-  });
-
-  // Empty cells for first week offset
-  for(let i=0; i<firstWeekday; i++){
+  // placeholders
+  for(let i=0;i<firstWeekday;i++){
     html += `<div></div>`;
   }
 
-  // Render each day
+  // day cells
   for(let d=1; d<=daysInMonth; d++){
-    const dayStr = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-
+    const dd = String(d).padStart(2,'0');
+    const dayStr = `${year}-${String(month).padStart(2,'0')}-${dd}`;
     let att = null;
-    if(empIndex !== null) att = attendance.find(a => a.date === dayStr && a.empIndex === empIndex);
-    else att = attendance.find(a => a.date === dayStr);
+    if(empIndex !== null && empIndex !== undefined) att = attendance.find(a=>a.date===dayStr && a.empIndex===empIndex);
+    else att = attendance.find(a=>a.date===dayStr);
 
-    let bgColor = 'transparent';
+    // tint and dot color
+    let tint = 'transparent';
+    let dotColor = '';
     if(att){
-      const present = getComputedStyle(document.body).getPropertyValue('--present').trim() || '#28a745';
-      const absent = getComputedStyle(document.body).getPropertyValue('--absent').trim() || '#dc3545';
-      const late = getComputedStyle(document.body).getPropertyValue('--late').trim() || '#ffc107';
-      if(att.status === 'Present') bgColor = present;
-      else if(att.status === 'Absent') bgColor = absent;
-      else bgColor = late;
+      if(att.status === 'Present'){ tint = getComputedStyle(document.body).getPropertyValue('--present-rgba') || 'rgba(40,167,69,0.12)'; dotColor = getComputedStyle(document.body).getPropertyValue('--present').trim() || '#28a745'; }
+      else if(att.status === 'Absent'){ tint = getComputedStyle(document.body).getPropertyValue('--absent-rgba') || 'rgba(220,53,69,0.12)'; dotColor = getComputedStyle(document.body).getPropertyValue('--absent').trim() || '#dc3545'; }
+      else { tint = getComputedStyle(document.body).getPropertyValue('--late-rgba') || 'rgba(255,193,7,0.12)'; dotColor = getComputedStyle(document.body).getPropertyValue('--late').trim() || '#ffc107'; }
     }
 
+    // weekday label
     const weekdayLabel = weekdays[new Date(year, month - 1, d).getDay()];
 
-    let statusTag = '';
-    if(att){
-      statusTag = `<div style="font-size:0.6rem;margin-top:2px;padding:1px 4px;border-radius:4px;background:rgba(0,0,0,0.07);white-space:nowrap;">
-                     ${att.status}${att.status==='Late' ? ` (${att.late||0}m)` : ''}
-                   </div>`;
-    }
+    // status pill HTML
+    const statusHtml = att ? `<div class="status-pill">${att.status}${att.status==='Late' ? ` (${att.late||0}m)` : ''}</div>` : '';
 
-  html += `
-  <div class="day-cell" 
-       onclick="openModal('${dayStr}')"
-       style="
-         background:${bgColor};
-         aspect-ratio:1/1;
-         width:100%;
-         max-width:48px;
-         border-radius:10px;
-         padding:4px;
-         display:flex;
-         flex-direction:column;
-         align-items:center;
-         justify-content:center;
-         cursor:pointer;
-         position:relative;
-       ">
-
-    <div style="font-weight:700;font-size:0.80rem;line-height:1;">${d}</div>
-
-    <div style="font-size:0.60rem;color:rgba(0,0,0,0.65);line-height:1;margin-top:1px;">
-      ${weekdayLabel}
-    </div>
-
-    ${att ? `
-      <div style="
-        position:absolute;
-        bottom:2px;
-        background:#ffffffd9;
-        padding:1px 4px;
-        font-size:0.55rem;
-        border-radius:4px;
-        display:flex;
-        align-items:center;
-        gap:3px;
-      ">
-        <span style="
-          width:6px;
-          height:6px;
-          border-radius:50%;
-          background:${bgColor};
-        "></span>
-        ${att.status}
+    html += `<div class="day-wrapper">
+      <div class="day-cell" onclick="openModal('${dayStr}')" style="background:${att ? tint : 'transparent'};">
+        <div class="date-num">${d}</div>
+        <div class="weekday">${weekdayLabel}</div>
+        ${att ? `<div class="status-dot" style="background:${dotColor};"></div>` : ''}
+        ${statusHtml}
       </div>
-    ` : ''}
-
-  </div>
-`;
-}
-  
-  html += '</div>';
-  calendarDiv.innerHTML = html;
+    </div>`;
   }
 
-/* ====== ATTENDANCE TABLE (all) ===== */
-function renderAttendanceTable(){
-  const tbody = document.querySelector('#attendanceTable tbody');
-  tbody.innerHTML = '';
-  attendance.forEach((a,i)=>{
-    const tr = document.createElement('tr');
-    const name = employees[a.empIndex]?.name || '[removed]';
-    tr.innerHTML = `<td>${a.date}</td><td>${name}</td><td>${a.status}</td><td>${a.late || 0}</td><td></td>`;
-    const btn = document.createElement('button'); btn.className='btn btn-sm btn-danger'; btn.innerText='Delete';
-    btn.onclick = ()=>{ attendance.splice(i,1); saveData(); renderAttendanceTable(); renderCalendar(); renderChart(); };
-    tr.lastElementChild.appendChild(btn);
-    tbody.appendChild(tr);
-  });
+  html += `</div>`;
+  container.innerHTML = html;
 }
 
-/* ====== ATTENDANCE TABLE FILTERED ===== */
+/* ====== ATTENDANCE TABLE (all) ====== */
+function renderAttendanceTable(){
+  const wrapper = document.getElementById('attendanceRecordsCard');
+  const tbody = document.querySelector('#attendanceTable tbody');
+  tbody.innerHTML = '';
+  if(attendance.length === 0){
+    tbody.innerHTML = '<tr><td colspan="5" class="small-muted">No attendance records.</td></tr>';
+  } else {
+    // show sorted by date desc
+    const sorted = [...attendance].sort((a,b)=>b.date.localeCompare(a.date));
+    sorted.forEach((a,i)=>{
+      const tr = document.createElement('tr');
+      const name = employees[a.empIndex]?.name || '[removed]';
+      tr.innerHTML = `<td>${a.date}</td><td>${name}</td><td>${a.status}</td><td>${a.late||0}</td><td></td>`;
+      const btn = document.createElement('button'); btn.className='btn btn-sm btn-danger'; btn.innerText='Delete';
+      btn.onclick = ()=>{ 
+        const idxAll = attendance.findIndex(x=>x.empIndex===a.empIndex && x.date===a.date);
+        if(idxAll !== -1) attendance.splice(idxAll,1);
+        saveData(); renderAttendanceTable(); renderCalendar(); renderChart(); 
+      };
+      tr.lastElementChild.appendChild(btn);
+      tbody.appendChild(tr);
+    });
+  }
+}
+
+/* ====== ATTENDANCE TABLE FILTERED ====== */
 function renderAttendanceTableFiltered(empIndex){
   const tbody = document.querySelector('#attendanceTable tbody');
   tbody.innerHTML = '';
-  attendance.forEach((a,i)=>{
-    if(a.empIndex !== empIndex) return;
-    const tr = document.createElement('tr');
-    const name = employees[a.empIndex]?.name || '[removed]';
-    tr.innerHTML = `<td>${a.date}</td><td>${name}</td><td>${a.status}</td><td>${a.late || 0}</td><td></td>`;
-    const btn = document.createElement('button'); btn.className='btn btn-sm btn-danger'; btn.innerText='Delete';
-    btn.onclick = ()=>{ attendance.splice(i,1); saveData(); /* re-filter after delete */ renderAttendanceTableFiltered(empIndex); renderCalendar(empIndex); renderChart(); };
-    tr.lastElementChild.appendChild(btn);
-    tbody.appendChild(tr);
-  });
+  const filtered = attendance.filter(a=>a.empIndex === empIndex).sort((a,b)=>b.date.localeCompare(a.date));
+  if(filtered.length === 0){
+    tbody.innerHTML = '<tr><td colspan="5" class="small-muted">No attendance for this employee.</td></tr>';
+  } else {
+    filtered.forEach((a)=>{
+      const tr = document.createElement('tr');
+      const name = employees[a.empIndex]?.name || '[removed]';
+      tr.innerHTML = `<td>${a.date}</td><td>${name}</td><td>${a.status}</td><td>${a.late||0}</td><td></td>`;
+      const btn = document.createElement('button'); btn.className='btn btn-sm btn-danger'; btn.innerText='Delete';
+      btn.onclick = ()=>{ 
+        const idxAll = attendance.findIndex(x=>x.empIndex===a.empIndex && x.date===a.date);
+        if(idxAll !== -1) attendance.splice(idxAll,1);
+        saveData(); renderAttendanceTableFiltered(empIndex); renderCalendar(empIndex); renderChart();
+      };
+      tr.lastElementChild.appendChild(btn);
+      tbody.appendChild(tr);
+    });
+  }
 }
 
-/* ====== SALARY CALCULATION ======
-   - Late deduction is proportional to late minutes:
-     deduction = (lateMinutes / 480) * dailySalary  (480 = 8 hours x 60)
-   - Absent deduction = full daily salary per absent day
-   - Basic earned = sum of dailySalary for Present/Late days
-   - Overtime & Bonus added as amounts
-*/
+/* ====== SALARY FUNCTIONS (unchanged logic) ====== */
 function calculateSalaryDetailed(empIndex,startStr,endStr,overtimeAmount,bonusAmount){
   const emp = employees[empIndex];
   if(!emp) return null;
@@ -434,7 +572,6 @@ function calculateSalaryDetailed(empIndex,startStr,endStr,overtimeAmount,bonusAm
       const mins = Number(a.late) || 0;
       lateMinutesTotal += mins;
       basic += dailySalary;
-      // proportional deduction for minutes late
       lateDeduction += (mins / 480) * dailySalary;
     } else if(a.status === 'Absent'){
       absent++;
@@ -461,6 +598,10 @@ function calculateSalaryDetailed(empIndex,startStr,endStr,overtimeAmount,bonusAm
 function renderSalaryTable(){
   const tbody = document.querySelector('#salaryTable tbody');
   tbody.innerHTML = '';
+  if(salaries.length === 0){
+    tbody.innerHTML = '<tr><td colspan="4" class="small-muted">No salary records.</td></tr>';
+    return;
+  }
   salaries.forEach((s,i)=>{
     const tr = document.createElement('tr');
     tr.innerHTML = `<td>${employees[s.empIndex]?.name||'[removed]'}</td><td>${s.range}</td><td>${s.total}</td><td></td>`;
@@ -487,9 +628,233 @@ function renderChart(){
   });
 }
 
-/* ====== MODAL FUNCTIONS (added missing ones) ====== */
+/* ====== MODAL FUNCTIONS (attendance) ====== */
 function openModal(dateStr){
-  // populate modal employee select
-  updateEmployeeSelects(); // ensures modalEmployee has current list
+  updateEmployeeSelects(); // refresh modal select
   document.getElementById('modalDate').value = dateStr;
-  document.getElementById('modalLateMinut
+  document.getElementById('modalLateMinutes').value = '';
+  document.getElementById('modalStatus').value = '';
+  const quickVal = document.getElementById('quickEmployee')?.value;
+  if(quickVal !== '' && !isNaN(parseInt(quickVal))) document.getElementById('modalEmployee').value = quickVal;
+  else if(document.getElementById('modalEmployee').options.length) document.getElementById('modalEmployee').selectedIndex = 0;
+  document.getElementById('attendanceModal').style.display = 'flex';
+}
+function closeModal(){ document.getElementById('attendanceModal').style.display = 'none'; }
+
+function saveAttendance(){
+  const empIndex = parseInt(document.getElementById('modalEmployee').value);
+  const status = document.getElementById('modalStatus').value;
+  const late = parseInt(document.getElementById('modalLateMinutes').value) || 0;
+  const date = document.getElementById('modalDate').value;
+  if(isNaN(empIndex) || !status || !date){ alert('Select employee, status and ensure date'); return; }
+
+  const existingIndex = attendance.findIndex(a=>a.empIndex===empIndex && a.date===date);
+  const record = { empIndex, date, status, late };
+  if(existingIndex !== -1) attendance[existingIndex] = record;
+  else attendance.push(record);
+
+  saveData();
+  closeModal();
+  renderAttendanceTable();
+  renderCalendar();
+  renderChart();
+}
+
+/* ====== Utility: update selects (quick, modal, salary) ====== */
+function updateEmployeeSelects(){
+  const quick = document.getElementById('quickEmployee');
+  const modal = document.getElementById('modalEmployee');
+  const salary = document.getElementById('salaryEmployee');
+
+  if(quick){ quick.innerHTML = '<option value="">Select Employee</option>'; }
+  if(modal){ modal.innerHTML = ''; }
+  if(salary){ salary.innerHTML = '<option value="">Select Employee</option>'; }
+
+  employees.forEach((e,i)=>{
+    if(quick){ const opt = document.createElement('option'); opt.value = i; opt.text = e.name; quick.appendChild(opt); }
+    if(modal){ const opt2 = document.createElement('option'); opt2.value = i; opt2.text = e.name; modal.appendChild(opt2); }
+    if(salary){ const opt3 = document.createElement('option'); opt3.value = i; opt3.text = e.name; salary.appendChild(opt3); }
+  });
+}
+
+/* ====== CSV Export simple helper ====== */
+function exportCSV(){
+  // Export employees + attendance in two sheets (simple CSV zipped not implemented) - provide combined CSV
+  const rows = [['type','employee_index','employee_name','date','status','late','dept','desig','salary','currency']];
+  attendance.forEach(a=>{
+    const emp = employees[a.empIndex] || {};
+    rows.push(['attendance', a.empIndex, emp.name||'[removed]', a.date, a.status, a.late||0, emp.dept||'', emp.desig||'', emp.salary||'', emp.currency||'']);
+  });
+  employees.forEach((e,i)=> rows.push(['employee', i, e.name, '', '', '', e.dept||'', e.desig||'', e.salary||'', e.currency||'']));
+  const csv = rows.map(r=>r.map(cell=>`"${String(cell).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv],{type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'hr_export.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ====== EVENTS & INIT ====== */
+document.addEventListener('DOMContentLoaded', ()=>{
+  try{ if(typeof populateCurrencyDropdown === 'function') populateCurrencyDropdown('empCurrency'); } catch(e){ console.warn('populateCurrencyDropdown not available', e); }
+
+  const loginForm = document.getElementById('loginForm');
+  const signupForm = document.getElementById('signupForm');
+  const showLogin = document.getElementById('showLogin');
+  const showSignup = document.getElementById('showSignup');
+  const toggleTheme = document.getElementById('toggleTheme');
+  const loginDiv = document.getElementById('loginDiv');
+  const mainApp = document.getElementById('mainApp');
+
+  showLogin.onclick = ()=>{ loginForm.style.display='block'; signupForm.style.display='none'; };
+  showSignup.onclick = ()=>{ signupForm.style.display='block'; loginForm.style.display='none'; };
+  toggleTheme.onclick = ()=>{ document.body.classList.toggle('dark-mode'); renderCalendar(); renderChart(); };
+
+  // auto-login if set
+  if(localStorage.getItem('isLoggedIn') === 'true'){
+    loginDiv.style.display = 'none';
+    mainApp.style.display = 'block';
+    loadData();
+  }
+
+  // signup
+  signupForm.addEventListener('submit', e=>{
+    e.preventDefault();
+    const user = document.getElementById('hrUserSignup').value.trim();
+    const pass = document.getElementById('hrPassSignup').value.trim();
+    if(!user || !pass){ alert('Enter username/password'); return; }
+    localStorage.setItem('hrUser', user);
+    localStorage.setItem('hrPass', pass);
+    alert('Account created! Please login.');
+    signupForm.reset();
+    loginForm.style.display='block'; signupForm.style.display='none';
+  });
+
+  // login
+  loginForm.addEventListener('submit', e=>{
+    e.preventDefault();
+    const user = document.getElementById('hrUserLogin').value.trim();
+    const pass = document.getElementById('hrPassLogin').value.trim();
+    const storedUser = localStorage.getItem('hrUser');
+    const storedPass = localStorage.getItem('hrPass');
+    if(user === storedUser && pass === storedPass){
+      localStorage.setItem('isLoggedIn','true');
+      loginDiv.style.display = 'none';
+      mainApp.style.display = 'block';
+      loadData();
+    } else {
+      alert('Invalid credentials!');
+    }
+  });
+
+  // logout
+  document.getElementById('logoutBtn').onclick = ()=>{
+    localStorage.removeItem('isLoggedIn');
+    loginDiv.style.display = 'block';
+    mainApp.style.display = 'none';
+  };
+
+  // add employee
+  document.getElementById('addEmployeeForm').addEventListener('submit', e=>{
+    e.preventDefault();
+    const emp = {
+      name: document.getElementById('empName').value.trim(),
+      dept: document.getElementById('empDept').value.trim(),
+      desig: document.getElementById('empDesig').value.trim(),
+      salary: parseFloat(document.getElementById('empSalary').value) || 0,
+      currency: document.getElementById('empCurrency').value || ''
+    };
+    employees.push(emp);
+    saveData();
+    updateEmployeeTable();
+    updateEmployeeSelects();
+    renderAttendanceTable();
+    renderCalendar();
+    renderChart();
+    e.target.reset();
+    const quick = document.getElementById('quickEmployee');
+    if(quick) quick.value = employees.length - 1;
+  });
+
+  // month change
+  document.getElementById('attendanceMonth').addEventListener('change', ()=>renderCalendar());
+
+  // quick employee change (filters the small attendance list and sets modal default)
+  document.getElementById('quickEmployee').addEventListener('change', function(){
+    const val = this.value;
+    const empIndex = parseInt(val);
+    // clear salary breakdown
+    document.getElementById('salaryBreakdownCard').style.display = 'none';
+    if(!isNaN(empIndex)){
+      renderAttendanceTableFiltered(empIndex);
+    } else {
+      renderAttendanceTable();
+    }
+  });
+
+  // salaryEmployee change
+  document.getElementById('salaryEmployee').addEventListener('change', function(){
+    const v = this.value;
+    if(v === '' || v === null) renderAttendanceTable();
+    else {
+      const idx = parseInt(v);
+      if(!isNaN(idx)) renderAttendanceTableFiltered(idx);
+    }
+    document.getElementById('salaryBreakdownCard').style.display = 'none';
+  });
+
+  // calculate salary submit
+  document.getElementById('calculateSalaryForm').addEventListener('submit', e=>{
+    e.preventDefault();
+    const empIndex = parseInt(document.getElementById('salaryEmployee').value);
+    const start = document.getElementById('startDate').value;
+    const end = document.getElementById('endDate').value;
+    const overtime = document.getElementById('overtimeHours').value;
+    const bonus = document.getElementById('bonusAmount').value;
+    if(isNaN(empIndex) || !start || !end){ alert('Select employee and start/end dates'); return; }
+    const res = calculateSalaryDetailed(empIndex, start, end, overtime, bonus);
+    if(!res){ alert('Calculation failed'); return; }
+    document.getElementById('salaryBreakdownCard').style.display = 'block';
+    document.getElementById('presentCount').innerText = res.present;
+    document.getElementById('lateCount').innerText = res.lateDays;
+    document.getElementById('lateMinutes').innerText = res.lateMinutesTotal;
+    document.getElementById('absentCount').innerText = res.absent;
+    document.getElementById('basicSalary').innerText = res.basic;
+    document.getElementById('lateDeduction').innerText = res.lateDeduction;
+    document.getElementById('absentDeduction').innerText = res.absentDeduction;
+    document.getElementById('overtimePay').innerText = res.overtimePay;
+    document.getElementById('bonusPay').innerText = res.bonusPay;
+    document.getElementById('totalPayable').innerText = res.totalPayable;
+    const rangeLabel = `${start} → ${end}`;
+    salaries.push({ empIndex, range: rangeLabel, total: res.totalPayable, breakdown: res });
+    saveData();
+    renderSalaryTable();
+  });
+
+  // toggle attendance table visibility
+  document.getElementById('toggleAttendanceTable').addEventListener('click', ()=>{
+    showAttendanceTable = !showAttendanceTable;
+    document.getElementById('attendanceRecordsCard').style.display = showAttendanceTable ? 'block' : 'none';
+    document.getElementById('toggleAttendanceTable').innerText = showAttendanceTable ? 'Hide Attendance' : 'Show All Attendance';
+    if(showAttendanceTable) renderAttendanceTable();
+  });
+
+  // export CSV
+  document.getElementById('exportAll').addEventListener('click', exportCSV);
+
+  // initialize month to current
+  const now = new Date();
+  const mm = String(now.getMonth()+1).padStart(2,'0');
+  document.getElementById('attendanceMonth').value = `${now.getFullYear()}-${mm}`;
+
+  loadData();
+});
+
+/* expose modal functions */
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.saveAttendance = saveAttendance;
+window.viewEmployee = viewEmployee;
+window.closeEmployeeDetail = closeEmployeeDetail;
+</script>
+</body>
+</html>
