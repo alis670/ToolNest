@@ -233,6 +233,7 @@ function viewEmployee(empIndex){
         <div class="col-md-3"><strong>Salary:</strong> ${emp.salary || 0}</div>
         <div class="col-md-3"><strong>Currency:</strong> ${emp.currency || '-'}</div>
       </div>
+      
       <hr>
       <h6>Attendance Records</h6>
       <div class="table-responsive" style="max-height:260px;overflow:auto;">
@@ -285,11 +286,12 @@ function viewEmployee(empIndex){
       <div class="col-6 col-md-3"><div class="small-muted">Absent days</div><strong id="absentCount">0</strong></div>
     </div>
   </div>
-</div>
-<script>
-<!-- EMPLOYEE DETAIL ATTENDANCE -->
-<div id="employeeDetailPage"></div>
+  </div>
+  
+  <!--EMPLOYEE DETAIL ATTENDANCE-->
+  <div id="employeedetailpage"></div>
 
+<script>
 /* ====== EMPLOYEE DETAIL ATTENDANCE ====== */
 function viewEmployee(empIndex){
   const emp = employees[empIndex];
@@ -352,8 +354,8 @@ function viewEmployee(empIndex){
 
   container.style.display = 'block';
 }
-
 </script>
+
 /* ====== CONFIRM + DELETE EMPLOYEE ====== */
 function confirmDeleteEmployee(index){
   if(!confirm('Delete this employee and all related records? This cannot be undone.')) return;
@@ -419,8 +421,8 @@ function renderCalendar(empIndex = null){
   html+='</div>';
   container.innerHTML=html;
 }
+    
 <script>
-      
 document.addEventListener('DOMContentLoaded', () => {
   const loginDiv = document.getElementById('loginDiv');
   const mainApp = document.getElementById('mainApp');
