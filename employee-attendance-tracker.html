@@ -286,11 +286,10 @@ function viewEmployee(empIndex){
     </div>
   </div>
 </div>
-
+<script>
 <!-- EMPLOYEE DETAIL ATTENDANCE -->
 <div id="employeeDetailPage"></div>
 
-<script>
 /* ====== EMPLOYEE DETAIL ATTENDANCE ====== */
 function viewEmployee(empIndex){
   const emp = employees[empIndex];
@@ -353,8 +352,8 @@ function viewEmployee(empIndex){
 
   container.style.display = 'block';
 }
-</script>
 
+</script>
 /* ====== CONFIRM + DELETE EMPLOYEE ====== */
 function confirmDeleteEmployee(index){
   if(!confirm('Delete this employee and all related records? This cannot be undone.')) return;
