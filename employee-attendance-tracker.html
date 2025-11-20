@@ -237,35 +237,123 @@ function viewEmployee(empIndex){
       <h6>Attendance Records</h6>
       <div class="table-responsive" style="max-height:260px;overflow:auto;">
         <table class="table table-sm mb-0">
+
+<!-- SALARY -->
+<div class="card p-3">
+  <h5>Calculate Salary</h5>
+  <form id="calculateSalaryForm" class="row g-2 align-items-center mb-2">
+    <div class="col-6 col-md-2">
+      <label class="small-muted">Employee</label>
+      <select id="salaryEmployee" class="form-select" required>
+        <option value="">Select Employee</option>
+      </select>
+    </div>
+
+    <div class="col-6 col-md-2">
+      <label class="small-muted">Start Date</label>
+      <input id="startDate" type="date" class="form-control" required>
+    </div>
+
+    <div class="col-6 col-md-2">
+      <label class="small-muted">End Date</label>
+      <input id="endDate" type="date" class="form-control" required>
+    </div>
+
+    <div class="col-6 col-md-2">
+      <label class="small-muted">Overtime (amount)</label>
+      <input id="overtimeHours" type="number" step="0.1" class="form-control" placeholder="Overtime pay">
+    </div>
+
+    <div class="col-6 col-md-2">
+      <label class="small-muted">Bonus (amount)</label>
+      <input id="bonusAmount" type="number" class="form-control" placeholder="Bonus">
+    </div>
+
+    <div class="col-6 col-md-2">
+      <label class="small-muted">&nbsp;</label>
+      <button class="btn btn-success w-100">Calculate</button>
+    </div>
+  </form>
+
+  <!-- Salary breakdown -->
+  <div id="salaryBreakdownCard" class="card p-3 mb-3" style="display:none;">
+    <h6>Salary Breakdown</h6>
+    <div class="row">
+      <div class="col-6 col-md-3"><div class="small-muted">Present days</div><strong id="presentCount">0</strong></div>
+      <div class="col-6 col-md-3"><div class="small-muted">Late days</div><strong id="lateCount">0</strong></div>
+      <div class="col-6 col-md-3"><div class="small-muted">Late minutes (total)</div><strong id="lateMinutes">0</strong></div>
+      <div class="col-6 col-md-3"><div class="small-muted">Absent days</div><strong id="absentCount">0</strong></div>
+    </div>
+  </div>
+</div>
+
+<!-- EMPLOYEE DETAIL ATTENDANCE -->
+<div id="employeeDetailPage"></div>
+
+<script>
+/* ====== EMPLOYEE DETAIL ATTENDANCE ====== */
+function viewEmployee(empIndex){
+  const emp = employees[empIndex];
+  if(!emp) return;
+
+  const container = document.getElementById('employeeDetailPage');
+
+  // HTML template for employee detail
+  container.innerHTML = `
+    <div class="card p-3">
+      <h5>${emp.name}</h5>
+      <div class="row">
+        <div class="col-md-3"><strong>Department:</strong> ${emp.dept || '-'}</div>
+        <div class="col-md-3"><strong>Designation:</strong> ${emp.desig || '-'}</div>
+        <div class="col-md-3"><strong>Salary:</strong> ${emp.salary || 0}</div>
+        <div class="col-md-3"><strong>Currency:</strong> ${emp.currency || '-'}</div>
+      </div>
+      <hr>
+      <h6>Attendance Records</h6>
+      <div class="table-responsive" style="max-height:260px;overflow:auto;">
+        <table class="table table-sm mb-0">
           <thead><tr><th>Date</th><th>Status</th><th>Late</th><th>Action</th></tr></thead>
           <tbody id="detailAttendanceBody"></tbody>
         </table>
       </div>
     </div>
+  `;
 
+  // Populate attendance table
   const tbody = document.getElementById('detailAttendanceBody');
   tbody.innerHTML = '';
-  const empAttendance = attendance.filter(a=>a.empIndex===empIndex).sort((a,b)=>b.date.localeCompare(a.date));
-  if(empAttendance.length===0){
+  const empAttendance = attendance
+    .filter(a => a.empIndex === empIndex)
+    .sort((a, b) => b.date.localeCompare(a.date));
+
+  if(empAttendance.length === 0){
     tbody.innerHTML = '<tr><td colspan="4" class="small-muted">No attendance for this employee.</td></tr>';
   } else {
-    empAttendance.forEach((a)=>{
+    empAttendance.forEach(a => {
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${a.date}</td><td>${a.status}</td><td>${a.late||0}</td><td></td>`;
+      tr.innerHTML = `<td>${a.date}</td><td>${a.status}</td><td>${a.late || 0}</td><td></td>`;
+
       const del = document.createElement('button');
       del.className = 'btn btn-sm btn-danger';
       del.innerText = 'Delete';
-      del.onclick = ()=>{ 
-        const idxAll = attendance.findIndex(x=>x.empIndex===a.empIndex && x.date===a.date);
-        if(idxAll!==-1) attendance.splice(idxAll,1);
-        saveData(); renderCalendar(); renderChart(); viewEmployee(empIndex); renderAttendanceTableFiltered(empIndex);
+      del.onclick = () => { 
+        const idxAll = attendance.findIndex(x => x.empIndex === a.empIndex && x.date === a.date);
+        if(idxAll !== -1) attendance.splice(idxAll, 1);
+        saveData(); 
+        renderCalendar(); 
+        renderChart(); 
+        viewEmployee(empIndex); 
+        renderAttendanceTableFiltered(empIndex);
       };
+
       tr.lastElementChild.appendChild(del);
       tbody.appendChild(tr);
     });
   }
+
   container.style.display = 'block';
 }
+</script>
 
 /* ====== CONFIRM + DELETE EMPLOYEE ====== */
 function confirmDeleteEmployee(index){
