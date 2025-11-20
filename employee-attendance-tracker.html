@@ -355,13 +355,13 @@ function viewEmployee(empIndex){
   container.style.display = 'block';
 }
 
-</script>
+<script>
 /* ====== CONFIRM + DELETE EMPLOYEE ====== */
 function confirmDeleteEmployee(index){
   if(!confirm('Delete this employee and all related records? This cannot be undone.')) return;
   attendance = attendance.filter(a => a.empIndex !== index);
   employees.splice(index,1);
-  attendance = attendance.map(a=>({ ...a, empIndex: a.empIndex>index ? a.empIndex-1 : a.empIndex }));
+  attendance = attendance.map(a => ({ ...a, empIndex: a.empIndex > index ? a.empIndex-1 : a.empIndex }));
   saveData();
   updateEmployeeTable();
   updateEmployeeSelects();
@@ -380,48 +380,68 @@ function renderCalendar(empIndex = null){
 
   if(!monthInput){
     container.innerHTML = '<div class="small-muted">Select a month to view calendar.</div>';
-    selDisplay.innerText='';
-    rangeDisplay.innerText='';
+    selDisplay.innerText = '';
+    rangeDisplay.innerText = '';
     return;
   }
 
-  const [year,monthStr] = monthInput.split('-');
-  const month = parseInt(monthStr,10);
-  const daysInMonth = new Date(year,month,0).getDate();
-  selDisplay.innerText=`${year}-${monthStr}`;
-  rangeDisplay.innerText=`${year}-${monthStr}-01 → ${year}-${monthStr}-${String(daysInMonth).padStart(2,'0')}`;
+  const [year, monthStr] = monthInput.split('-');
+  const month = parseInt(monthStr, 10);
+  const daysInMonth = new Date(year, month, 0).getDate();
+  selDisplay.innerText = `${year}-${monthStr}`;
+  rangeDisplay.innerText = `${year}-${monthStr}-01 → ${year}-${monthStr}-${String(daysInMonth).padStart(2,'0')}`;
 
   const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const firstWeekday = new Date(year, month-1,1).getDay();
+  const firstWeekday = new Date(year, month-1, 1).getDay();
 
-  let html=`<div class="calendar-grid">`;
-  weekdays.forEach(w=>html+=`<div class="calendar-weekhead">${w}</div>`);
+  let html = '<div class="calendar-grid">';
+  weekdays.forEach(w => html += `<div class="calendar-weekhead">${w}</div>`);
+  
+  // Empty cells before first day
+  for(let i=0; i<firstWeekday; i++) html += '<div></div>';
 
-  for(let i=0;i<firstWeekday;i++) html+='<div></div>';
+  for(let d=1; d<=daysInMonth; d++){
+    const dd = String(d).padStart(2,'0');
+    const dayStr = `${year}-${String(month).padStart(2,'0')}-${dd}`;
 
-  for(let d=1;d<=daysInMonth;d++){
-    const dd=String(d).padStart(2,'0');
-    const dayStr=`${year}-${String(month).padStart(2,'0')}-${dd}`;
     let att = null;
-    if(empIndex!==null && empIndex!==undefined) att = attendance.find(a=>a.date===dayStr && a.empIndex===empIndex);
-    else att = attendance.find(a=>a.date===dayStr);
-
-    let tint='transparent', dotColor='';
-    if(att){
-      if(att.status==='Present'){ tint = getComputedStyle(document.body).getPropertyValue('--present-rgba'); dotColor=getComputedStyle(document.body).getPropertyValue('--present'); }
-      else if(att.status==='Absent'){ tint=getComputedStyle(document.body).getPropertyValue('--absent-rgba'); dotColor=getComputedStyle(document.body).getPropertyValue('--absent'); }
-      else { tint=getComputedStyle(document.body).getPropertyValue('--late-rgba'); dotColor=getComputedStyle(document.body).getPropertyValue('--late'); }
+    if(empIndex !== null && empIndex !== undefined) {
+      att = attendance.find(a => a.date === dayStr && a.empIndex === empIndex);
+    } else {
+      att = attendance.find(a => a.date === dayStr);
     }
 
-    const weekdayLabel = weekdays[new Date(year,month-1,d).getDay()];
+    let tint = 'transparent', dotColor = '';
+    if(att){
+      if(att.status === 'Present'){ 
+        tint = getComputedStyle(document.body).getPropertyValue('--present-rgba'); 
+        dotColor = getComputedStyle(document.body).getPropertyValue('--present'); 
+      } else if(att.status === 'Absent'){ 
+        tint = getComputedStyle(document.body).getPropertyValue('--absent-rgba'); 
+        dotColor = getComputedStyle(document.body).getPropertyValue('--absent'); 
+      } else { 
+        tint = getComputedStyle(document.body).getPropertyValue('--late-rgba'); 
+        dotColor = getComputedStyle(document.body).getPropertyValue('--late'); 
+      }
+    }
+
+    const weekdayLabel = weekdays[new Date(year, month-1, d).getDay()];
     const statusHtml = att ? `<div class="status-pill">${att.status}${att.status==='Late'?` (${att.late||0}m)`:''}</div>` : '';
-    html+=`<div class="day-wrapper"><div class="day-cell" onclick="openModal('${dayStr}')" style="background:${att?tint:'transparent'};"><div class="date-num">${d}</div><div class="weekday">${weekdayLabel}</div>${att?`<div class="status-dot" style="background:${dotColor};"></div>`:''}${statusHtml}</div></div>`;
+
+    html += `<div class="day-wrapper">
+      <div class="day-cell" onclick="openModal('${dayStr}')" style="background:${att?tint:'transparent'};">
+        <div class="date-num">${d}</div>
+        <div class="weekday">${weekdayLabel}</div>
+        ${att ? `<div class="status-dot" style="background:${dotColor};"></div>` : ''}
+        ${statusHtml}
+      </div>
+    </div>`;
   }
 
-  html+='</div>';
-  container.innerHTML=html;
-}    
-<script>
+  html += '</div>';
+  container.innerHTML = html;
+}
+</script>
   
 document.addEventListener('DOMContentLoaded', () => {
   const loginDiv = document.getElementById('loginDiv');
