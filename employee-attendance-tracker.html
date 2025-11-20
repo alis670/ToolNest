@@ -282,56 +282,37 @@ function renderCalendar(empIndex = null){
   for(let d=1;d<=daysInMonth;d++){
     const dd=String(d).padStart(2,'0');
   <script>
-    
-/* ====== DATA ====== */
-let employees = [], attendance = [], salaries = [], chartInstance = null;
-
-/* ====== HELPERS ====== */
-function saveData(){
-  localStorage.setItem('employees', JSON.stringify(employees));
-  localStorage.setItem('attendance', JSON.stringify(attendance));
-  localStorage.setItem('salaries', JSON.stringify(salaries));
-}
-function loadData(){
-  employees = JSON.parse(localStorage.getItem('employees')||'[]');
-  attendance = JSON.parse(localStorage.getItem('attendance')||'[]');
-  salaries = JSON.parse(localStorage.getItem('salaries')||'[]');
-  updateEmployeeTable();
-  updateEmployeeSelects();
-  renderAttendanceTable();
-  renderCalendar();
-  renderChart();
-}
-
-/* ====== LOGIN / SIGNUP / LOGOUT ====== */
-document.addEventListener('DOMContentLoaded', ()=>{
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const loginDiv = document.getElementById('loginDiv');
+  const mainApp = document.getElementById('mainApp');
   const loginForm = document.getElementById('loginForm');
   const signupForm = document.getElementById('signupForm');
   const showLogin = document.getElementById('showLogin');
   const showSignup = document.getElementById('showSignup');
   const toggleTheme = document.getElementById('toggleTheme');
-  const loginDiv = document.getElementById('loginDiv');
-  const mainApp = document.getElementById('mainApp');
+  const logoutBtn = document.getElementById('logoutBtn');
 
-  // Theme toggle
-  toggleTheme.onclick = ()=> {
+  // Show Login/Signup forms
+  showLogin.onclick = () => { loginForm.style.display='block'; signupForm.style.display='none'; };
+  showSignup.onclick = () => { signupForm.style.display='block'; loginForm.style.display='none'; };
+
+  // Toggle dark mode
+  toggleTheme.onclick = () => {
     document.body.classList.toggle('dark-mode');
-    renderCalendar(); renderChart();
+    if(typeof renderCalendar === 'function') renderCalendar();
+    if(typeof renderChart === 'function') renderChart();
   };
 
-  // Switch forms
-  showLogin.onclick = ()=> { loginForm.style.display='block'; signupForm.style.display='none'; };
-  showSignup.onclick = ()=> { signupForm.style.display='block'; loginForm.style.display='none'; };
-
-  // Auto-login if logged in
+  // Auto-login if previously logged in
   if(localStorage.getItem('isLoggedIn') === 'true'){
     loginDiv.style.display = 'none';
     mainApp.style.display = 'block';
-    loadData();
+    if(typeof loadData === 'function') loadData();
   }
 
-  // Sign up
-  signupForm.addEventListener('submit', e=>{
+  // Signup
+  signupForm.addEventListener('submit', e => {
     e.preventDefault();
     const user = document.getElementById('hrUserSignup').value.trim();
     const pass = document.getElementById('hrPassSignup').value.trim();
@@ -345,7 +326,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   });
 
   // Login
-  loginForm.addEventListener('submit', e=>{
+  loginForm.addEventListener('submit', e => {
     e.preventDefault();
     const user = document.getElementById('hrUserLogin').value.trim();
     const pass = document.getElementById('hrPassLogin').value.trim();
@@ -355,37 +336,18 @@ document.addEventListener('DOMContentLoaded', ()=>{
       localStorage.setItem('isLoggedIn','true');
       loginDiv.style.display='none';
       mainApp.style.display='block';
-      loadData();
+      if(typeof loadData === 'function') loadData();
     } else alert('Invalid credentials!');
   });
 
   // Logout
-  document.getElementById('logoutBtn').onclick = ()=>{
+  logoutBtn.onclick = () => {
     localStorage.removeItem('isLoggedIn');
     loginDiv.style.display='block';
     mainApp.style.display='none';
   };
-
-  // Initialize currency dropdown if function exists
-  try{ if(typeof populateCurrencyDropdown==='function') populateCurrencyDropdown('empCurrency'); } catch(e){ console.warn('Currency loader missing', e); }
-
-  // Initialize month picker to current month
-  const now = new Date();
-  const mm = String(now.getMonth()+1).padStart(2,'0');
-  document.getElementById('attendanceMonth').value = `${now.getFullYear()}-${mm}`;
-
-  // Load stored data
-  loadData();
 });
-
-/* ====== EXPOSE MODAL / VIEW FUNCTIONS ====== */
-window.openModal = openModal;
-window.closeModal = closeModal;
-window.saveAttendance = saveAttendance;
-window.viewEmployee = viewEmployee;
-window.closeEmployeeDetail = ()=>{
-  document.getElementById('employeeDetailPage').style.display='none';
-};
+</script>
 </script>
 </body>
   </html>
