@@ -84,9 +84,10 @@ input,select,textarea{background:var(--input-bg); color:var(--input-text);}
 /* summary badges */
 .summary-badge{display:inline-block;padding:6px 10px;border-radius:8px;background:rgba(0,0,0,0.03);margin-right:6px;font-size:0.85rem;color:rgba(0,0,0,0.7);}
 
-/* Employee detail modal */
-#employeeDetailModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);align-items:center;justify-content:center;z-index:1060;}
-#employeeDetailModal .modal-card{max-width:820px;width:96%;background:var(--card-bg);border-radius:10px;padding:16px;box-shadow:0 20px 50px rgba(0,0,0,0.35);color:var(--text);}
+/* Employee full-page detail */
+#employeeDetailPage{display:none; padding:20px;}
+#employeeDetailPage h3{margin-bottom:10px;}
+#employeeDetailPage .backBtn{margin-bottom:15px;}
 
 /* small helpers */
 .small-muted{font-size:0.85rem;color:rgba(0,0,0,0.5);}
@@ -95,7 +96,7 @@ input,select,textarea{background:var(--input-bg); color:var(--input-text);}
 </head>
 <body class="container mt-4">
 
-<!-- LOGIN / SIGNUP (unchanged) -->
+<!-- LOGIN / SIGNUP -->
 <div id="loginDiv" class="card p-4">
   <h3>HR Login / Sign Up</h3>
   <div class="d-flex align-items-center mb-3">
@@ -126,7 +127,6 @@ input,select,textarea{background:var(--input-bg); color:var(--input-text);}
   <div class="d-flex align-items-center mb-3">
     <h2 class="me-auto">HR Dashboard</h2>
     <div class="d-flex gap-2 align-items-center">
-      <button id="toggleAttendanceTable" class="btn btn-outline-secondary btn-sm">Show All Attendance</button>
       <button id="exportAll" class="btn btn-sm btn-ghost">Export CSV</button>
       <button id="logoutBtn" class="btn btn-danger">Logout</button>
     </div>
@@ -171,54 +171,36 @@ input,select,textarea{background:var(--input-bg); color:var(--input-text);}
     <div id="calendarContainer" class="mt-2"></div>
   </div>
 
-  <!-- Attendance Records (hidden by default) -->
-  <div id="attendanceRecordsCard" class="card p-3" style="display:none;">
-    <h5>Attendance Records (All)</h5>
-    <div class="table-responsive">
-      <table id="attendanceTable" class="table table-bordered mb-0">
-        <thead><tr><th>Date</th><th>Employee</th><th>Status</th><th>Late (min)</th><th>Action</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </div>
-
   <!-- SALARY -->
   <div class="card p-3">
     <h5>Calculate Salary</h5>
-
     <form id="calculateSalaryForm" class="row g-2 align-items-center mb-2">
       <div class="col-6 col-md-2">
         <label class="small-muted">Employee</label>
         <select id="salaryEmployee" class="form-select" required><option value="">Select Employee</option></select>
       </div>
-
       <div class="col-6 col-md-2">
         <label class="small-muted">Start Date</label>
         <input id="startDate" type="date" class="form-control" required>
       </div>
-
       <div class="col-6 col-md-2">
         <label class="small-muted">End Date</label>
         <input id="endDate" type="date" class="form-control" required>
       </div>
-
       <div class="col-6 col-md-2">
         <label class="small-muted">Overtime (amount)</label>
         <input id="overtimeHours" type="number" step="0.1" class="form-control" placeholder="Overtime pay">
       </div>
-
       <div class="col-6 col-md-2">
         <label class="small-muted">Bonus (amount)</label>
         <input id="bonusAmount" type="number" class="form-control" placeholder="Bonus">
       </div>
-
       <div class="col-6 col-md-2">
         <label class="small-muted">&nbsp;</label>
         <button class="btn btn-success w-100">Calculate</button>
       </div>
     </form>
 
-    <!-- Salary breakdown (option C: below the form) -->
     <div id="salaryBreakdownCard" class="card p-3 mb-3" style="display:none;">
       <h6>Salary Breakdown</h6>
       <div class="row">
@@ -242,15 +224,8 @@ input,select,textarea{background:var(--input-bg); color:var(--input-text);}
         <div class="col-6 col-md-3"><div class="small-muted">Total payable</div><strong id="totalPayable">0</strong></div>
       </div>
     </div>
-<h6>Salary List</h6>
-    <div class="table-responsive">
-      <table id="salaryTable" class="table table-bordered mb-0">
-        <thead><tr><th>Employee</th><th>Range</th><th>Total</th><th>Action</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
   </div>
-  
+
   <!-- Attendance Chart -->
   <div class="card p-3">
     <h5>Attendance Chart</h5>
@@ -258,73 +233,40 @@ input,select,textarea{background:var(--input-bg); color:var(--input-text);}
   </div>
 </div>
 
-<!-- Attendance modal -->
-<div class="modal" id="attendanceModal">
-  <div class="modal-content">
-    <div class="d-flex align-items-start">
-      <h6 class="me-auto">Mark Attendance</h6>
-      <button class="btn-close" onclick="closeModal()">&times;</button>
-    </div>
-    
-    <div class="mt-2">
-      <select id="modalEmployee" class="form-select mb-2"></select>
-      <select id="modalStatus" class="form-select mb-2">
-        <option value="">Select Status</option>
-        <option value="Present">Present</option>
-        <option value="Absent">Absent</option>
-        <option value="Late">Late</option>
-      </select>
-      <input id="modalLateMinutes" type="number" class="form-control mb-2" placeholder="Late minutes (if Late)">
-      <input id="modalDate" type="hidden">
-      <button class="btn btn-primary w-100" onclick="saveAttendance()">Save</button>
-    </div>
-  </div>
-</div>
-
-<!-- Employee detail modal -->
-<div id="employeeDetailModal">
-  <div class="modal-card">
-    <div class="d-flex align-items-start mb-2">
-      <h5 id="detailName" class="me-auto"></h5>
-      <div>
-        <button class="btn btn-outline-secondary btn-sm me-2" onclick="closeEmployeeDetail()">Close</button>
-        <button id="deleteEmployeeFromDetail" class="btn btn-danger btn-sm">Delete</button>
+<!-- Employee full-page detail -->
+<div id="employeeDetailPage">
+  <button class="btn btn-outline-secondary backBtn" onclick="backToDashboard()">← Back to Dashboard</button>
+  <h3 id="detailNamePage"></h3>
+  <div class="row">
+    <div class="col-md-5">
+      <div class="card p-3 mb-3">
+        <h6>Employee Info</h6>
+        <div><strong>Department:</strong> <span id="detailDeptPage"></span></div>
+        <div><strong>Designation:</strong> <span id="detailDesigPage"></span></div>
+        <div><strong>Basic Salary:</strong> <span id="detailSalaryPage"></span></div>
+        <div><strong>Currency:</strong> <span id="detailCurrencyPage"></span></div>
       </div>
     </div>
-
-    <div class="row">
-      <div class="col-md-5">
-        <div class="card p-3 mb-3">
-          <h6>Employee Info</h6>
-          <div><strong>Department:</strong> <span id="detailDept"></span></div>
-          <div><strong>Designation:</strong> <span id="detailDesig"></span></div>
-          <div><strong>Basic Salary:</strong> <span id="detailSalary"></span></div>
-          <div><strong>Currency:</strong> <span id="detailCurrency"></span></div>
-        </div>
-      </div>
-      <div class="col-md-7">
-        <div class="card p-3 mb-3">
-          <h6>Attendance (this employee)</h6>
-          <div class="table-responsive" style="max-height:260px;overflow:auto;">
-            <table class="table table-sm mb-0">
-              <thead><tr><th>Date</th><th>Status</th><th>Late</th><th>Action</th></tr></thead>
-              <tbody id="detailAttendanceBody"></tbody>
-            </table>
-          </div>
+    <div class="col-md-7">
+      <div class="card p-3 mb-3">
+        <h6>Attendance (this employee)</h6>
+        <div class="table-responsive" style="max-height:260px;overflow:auto;">
+          <table class="table table-sm mb-0">
+            <thead><tr><th>Date</th><th>Status</th><th>Late</th><th>Action</th></tr></thead>
+            <tbody id="detailAttendanceBodyPage"></tbody>
+          </table>
         </div>
       </div>
     </div>
-
   </div>
 </div>
 
 <script src="loadCurrencies.js"></script>
 <script>
-/* ====== DATA ====== */
+// ========== DATA ==========
 let employees = [], attendance = [], salaries = [], chartInstance = null;
-let showAttendanceTable = false; // default hidden
 
-/* ====== HELPERS ====== */
+// ========== HELPER FUNCTIONS ==========
 function saveData(){
   localStorage.setItem('employees', JSON.stringify(employees));
   localStorage.setItem('attendance', JSON.stringify(attendance));
@@ -339,10 +281,9 @@ function loadData(){
   renderAttendanceTable();
   renderCalendar();
   renderChart();
-  renderSalaryTable();
 }
 
-/* ====== EMPLOYEE TABLE (view + delete) ====== */
+// ========== EMPLOYEE TABLE ==========
 function updateEmployeeTable(){
   const wrap = document.getElementById('employeeTable');
   wrap.innerHTML = '';
@@ -354,9 +295,9 @@ function updateEmployeeTable(){
     const row = document.createElement('div');
     row.className = 'employee-row';
     row.innerHTML = `
-      <div><strong style="cursor:pointer;color:#0d6efd;" onclick="viewEmployee(${i})">${e.name}</strong></div>
+      <div><strong style="cursor:pointer;color:#0d6efd;" onclick="viewEmployeePage(${i})">${e.name}</strong></div>
       <div class="employee-actions">
-        <button class="btn btn-sm btn-outline-primary" onclick="viewEmployee(${i})">View</button>
+        <button class="btn btn-sm btn-primary" onclick="viewEmployeePage(${i})">View</button>
         <button class="btn btn-sm btn-danger" onclick="confirmDeleteEmployee(${i})">Delete</button>
       </div>
     `;
@@ -364,496 +305,227 @@ function updateEmployeeTable(){
   });
 }
 
-/* ====== VIEW EMPLOYEE (detail modal) ====== */
-function viewEmployee(empIndex){
+// ========== VIEW EMPLOYEE FULL PAGE ==========
+function viewEmployeePage(empIndex){
   const emp = employees[empIndex];
   if(!emp) return;
-  document.getElementById('detailName').innerText = emp.name;
-  document.getElementById('detailDept').innerText = emp.dept || '-';
-  document.getElementById('detailDesig').innerText = emp.desig || '-';
-  document.getElementById('detailSalary').innerText = emp.salary || '0';
-  document.getElementById('detailCurrency').innerText = emp.currency || '-';
-  // populate attendance for this employee
-  const tbody = document.getElementById('detailAttendanceBody');
-  tbody.innerHTML = '';
-  const empAttendance = attendance.filter(a=>a.empIndex === empIndex).sort((a,b)=>b.date.localeCompare(a.date));
-  if(empAttendance.length === 0){
-    tbody.innerHTML = '<tr><td colspan="4" class="small-muted">No attendance for this employee.</td></tr>';
+  document.getElementById('mainApp').style.display='none';
+  document.getElementById('employeeDetailPage').style.display='block';
+
+  document.getElementById('detailNamePage').innerText = emp.name;
+  document.getElementById('detailDeptPage').innerText = emp.dept || '-';
+  document.getElementById('detailDesigPage').innerText = emp.desig || '-';
+  document.getElementById('detailSalaryPage').innerText = emp.salary || '0';
+  document.getElementById('detailCurrencyPage').innerText = emp.currency || '-';
+
+  const tbody = document.getElementById('detailAttendanceBodyPage');
+  tbody.innerHTML='';
+  const empAttendance = attendance.filter(a=>a.empIndex===empIndex).sort((a,b)=>b.date.localeCompare(a.date));
+  if(empAttendance.length===0){
+    tbody.innerHTML='<tr><td colspan="4" class="small-muted">No attendance for this employee.</td></tr>';
   } else {
-    empAttendance.forEach((a,idx)=>{
+    empAttendance.forEach((a)=>{
       const tr = document.createElement('tr');
       tr.innerHTML = `<td>${a.date}</td><td>${a.status}</td><td>${a.late||0}</td><td></td>`;
-      const del = document.createElement('button');
-      del.className = 'btn btn-sm btn-danger';
-      del.innerText = 'Delete';
-      del.onclick = ()=>{ 
-        const indexAll = attendance.findIndex(x=>x.empIndex===a.empIndex && x.date===a.date);
-        if(indexAll !== -1) attendance.splice(indexAll,1);
-        saveData(); renderCalendar(); renderChart(); viewEmployee(empIndex); renderAttendanceTableFiltered(empIndex);
+      const delBtn = document.createElement('button');
+      delBtn.className = 'btn btn-sm btn-danger';
+      delBtn.innerText = 'Delete';
+      delBtn.onclick = ()=>{
+        const idx = attendance.findIndex(x=>x.empIndex===a.empIndex && x.date===a.date);
+        if(idx !== -1) attendance.splice(idx,1);
+        saveData();
+        viewEmployeePage(empIndex);
+        renderCalendar();
+        renderChart();
       };
-      tr.lastElementChild.appendChild(del);
+      tr.lastElementChild.appendChild(delBtn);
       tbody.appendChild(tr);
-    });
-  }
-
-  // open modal
-  document.getElementById('employeeDetailModal').style.display = 'flex';
-  // wire delete-from-detail button
-  document.getElementById('deleteEmployeeFromDetail').onclick = ()=>confirmDeleteEmployee(empIndex,true);
+  });
 }
 
-/* close detail */
-function closeEmployeeDetail(){
-  document.getElementById('employeeDetailModal').style.display = 'none';
+// back to dashboard
+function backToDashboard(){
+  document.getElementById('employeeDetailPage').style.display='none';
+  document.getElementById('mainApp').style.display='block';
+  updateEmployeeTable();
+  renderCalendar();
+  renderChart();
 }
 
-/* ====== CONFIRM + DELETE EMPLOYEE ====== */
-function confirmDeleteEmployee(index, fromDetail=false){
+// delete employee
+function confirmDeleteEmployee(index){
   if(!confirm('Delete this employee and all related records? This cannot be undone.')) return;
-  // remove salaries related
-  salaries = salaries.filter(s=>s.empIndex !== index);
-  // remove attendance and adjust empIndex for later employees
-  attendance = attendance.filter(a => a.empIndex !== index);
-  // remove employee
+  salaries = salaries.filter(s=>s.empIndex!==index);
+  attendance = attendance.filter(a=>a.empIndex!==index);
   employees.splice(index,1);
-  // after removal: shift empIndex in attendance and salaries > index
-  attendance = attendance.map(a => ({...a, empIndex: a.empIndex > index ? a.empIndex - 1 : a.empIndex}));
-  salaries = salaries.map(s => ({...s, empIndex: s.empIndex > index ? s.empIndex - 1 : s.empIndex}));
+  // adjust indexes
+  attendance = attendance.map(a=>({...a, empIndex: a.empIndex>index ? a.empIndex-1 : a.empIndex}));
+  salaries = salaries.map(s=>({...s, empIndex: s.empIndex>index ? s.empIndex-1 : s.empIndex}));
   saveData();
   updateEmployeeTable();
   updateEmployeeSelects();
-  renderAttendanceTable();
   renderCalendar();
   renderChart();
-  renderSalaryTable();
-  if(fromDetail) closeEmployeeDetail();
 }
 
-/* ====== RENDER CALENDAR (professional + responsive) ====== */
-function renderCalendar(empIndex = null){
-  const monthInput = document.getElementById('attendanceMonth').value;
-  const container = document.getElementById('calendarContainer');
-  const selDisplay = document.getElementById('selectedMonthDisplay');
-  const rangeDisplay = document.getElementById('selectedRangeDisplay');
+// ========== CALENDAR ==========
+function renderCalendar(empIndex=null){
+  const monthInput=document.getElementById('attendanceMonth').value;
+  const container=document.getElementById('calendarContainer');
+  const selDisplay=document.getElementById('selectedMonthDisplay');
+  const rangeDisplay=document.getElementById('selectedRangeDisplay');
 
   if(!monthInput){
-    container.innerHTML = '<div class="small-muted">Select a month to view calendar.</div>';
-    selDisplay.innerText = '';
-    rangeDisplay.innerText = '';
-    return;
+    container.innerHTML='<div class="small-muted">Select a month to view calendar.</div>';
+    selDisplay.innerText=''; rangeDisplay.innerText=''; return;
   }
+  const [year,monthStr]=monthInput.split('-'); const month=parseInt(monthStr,10);
+  const daysInMonth=new Date(year,month,0).getDate();
+  selDisplay.innerText=`${year}-${monthStr}`;
+  rangeDisplay.innerText=`${year}-${monthStr}-01 → ${year}-${monthStr}-${String(daysInMonth).padStart(2,'0')}`;
 
-  const [year, monthStr] = monthInput.split('-');
-  const month = parseInt(monthStr,10);
-  const daysInMonth = new Date(year, month, 0).getDate();
-
-  selDisplay.innerText = `${year}-${monthStr}`;
-  rangeDisplay.innerText = `${year}-${monthStr}-01 → ${year}-${monthStr}-${String(daysInMonth).padStart(2,'0')}`;
-
-  const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const firstWeekday = new Date(year, month - 1, 1).getDay();
-
-  let html = `<div class="calendar-grid">`;
-  // week headers
-  weekdays.forEach(w => html += `<div class="calendar-weekhead">${w}</div>`);
-
-  // placeholders
-  for(let i=0;i<firstWeekday;i++){
-    html += `<div></div>`;
-  }
-
-  // day cells
-  for(let d=1; d<=daysInMonth; d++){
-    const dd = String(d).padStart(2,'0');
-    const dayStr = `${year}-${String(month).padStart(2,'0')}-${dd}`;
+  const weekdays=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const firstWeekday=new Date(year,month-1,1).getDay();
+  let html=`<div class="calendar-grid">`;
+  weekdays.forEach(w=>html+=`<div class="calendar-weekhead">${w}</div>`);
+  for(let i=0;i<firstWeekday;i++) html+='<div></div>';
+  for(let d=1;d<=daysInMonth;d++){
+    const dd=String(d).padStart(2,'0');
+    const dayStr=`${year}-${String(month).padStart(2,'0')}-${dd}`;
     let att = null;
-    if(empIndex !== null && empIndex !== undefined) att = attendance.find(a=>a.date===dayStr && a.empIndex===empIndex);
+    if(empIndex!==null) att = attendance.find(a=>a.date===dayStr && a.empIndex===empIndex);
     else att = attendance.find(a=>a.date===dayStr);
 
-    // tint and dot color
-    let tint = 'transparent';
-    let dotColor = '';
+    let tint='transparent', dotColor='';
     if(att){
-      if(att.status === 'Present'){ tint = getComputedStyle(document.body).getPropertyValue('--present-rgba') || 'rgba(40,167,69,0.12)'; dotColor = getComputedStyle(document.body).getPropertyValue('--present').trim() || '#28a745'; }
-      else if(att.status === 'Absent'){ tint = getComputedStyle(document.body).getPropertyValue('--absent-rgba') || 'rgba(220,53,69,0.12)'; dotColor = getComputedStyle(document.body).getPropertyValue('--absent').trim() || '#dc3545'; }
-      else { tint = getComputedStyle(document.body).getPropertyValue('--late-rgba') || 'rgba(255,193,7,0.12)'; dotColor = getComputedStyle(document.body).getPropertyValue('--late').trim() || '#ffc107'; }
+      if(att.status==='Present'){ tint='var(--present-rgba)'; dotColor='var(--present)';}
+      else if(att.status==='Absent'){ tint='var(--absent-rgba)'; dotColor='var(--absent)';}
+      else { tint='var(--late-rgba)'; dotColor='var(--late)';}
     }
-
-    // weekday label
-    const weekdayLabel = weekdays[new Date(year, month - 1, d).getDay()];
-
-    // status pill HTML
-    const statusHtml = att ? `<div class="status-pill">${att.status}${att.status==='Late' ? ` (${att.late||0}m)` : ''}</div>` : '';
-
-    html += `<div class="day-wrapper">
-      <div class="day-cell" onclick="openModal('${dayStr}')" style="background:${att ? tint : 'transparent'};">
-        <div class="date-num">${d}</div>
-        <div class="weekday">${weekdayLabel}</div>
-        ${att ? `<div class="status-dot" style="background:${dotColor};"></div>` : ''}
-        ${statusHtml}
-      </div>
-    </div>`;
+    const weekdayLabel=weekdays[new Date(year,month-1,d).getDay()];
+    const statusHtml = att ? `<div class="status-pill">${att.status}${att.status==='Late'?` (${att.late||0}m)`:''}</div>`:'';
+    html+=`<div class="day-wrapper"><div class="day-cell" onclick="openModal('${dayStr}')"
+      style="background:${att?tint:'transparent'};">
+      <div class="date-num">${d}</div><div class="weekday">${weekdayLabel}</div>
+      ${att?`<div class="status-dot" style="background:${dotColor};"></div>`:''}${statusHtml}
+      </div></div>`;
   }
-
-  html += `</div>`;
-  container.innerHTML = html;
+  html+='</div>'; container.innerHTML=html;
 }
 
-/* ====== ATTENDANCE TABLE (all) ====== */
-function renderAttendanceTable(){
-  const wrapper = document.getElementById('attendanceRecordsCard');
-  const tbody = document.querySelector('#attendanceTable tbody');
-  tbody.innerHTML = '';
-  if(attendance.length === 0){
-    tbody.innerHTML = '<tr><td colspan="5" class="small-muted">No attendance records.</td></tr>';
-  } else {
-    // show sorted by date desc
-    const sorted = [...attendance].sort((a,b)=>b.date.localeCompare(a.date));
-    sorted.forEach((a,i)=>{
-      const tr = document.createElement('tr');
-      const name = employees[a.empIndex]?.name || '[removed]';
-      tr.innerHTML = `<td>${a.date}</td><td>${name}</td><td>${a.status}</td><td>${a.late||0}</td><td></td>`;
-      const btn = document.createElement('button'); btn.className='btn btn-sm btn-danger'; btn.innerText='Delete';
-      btn.onclick = ()=>{ 
-        const idxAll = attendance.findIndex(x=>x.empIndex===a.empIndex && x.date===a.date);
-        if(idxAll !== -1) attendance.splice(idxAll,1);
-        saveData(); renderAttendanceTable(); renderCalendar(); renderChart(); 
-      };
-      tr.lastElementChild.appendChild(btn);
-      tbody.appendChild(tr);
-    });
-  }
-}
-
-/* ====== ATTENDANCE TABLE FILTERED ====== */
-function renderAttendanceTableFiltered(empIndex){
-  const tbody = document.querySelector('#attendanceTable tbody');
-  tbody.innerHTML = '';
-  const filtered = attendance.filter(a=>a.empIndex === empIndex).sort((a,b)=>b.date.localeCompare(a.date));
-  if(filtered.length === 0){
-    tbody.innerHTML = '<tr><td colspan="5" class="small-muted">No attendance for this employee.</td></tr>';
-  } else {
-    filtered.forEach((a)=>{
-      const tr = document.createElement('tr');
-      const name = employees[a.empIndex]?.name || '[removed]';
-      tr.innerHTML = `<td>${a.date}</td><td>${name}</td><td>${a.status}</td><td>${a.late||0}</td><td></td>`;
-      const btn = document.createElement('button'); btn.className='btn btn-sm btn-danger'; btn.innerText='Delete';
-      btn.onclick = ()=>{ 
-        const idxAll = attendance.findIndex(x=>x.empIndex===a.empIndex && x.date===a.date);
-        if(idxAll !== -1) attendance.splice(idxAll,1);
-        saveData(); renderAttendanceTableFiltered(empIndex); renderCalendar(empIndex); renderChart();
-      };
-      tr.lastElementChild.appendChild(btn);
-      tbody.appendChild(tr);
-    });
-  }
-}
-
-/* ====== SALARY FUNCTIONS (unchanged logic) ====== */
-function calculateSalaryDetailed(empIndex,startStr,endStr,overtimeAmount,bonusAmount){
-  const emp = employees[empIndex];
-  if(!emp) return null;
-  const startDate = new Date(startStr);
-  const endDate = new Date(endStr);
-  const dailySalary = Number(emp.salary) / 30;
-
-  let present = 0, lateDays = 0, absent = 0, lateMinutesTotal = 0;
-  let basic = 0, lateDeduction = 0, absentDeduction = 0;
-
-  attendance.forEach(a=>{
-    if(a.empIndex !== empIndex) return;
-    const ad = new Date(a.date);
-    if(ad < startDate || ad > endDate) return;
-    if(a.status === 'Present'){
-      present++; basic += dailySalary;
-    } else if(a.status === 'Late'){
-      lateDays++;
-      const mins = Number(a.late) || 0;
-      lateMinutesTotal += mins;
-      basic += dailySalary;
-      lateDeduction += (mins / 480) * dailySalary;
-    } else if(a.status === 'Absent'){
-      absent++;
-      absentDeduction += dailySalary;
-    }
-  });
-
-  const overtime = parseFloat(overtimeAmount) || 0;
-  const bonus = parseFloat(bonusAmount) || 0;
-  const totalPayable = basic - lateDeduction - absentDeduction + overtime + bonus;
-
-  return {
-    present, lateDays, absent, lateMinutesTotal,
-    basic: basic.toFixed(2),
-    lateDeduction: lateDeduction.toFixed(2),
-    absentDeduction: absentDeduction.toFixed(2),
-    overtimePay: overtime.toFixed(2),
-    bonusPay: bonus.toFixed(2),
-    totalPayable: totalPayable.toFixed(2)
-  };
-}
-
-/* ====== RENDER SALARY TABLE ====== */
-function renderSalaryTable(){
-  const tbody = document.querySelector('#salaryTable tbody');
-  tbody.innerHTML = '';
-  if(salaries.length === 0){
-    tbody.innerHTML = '<tr><td colspan="4" class="small-muted">No salary records.</td></tr>';
-    return;
-  }
-  salaries.forEach((s,i)=>{
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${employees[s.empIndex]?.name||'[removed]'}</td><td>${s.range}</td><td>${s.total}</td><td></td>`;
-    const btn = document.createElement('button'); btn.className='btn btn-sm btn-danger'; btn.innerText='Delete';
-    btn.onclick = ()=>{ salaries.splice(i,1); saveData(); renderSalaryTable(); };
-    tr.children[3].appendChild(btn);
-    tbody.appendChild(tr);
-  });
-}
-
-/* ====== CHART ====== */
-function renderChart(){
-  const ctx = document.getElementById('attendanceChart');
-  let present=0, absent=0, late=0;
-  attendance.forEach(a=>{ if(a.status==='Present') present++; else if(a.status==='Absent') absent++; else late++; });
-  if(chartInstance) chartInstance.destroy();
-  chartInstance = new Chart(ctx, {
-    type:'pie',
-    data:{ labels:['Present','Absent','Late'], datasets:[{ data:[present,absent,late], backgroundColor:[
-      getComputedStyle(document.body).getPropertyValue('--present'),
-      getComputedStyle(document.body).getPropertyValue('--absent'),
-      getComputedStyle(document.body).getPropertyValue('--late')
-    ]}]}
-  });
-}
-
-/* ====== MODAL FUNCTIONS (attendance) ====== */
+// ========== ATTENDANCE MODAL ==========
 function openModal(dateStr){
-  updateEmployeeSelects(); // refresh modal select
-  document.getElementById('modalDate').value = dateStr;
-  document.getElementById('modalLateMinutes').value = '';
-  document.getElementById('modalStatus').value = '';
-  const quickVal = document.getElementById('quickEmployee')?.value;
-  if(quickVal !== '' && !isNaN(parseInt(quickVal))) document.getElementById('modalEmployee').value = quickVal;
-  else if(document.getElementById('modalEmployee').options.length) document.getElementById('modalEmployee').selectedIndex = 0;
-  document.getElementById('attendanceModal').style.display = 'flex';
+  updateEmployeeSelects();
+  document.getElementById('modalDate').value=dateStr;
+  document.getElementById('modalLateMinutes').value='';
+  document.getElementById('modalStatus').value='';
+  document.getElementById('attendanceModal').style.display='flex';
 }
-function closeModal(){ document.getElementById('attendanceModal').style.display = 'none'; }
-
+function closeModal(){document.getElementById('attendanceModal').style.display='none';}
 function saveAttendance(){
-  const empIndex = parseInt(document.getElementById('modalEmployee').value);
-  const status = document.getElementById('modalStatus').value;
-  const late = parseInt(document.getElementById('modalLateMinutes').value) || 0;
-  const date = document.getElementById('modalDate').value;
-  if(isNaN(empIndex) || !status || !date){ alert('Select employee, status and ensure date'); return; }
-
-  const existingIndex = attendance.findIndex(a=>a.empIndex===empIndex && a.date===date);
-  const record = { empIndex, date, status, late };
-  if(existingIndex !== -1) attendance[existingIndex] = record;
+  const empIndex=parseInt(document.getElementById('modalEmployee').value);
+  const status=document.getElementById('modalStatus').value;
+  const late=parseInt(document.getElementById('modalLateMinutes').value)||0;
+  const date=document.getElementById('modalDate').value;
+  if(isNaN(empIndex)||!status||!date){alert('Select employee, status and date'); return;}
+  const existingIndex=attendance.findIndex(a=>a.empIndex===empIndex && a.date===date);
+  const record={empIndex,date,status,late};
+  if(existingIndex!==-1) attendance[existingIndex]=record;
   else attendance.push(record);
-
-  saveData();
-  closeModal();
-  renderAttendanceTable();
-  renderCalendar();
-  renderChart();
+  saveData(); closeModal(); renderCalendar(); renderChart();
 }
 
-/* ====== Utility: update selects (quick, modal, salary) ====== */
+// ========== UPDATE SELECTS ==========
 function updateEmployeeSelects(){
-  const quick = document.getElementById('quickEmployee');
-  const modal = document.getElementById('modalEmployee');
-  const salary = document.getElementById('salaryEmployee');
-
-  if(quick){ quick.innerHTML = '<option value="">Select Employee</option>'; }
-  if(modal){ modal.innerHTML = ''; }
-  if(salary){ salary.innerHTML = '<option value="">Select Employee</option>'; }
-
+  const quick=document.getElementById('quickEmployee');
+  const modal=document.getElementById('modalEmployee');
+  const salary=document.getElementById('salaryEmployee');
+  if(quick) quick.innerHTML='<option value="">Select Employee</option>';
+  if(modal) modal.innerHTML='';
+  if(salary) salary.innerHTML='<option value="">Select Employee</option>';
   employees.forEach((e,i)=>{
-    if(quick){ const opt = document.createElement('option'); opt.value = i; opt.text = e.name; quick.appendChild(opt); }
-    if(modal){ const opt2 = document.createElement('option'); opt2.value = i; opt2.text = e.name; modal.appendChild(opt2); }
-    if(salary){ const opt3 = document.createElement('option'); opt3.value = i; opt3.text = e.name; salary.appendChild(opt3); }
+    if(quick){const opt=document.createElement('option'); opt.value=i; opt.text=e.name; quick.appendChild(opt);}
+    if(modal){const opt=document.createElement('option'); opt.value=i; opt.text=e.name; modal.appendChild(opt);}
+    if(salary){const opt=document.createElement('option'); opt.value=i; opt.text=e.name; salary.appendChild(opt);}
   });
 }
 
-/* ====== CSV Export simple helper ====== */
-function exportCSV(){
-  // Export employees + attendance in two sheets (simple CSV zipped not implemented) - provide combined CSV
-  const rows = [['type','employee_index','employee_name','date','status','late','dept','desig','salary','currency']];
-  attendance.forEach(a=>{
-    const emp = employees[a.empIndex] || {};
-    rows.push(['attendance', a.empIndex, emp.name||'[removed]', a.date, a.status, a.late||0, emp.dept||'', emp.desig||'', emp.salary||'', emp.currency||'']);
-  });
-  employees.forEach((e,i)=> rows.push(['employee', i, e.name, '', '', '', e.dept||'', e.desig||'', e.salary||'', e.currency||'']));
-  const csv = rows.map(r=>r.map(cell=>`"${String(cell).replace(/"/g,'""')}"`).join(',')).join('\n');
-  const blob = new Blob([csv],{type:'text/csv'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = 'hr_export.csv'; a.click();
-  URL.revokeObjectURL(url);
+// ========== CHART ==========
+function renderChart(){
+  const ctx=document.getElementById('attendanceChart');
+  let present=0, absent=0, late=0;
+  attendance.forEach(a=>{if(a.status==='Present') present++; else if(a.status==='Absent') absent++; else late++;});
+  if(chartInstance) chartInstance.destroy();
+  chartInstance=new Chart(ctx,{type:'pie',data:{labels:['Present','Absent','Late'],datasets:[{data:[present,absent,late],backgroundColor:['var(--present)','var(--absent)','var(--late)']}]}});  
 }
 
-/* ====== EVENTS & INIT ====== */
-document.addEventListener('DOMContentLoaded', ()=>{
-  try{ if(typeof populateCurrencyDropdown === 'function') populateCurrencyDropdown('empCurrency'); } catch(e){ console.warn('populateCurrencyDropdown not available', e); }
+// ========== INIT ==========
+document.addEventListener('DOMContentLoaded',()=>{
+  if(typeof populateCurrencyDropdown==='function') populateCurrencyDropdown('empCurrency');
+  const loginForm=document.getElementById('loginForm');
+  const signupForm=document.getElementById('signupForm');
+  const showLogin=document.getElementById('showLogin');
+  const showSignup=document.getElementById('showSignup');
+  const toggleTheme=document.getElementById('toggleTheme');
+  const loginDiv=document.getElementById('loginDiv');
+  const mainApp=document.getElementById('mainApp');
 
-  const loginForm = document.getElementById('loginForm');
-  const signupForm = document.getElementById('signupForm');
-  const showLogin = document.getElementById('showLogin');
-  const showSignup = document.getElementById('showSignup');
-  const toggleTheme = document.getElementById('toggleTheme');
-  const loginDiv = document.getElementById('loginDiv');
-  const mainApp = document.getElementById('mainApp');
+  showLogin.onclick=()=>{loginForm.style.display='block'; signupForm.style.display='none';};
+  showSignup.onclick=()=>{signupForm.style.display='block'; loginForm.style.display='none';};
+  toggleTheme.onclick=()=>{document.body.classList.toggle('dark-mode'); renderCalendar(); renderChart();};
 
-  showLogin.onclick = ()=>{ loginForm.style.display='block'; signupForm.style.display='none'; };
-  showSignup.onclick = ()=>{ signupForm.style.display='block'; loginForm.style.display='none'; };
-  toggleTheme.onclick = ()=>{ document.body.classList.toggle('dark-mode'); renderCalendar(); renderChart(); };
+  if(localStorage.getItem('isLoggedIn')==='true'){loginDiv.style.display='none'; mainApp.style.display='block'; loadData();}
 
-  // auto-login if set
-  if(localStorage.getItem('isLoggedIn') === 'true'){
-    loginDiv.style.display = 'none';
-    mainApp.style.display = 'block';
-    loadData();
-  }
-
-  // signup
-  signupForm.addEventListener('submit', e=>{
+  signupForm.addEventListener('submit',e=>{
     e.preventDefault();
-    const user = document.getElementById('hrUserSignup').value.trim();
-    const pass = document.getElementById('hrPassSignup').value.trim();
-    if(!user || !pass){ alert('Enter username/password'); return; }
-    localStorage.setItem('hrUser', user);
-    localStorage.setItem('hrPass', pass);
+    const user=document.getElementById('hrUserSignup').value.trim();
+    const pass=document.getElementById('hrPassSignup').value.trim();
+    if(!user||!pass){alert('Enter username/password'); return;}
+    localStorage.setItem('hrUser',user);
+    localStorage.setItem('hrPass',pass);
     alert('Account created! Please login.');
-    signupForm.reset();
-    loginForm.style.display='block'; signupForm.style.display='none';
+    signupForm.reset(); loginForm.style.display='block'; signupForm.style.display='none';
   });
 
-  // login
-  loginForm.addEventListener('submit', e=>{
+  loginForm.addEventListener('submit',e=>{
     e.preventDefault();
-    const user = document.getElementById('hrUserLogin').value.trim();
-    const pass = document.getElementById('hrPassLogin').value.trim();
-    const storedUser = localStorage.getItem('hrUser');
-    const storedPass = localStorage.getItem('hrPass');
-    if(user === storedUser && pass === storedPass){
-      localStorage.setItem('isLoggedIn','true');
-      loginDiv.style.display = 'none';
-      mainApp.style.display = 'block';
-      loadData();
-    } else {
-      alert('Invalid credentials!');
-    }
+    const user=document.getElementById('hrUserLogin').value.trim();
+    const pass=document.getElementById('hrPassLogin').value.trim();
+    const storedUser=localStorage.getItem('hrUser');
+    const storedPass=localStorage.getItem('hrPass');
+    if(user===storedUser && pass===storedPass){localStorage.setItem('isLoggedIn','true'); loginDiv.style.display='none'; mainApp.style.display='block'; loadData();}
+    else alert('Invalid credentials!');
   });
 
-  // logout
-  document.getElementById('logoutBtn').onclick = ()=>{
-    localStorage.removeItem('isLoggedIn');
-    loginDiv.style.display = 'block';
-    mainApp.style.display = 'none';
+  document.getElementById('logoutBtn').onclick=()=>{
+    localStorage.removeItem('isLoggedIn'); loginDiv.style.display='block'; mainApp.style.display='none';
   };
 
-  // add employee
-  document.getElementById('addEmployeeForm').addEventListener('submit', e=>{
+  document.getElementById('addEmployeeForm').addEventListener('submit',e=>{
     e.preventDefault();
-    const emp = {
-      name: document.getElementById('empName').value.trim(),
-      dept: document.getElementById('empDept').value.trim(),
-      desig: document.getElementById('empDesig').value.trim(),
-      salary: parseFloat(document.getElementById('empSalary').value) || 0,
-      currency: document.getElementById('empCurrency').value || ''
+    const emp={
+      name:document.getElementById('empName').value.trim(),
+      dept:document.getElementById('empDept').value.trim(),
+      desig:document.getElementById('empDesig').value.trim(),
+      salary:parseFloat(document.getElementById('empSalary').value)||0,
+      currency:document.getElementById('empCurrency').value||''
     };
-    employees.push(emp);
-    saveData();
-    updateEmployeeTable();
-    updateEmployeeSelects();
-    renderAttendanceTable();
-    renderCalendar();
-    renderChart();
-    e.target.reset();
-    const quick = document.getElementById('quickEmployee');
-    if(quick) quick.value = employees.length - 1;
+    employees.push(emp); saveData(); updateEmployeeTable(); updateEmployeeSelects(); renderCalendar(); renderChart(); e.target.reset();
   });
 
-  // month change
-  document.getElementById('attendanceMonth').addEventListener('change', ()=>renderCalendar());
+  document.getElementById('attendanceMonth').addEventListener('change',()=>renderCalendar());
 
-  // quick employee change (filters the small attendance list and sets modal default)
-  document.getElementById('quickEmployee').addEventListener('change', function(){
-    const val = this.value;
-    const empIndex = parseInt(val);
-    // clear salary breakdown
-    document.getElementById('salaryBreakdownCard').style.display = 'none';
-    if(!isNaN(empIndex)){
-      renderAttendanceTableFiltered(empIndex);
-    } else {
-      renderAttendanceTable();
-    }
-  });
-
-  // salaryEmployee change
-  document.getElementById('salaryEmployee').addEventListener('change', function(){
-    const v = this.value;
-    if(v === '' || v === null) renderAttendanceTable();
-    else {
-      const idx = parseInt(v);
-      if(!isNaN(idx)) renderAttendanceTableFiltered(idx);
-    }
-    document.getElementById('salaryBreakdownCard').style.display = 'none';
-  });
-
-  // calculate salary submit
-  document.getElementById('calculateSalaryForm').addEventListener('submit', e=>{
-    e.preventDefault();
-    const empIndex = parseInt(document.getElementById('salaryEmployee').value);
-    const start = document.getElementById('startDate').value;
-    const end = document.getElementById('endDate').value;
-    const overtime = document.getElementById('overtimeHours').value;
-    const bonus = document.getElementById('bonusAmount').value;
-    if(isNaN(empIndex) || !start || !end){ alert('Select employee and start/end dates'); return; }
-    const res = calculateSalaryDetailed(empIndex, start, end, overtime, bonus);
-    if(!res){ alert('Calculation failed'); return; }
-    document.getElementById('salaryBreakdownCard').style.display = 'block';
-    document.getElementById('presentCount').innerText = res.present;
-    document.getElementById('lateCount').innerText = res.lateDays;
-    document.getElementById('lateMinutes').innerText = res.lateMinutesTotal;
-    document.getElementById('absentCount').innerText = res.absent;
-    document.getElementById('basicSalary').innerText = res.basic;
-    document.getElementById('lateDeduction').innerText = res.lateDeduction;
-    document.getElementById('absentDeduction').innerText = res.absentDeduction;
-    document.getElementById('overtimePay').innerText = res.overtimePay;
-    document.getElementById('bonusPay').innerText = res.bonusPay;
-    document.getElementById('totalPayable').innerText = res.totalPayable;
-    const rangeLabel = `${start} → ${end}`;
-    salaries.push({ empIndex, range: rangeLabel, total: res.totalPayable, breakdown: res });
-    saveData();
-    renderSalaryTable();
-  });
-
-  // toggle attendance table visibility
-  document.getElementById('toggleAttendanceTable').addEventListener('click', ()=>{
-    showAttendanceTable = !showAttendanceTable;
-    document.getElementById('attendanceRecordsCard').style.display = showAttendanceTable ? 'block' : 'none';
-    document.getElementById('toggleAttendanceTable').innerText = showAttendanceTable ? 'Hide Attendance' : 'Show All Attendance';
-    if(showAttendanceTable) renderAttendanceTable();
-  });
-
-  // export CSV
-  document.getElementById('exportAll').addEventListener('click', exportCSV);
-
-  // initialize month to current
-  const now = new Date();
-  const mm = String(now.getMonth()+1).padStart(2,'0');
-  document.getElementById('attendanceMonth').value = `${now.getFullYear()}-${mm}`;
-
+  const now=new Date(); const mm=String(now.getMonth()+1).padStart(2,'0');
+  document.getElementById('attendanceMonth').value=`${now.getFullYear()}-${mm}`;
   loadData();
 });
 
-/* expose modal functions */
-window.openModal = openModal;
-window.closeModal = closeModal;
-window.saveAttendance = saveAttendance;
-window.viewEmployee = viewEmployee;
-window.closeEmployeeDetail = closeEmployeeDetail;
+// expose functions
+window.viewEmployeePage=viewEmployeePage;
+window.backToDashboard=backToDashboard;
+window.openModal=openModal;
+window.closeModal=closeModal;
+window.saveAttendance=saveAttendance;
 </script>
 </body>
 </html>
