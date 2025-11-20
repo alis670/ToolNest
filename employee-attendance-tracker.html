@@ -215,8 +215,9 @@ input,select,textarea{background:var(--input-bg); color:var(--input-text);}
         <div class="col-6 col-md-3"><div class="small-muted">Late minutes (total)</div><strong id="lateMinutes">0</strong></div>
         <div class="col-6 col-md-3"><div class="small-muted">Absent days</div><strong id="absentCount">0</strong></div>
       </div>
-  </div>`;
-    
+    </div>
+
+    <script>
   /* ====== EMPLOYEE DETAIL ATTENDANCE ====== */
 function viewEmployee(empIndex){
   const emp = employees[empIndex];
@@ -241,7 +242,6 @@ function viewEmployee(empIndex){
         </table>
       </div>
     </div>
-  `;
 
   const tbody = document.getElementById('detailAttendanceBody');
   tbody.innerHTML = '';
