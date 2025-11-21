@@ -115,108 +115,106 @@ body { padding: 20px; transition: background-color 0.3s, color 0.3s; }
 
     <input type="text" class="form-control mb-2" id="searchEmployee" placeholder="Search employee">
 
+    <!-- Employee Table -->
     <div id="employeeTable"></div>
 
-    <!-- Employee Details Page (Added) -->
-    <div id="employeeDetailsPage" style="display:none" class="mb-4">
+    <!-- Employee Details Page -->
+    <div id="employeeDetailsPage" style="display:none; margin-bottom:20px;">
         <div id="employeeDetails"></div>
         <button class="btn btn-secondary mt-2" onclick="backToList()">Back to List</button>
     </div>
+</div>
 
-    <!-- Attendance -->
-    <div class="mb-4">
-        <h5>Attendance</h5>
-        <div class="row g-2 align-items-center mb-2">
-            <div class="col-md-3">
-                <label class="small-muted">Month</label>
-                <input type="month" class="form-control" id="attendanceMonth">
-            </div>
-            <div class="col-md-3">
-                <label class="small-muted">Select Employee</label>
-                <select class="form-select" id="selectEmpForAttendance">
-                    <option value="">Select Employee</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label class="small-muted">&nbsp;</label>
-                <button class="btn btn-outline-primary w-100" id="scanEntry">Scan Entry</button>
-            </div>
-            <div class="col-md-3">
-                <label class="small-muted">&nbsp;</label>
-                <button class="btn btn-outline-success w-100" id="scanExit">Scan Exit</button>
-            </div>
+<!-- Attendance -->
+<div class="mb-4">
+    <h5>Attendance</h5>
+    <div class="row g-2 align-items-center mb-2">
+        <div class="col-md-3">
+            <label class="small-muted">Month</label>
+            <input type="month" class="form-control" id="attendanceMonth">
         </div>
-        <div class="mb-2">
-            <button class="btn btn-outline-warning" id="manualAttendanceBtn">Manual Attendance</button>
+        <div class="col-md-3">
+            <label class="small-muted">Select Employee</label>
+            <select class="form-select" id="selectEmpForAttendance">
+                <option value="">Select Employee</option>
+            </select>
         </div>
-        <div class="calendar-wrap">
-            <div id="calendar" class="calendar-grid"></div>
+        <div class="col-md-3">
+            <label class="small-muted">&nbsp;</label>
+            <button class="btn btn-outline-primary w-100" id="scanEntry">Scan Entry</button>
+        </div>
+        <div class="col-md-3">
+            <label class="small-muted">&nbsp;</label>
+            <button class="btn btn-outline-success w-100" id="scanExit">Scan Exit</button>
         </div>
     </div>
+    <div class="mb-2">
+        <button class="btn btn-outline-warning" id="manualAttendanceBtn">Manual Attendance</button>
+    </div>
+    <div class="calendar-wrap">
+        <div id="calendar" class="calendar-grid"></div>
+    </div>
+</div>
 
-    <!-- Salary Calculation -->
-    <div class="mb-4">
-        <h5>Salary Calculation</h5>
-        <form id="calculateSalaryForm" class="row g-2 align-items-center mb-2">
-            <div class="col-md-2">
-                <label class="small-muted">Employee</label>
-                <select id="salaryEmployee" class="form-select" required>
-                    <option value="">Select Employee</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label class="small-muted">Start Date</label>
-                <input id="startDate" type="date" class="form-control" required>
-            </div>
-            <div class="col-md-2">
-                <label class="small-muted">End Date</label>
-                <input id="endDate" type="date" class="form-control" required>
-            </div>
-            <div class="col-md-2">
-                <label class="small-muted">Bonus</label>
-                <input id="bonusAmount" type="number" class="form-control" placeholder="Bonus">
-            </div>
-            <div class="col-md-2">
-                <label class="small-muted">&nbsp;</label>
-                <button class="btn btn-success w-100">Calculate</button>
-            </div>
-        </form>
+<!-- Salary Calculation -->
+<div class="mb-4">
+    <h5>Salary Calculation</h5>
+    <form id="calculateSalaryForm" class="row g-2 align-items-center mb-2">
+        <div class="col-md-2">
+            <label class="small-muted">Employee</label>
+            <select id="salaryEmployee" class="form-select" required>
+                <option value="">Select Employee</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="small-muted">Start Date</label>
+            <input id="startDate" type="date" class="form-control" required>
+        </div>
+        <div class="col-md-2">
+            <label class="small-muted">End Date</label>
+            <input id="endDate" type="date" class="form-control" required>
+        </div>
+        <div class="col-md-2">
+            <label class="small-muted">Bonus</label>
+            <input id="bonusAmount" type="number" class="form-control" placeholder="Bonus">
+        </div>
+        <div class="col-md-2">
+            <label class="small-muted">&nbsp;</label>
+            <button class="btn btn-success w-100">Calculate</button>
+        </div>
+    </form>
 
-        <div id="salaryBreakdownCard" class="card p-3 mb-3" style="display:none;">
-            <h6>Salary Breakdown</h6>
-            <div class="row">
-                <div class="col-md-3"><div class="small-muted">Present days</div><strong id="presentCount">0</strong></div>
-                <div class="col-md-3"><div class="small-muted">Late days</div><strong id="lateCount">0</strong></div>
-                <div class="col-md-3"><div class="small-muted">Overtime hours</div><strong id="overtimeHours">0</strong></div>
-                <div class="col-md-3"><div class="small-muted">Sunday bonus days</div><strong id="sundayBonus">0</strong></div>
-            </div>
-            <hr>
-            <div class="row">
-                <div class="col-md-3"><div class="small-muted">Base Salary</div><strong id="baseSalary">0</strong></div>
-                <div class="col-md-3"><div class="small-muted">Late Deduction</div><strong id="lateDeduction">0</strong></div>
-                <div class="col-md-3"><div class="small-muted">Overtime Pay</div><strong id="overtimePay">0</strong></div>
-                <div class="col-md-3"><div class="small-muted">Bonus</div><strong id="bonusPay">0</strong></div>
-            </div>
-            <div class="row mt-2">
-                <div class="col-md-3"><div class="small-muted">Total Payable</div><strong id="totalPayable">0</strong></div>
-                <div class="col-md-3 ms-auto text-end"><button id="exportPdfBtn" class="btn btn-outline-primary">Export Salary Slip (PDF)</button></div>
-            </div>
+    <div id="salaryBreakdownCard" class="card p-3 mb-3" style="display:none;">
+        <h6>Salary Breakdown</h6>
+        <div class="row">
+            <div class="col-md-3"><div class="small-muted">Present days</div><strong id="presentCount">0</strong></div>
+            <div class="col-md-3"><div class="small-muted">Late days</div><strong id="lateCount">0</strong></div>
+            <div class="col-md-3"><div class="small-muted">Overtime hours</div><strong id="overtimeHours">0</strong></div>
+            <div class="col-md-3"><div class="small-muted">Sunday bonus days</div><strong id="sundayBonus">0</strong></div>
+        </div>
+        <hr>
+        <div class="row">
+            <div class="col-md-3"><div class="small-muted">Base Salary</div><strong id="baseSalary">0</strong></div>
+            <div class="col-md-3"><div class="small-muted">Late Deduction</div><strong id="lateDeduction">0</strong></div>
+            <div class="col-md-3"><div class="small-muted">Overtime Pay</div><strong id="overtimePay">0</strong></div>
+            <div class="col-md-3"><div class="small-muted">Bonus</div><strong id="bonusPay">0</strong></div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-md-3"><div class="small-muted">Total Payable</div><strong id="totalPayable">0</strong></div>
+            <div class="col-md-3 ms-auto text-end"><button id="exportPdfBtn" class="btn btn-outline-primary">Export Salary Slip (PDF)</button></div>
         </div>
     </div>
+</div>
 
-    <!-- Attendance Chart -->
-    <div class="mb-4">
-        <h5>Attendance Chart</h5>
-        <canvas id="attendanceChart" height="100"></canvas>
-    </div>
-
+<!-- Attendance Chart -->
+<div class="mb-4">
+    <h5>Attendance Chart</h5>
+    <canvas id="attendanceChart" height="100"></canvas>
 </div>
 
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
+    
 // ------------------------
 // Persistent Data Setup
 // ------------------------
