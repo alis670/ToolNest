@@ -310,56 +310,103 @@ addEmployeeForm.addEventListener('submit',e=>{
   showToast('Employee added!');
 });
 
-function updateEmployeeList(){
-  const searchTerm=searchEmployeeInput.value.toLowerCase();
-  employeeTableDiv.innerHTML=employees.filter(emp=>emp.name.toLowerCase().includes(searchTerm)||emp.email.toLowerCase().includes(searchTerm)).map(emp=>`
-    <div class="d-flex justify-content-between align-items-center border p-2 mb-1 rounded">
-      <div><strong>${emp.name}</strong> (${emp.email}, ${emp.phone}) - ${emp.dept || 'N/A'} | ${emp.desig || 'N/A'}</div>
-      <div>
-        <button class="btn btn-sm btn-info me-1" onclick="viewEmployee(${emp.id})">View</button>
-        <button class="btn btn-sm btn-warning me-1" onclick="editEmployee(${emp.id})">Edit</button>
-        <button class="btn btn-sm btn-danger" onclick="deleteEmployee(${emp.id})">Delete</button>
+// ------------------------
+// Employee List with View → Details Page
+// ------------------------
+function updateEmployeeList() {
+  const searchTerm = searchEmployeeInput.value.toLowerCase();
+  employeeTableDiv.innerHTML = employees
+    .filter(emp =>
+      emp.name.toLowerCase().includes(searchTerm) ||
+      emp.email.toLowerCase().includes(searchTerm)
+    )
+    .map(emp => `
+      <div class="card p-3 shadow-sm d-flex justify-content-between align-items-center flex-md-row flex-column mb-2">
+        <div>
+          <h6 class="mb-1"><i class="bi bi-person-circle"></i> ${emp.name}</h6>
+          <small class="text-muted">ID: ${emp.id} | 📧 ${emp.email} | 📞 ${emp.phone}</small>
+        </div>
+        <div class="mt-2 mt-md-0">
+          <button class="btn btn-info btn-sm" onclick="viewEmployee(${emp.id})">View</button>
+        </div>
       </div>
-    </div>
-  `).join('');
-  selectEmpForAttendance.innerHTML=`<option value="">Select Employee</option>`+employees.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
-  salaryEmployee.innerHTML=`<option value="">Select Employee</option>`+employees.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
-}
-searchEmployeeInput.addEventListener('input',updateEmployeeList);
+    `).join('');
 
-// view, edit, delete functions
-function viewEmployee(id){ 
-  const emp=employees.find(e=>e.id==id);
-  alert(`Name: ${emp.name}\nEmail: ${emp.email}\nPhone: ${emp.phone}\nDept: ${emp.dept}\nDesignation: ${emp.desig}\nSalary: ${emp.salary}`);
+  // Update dropdowns
+  selectEmpForAttendance.innerHTML = `<option value="">Select Employee</option>` +
+    employees.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+  salaryEmployee.innerHTML = `<option value="">Select Employee</option>` +
+    employees.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
 }
-function editEmployee(id){
-  const emp=employees.find(e=>e.id==id);
-  const newName=prompt("Edit Name",emp.name);
-  const newEmail=prompt("Edit Email",emp.email);
-  const newPhone=prompt("Edit Phone",emp.phone);
-  const newDept=prompt("Edit Dept",emp.dept);
-  const newDesig=prompt("Edit Designation",emp.desig);
-  const newSalary=parseFloat(prompt("Edit Salary",emp.salary));
-  if(newName) emp.name=newName;
-  if(newEmail) emp.email=newEmail;
-  if(newPhone!=null) emp.phone=newPhone;
-  if(newDept!=null) emp.dept=newDept;
-  if(newDesig!=null) emp.desig=newDesig;
-  if(!isNaN(newSalary)) emp.salary=newSalary;
+searchEmployeeInput.addEventListener('input', updateEmployeeList);
+
+// Show Employee Details Page
+function viewEmployee(id) {
+  const emp = employees.find(e => e.id == id);
+  if (!emp) return showToast('Employee not found', 'danger');
+
+  const detailsDiv = document.getElementById('employeeDetails');
+  detailsDiv.innerHTML = `
+    <h5><i class="bi bi-person-badge"></i> ${emp.name}</h5>
+    <ul class="list-group list-group-flush my-3">
+      <li class="list-group-item"><strong>ID:</strong> ${emp.id}</li>
+      <li class="list-group-item"><strong>Email:</strong> ${emp.email}</li>
+      <li class="list-group-item"><strong>Phone:</strong> ${emp.phone}</li>
+      <li class="list-group-item"><strong>Department:</strong> ${emp.dept || 'N/A'}</li>
+      <li class="list-group-item"><strong>Designation:</strong> ${emp.desig || 'N/A'}</li>
+      <li class="list-group-item"><strong>Salary:</strong> $${emp.salary}</li>
+    </ul>
+    <button class="btn btn-warning me-2" onclick="editEmployee(${emp.id})"><i class="bi bi-pencil-square"></i> Edit</button>
+    <button class="btn btn-danger" onclick="deleteEmployee(${emp.id})"><i class="bi bi-trash"></i> Delete</button>
+  `;
+
+  document.getElementById('employeeListPage').style.display = 'flex';
+  document.getElementById('employeeListPage').style.display = 'none';
+  document.getElementById('employeeDetailsPage').style.display = 'block';
+}
+
+// Back to Employee List
+function backToList() {
+  document.getElementById('employeeListPage').style.display = 'flex';
+  document.getElementById('employeeDetailsPage').style.display = 'none';
+}
+
+// Edit Employee
+function editEmployee(id) {
+  const emp = employees.find(e => e.id == id);
+  if (!emp) return;
+
+  const newName = prompt("Edit Name", emp.name);
+  const newEmail = prompt("Edit Email", emp.email);
+  const newPhone = prompt("Edit Phone", emp.phone);
+  const newDept = prompt("Edit Department", emp.dept);
+  const newDesig = prompt("Edit Designation", emp.desig);
+  const newSalary = parseFloat(prompt("Edit Salary", emp.salary));
+
+  if (newName) emp.name = newName;
+  if (newEmail) emp.email = newEmail;
+  if (newPhone != null) emp.phone = newPhone;
+  if (newDept != null) emp.dept = newDept;
+  if (newDesig != null) emp.desig = newDesig;
+  if (!isNaN(newSalary)) emp.salary = newSalary;
+
   saveData();
-  updateEmployeeList();
+  viewEmployee(id); // Show updated details page
   showToast('Employee updated!');
 }
-function deleteEmployee(id){
-  if(confirm("Delete this employee?")){
-    employees=employees.filter(e=>e.id!=id);
+
+// Delete Employee
+function deleteEmployee(id) {
+  if (confirm("Delete this employee?")) {
+    employees = employees.filter(e => e.id != id);
     delete attendance[id];
     saveData();
+    backToList();
     updateEmployeeList();
     showToast('Employee deleted!');
   }
 }
-
+    
 //-----------------------
 // Attendance
 //-----------------------
