@@ -235,79 +235,76 @@ document.getElementById('toggleDark').addEventListener('click',()=>{
 });
 
 // ------------------------
-// Login / Sign-Up
+// Login / Sign-Up with Persistent Login
 // ------------------------
-const loginFormDiv=document.getElementById('loginForm');
-const signUpFormDiv=document.getElementById('signUpForm');
-const authTitle=document.getElementById('authTitle');
+const loginFormDiv = document.getElementById('loginForm');
+const signUpFormDiv = document.getElementById('signUpForm');
+const authTitle = document.getElementById('authTitle');
 
-document.getElementById('showSignUp').addEventListener('click',e=>{
-  e.preventDefault();
-  loginFormDiv.style.display='none';
-  signUpFormDiv.style.display='block';
-  authTitle.textContent='HR Sign-Up';
+// Show Sign-Up Form
+document.getElementById('showSignUp').addEventListener('click', e => {
+    e.preventDefault();
+    loginFormDiv.style.display = 'none';
+    signUpFormDiv.style.display = 'block';
+    authTitle.textContent = 'HR Sign-Up';
 });
 
-document.getElementById('showLogin').addEventListener('click',e=>{
-  e.preventDefault();
-  signUpFormDiv.style.display='none';
-  loginFormDiv.style.display='block';
-  authTitle.textContent='HR Login';
+// Show Login Form
+document.getElementById('showLogin').addEventListener('click', e => {
+    e.preventDefault();
+    signUpFormDiv.style.display = 'none';
+    loginFormDiv.style.display = 'block';
+    authTitle.textContent = 'HR Login';
 });
 
-document.getElementById('signUpBtn').addEventListener('click',()=>{
-  const username=document.getElementById('signUpUsername').value.trim();
-  const password=document.getElementById('signUpPassword').value.trim();
-  if(!username||!password) return showToast('Enter username & password','danger');
-  if(users.find(u=>u.username===username)) return showToast('Username already exists','danger');
-  users.push({username,password});
-  saveData();
-  showToast('Sign-Up successful! Login now.');
-  document.getElementById('showLogin').click();
+// Sign-Up
+document.getElementById('signUpBtn').addEventListener('click', () => {
+    const username = document.getElementById('signUpUsername').value.trim();
+    const password = document.getElementById('signUpPassword').value.trim();
+    if (!username || !password) return showToast('Enter username & password', 'danger');
+    if (users.find(u => u.username === username)) return showToast('Username already exists', 'danger');
+
+    users.push({ username, password });
+    saveData();
+    showToast('Sign-Up successful! Login now.');
+    document.getElementById('showLogin').click();
 });
 
-document.getElementById('loginBtn').addEventListener('click',()=>{
-  const username=document.getElementById('loginUsername').value.trim();
-  const password=document.getElementById('loginPassword').value.trim();
-  if(users.find(u=>u.username===username && u.password===password)){
-    document.getElementById('loginScreen').style.display='none';
-    document.getElementById('dashboard').style.display='block';
-    showToast(`Welcome ${username}`);
-    updateEmployeeList();
-  }else showToast('Invalid username or password','danger');
+// Login
+document.getElementById('loginBtn').addEventListener('click', () => {
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value.trim();
+    const user = users.find(u => u.username === username && u.password === password);
+
+    if (user) {
+        localStorage.setItem('loggedInUser', username); // Persist login
+        loginFormDiv.style.display = 'none';
+        signUpFormDiv.style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        showToast(`Welcome ${username}`);
+        updateEmployeeList();
+    } else {
+        showToast('Invalid username or password', 'danger');
+    }
 });
 
-// Logout
-document.getElementById('logoutBtn').addEventListener('click',()=>{
-  document.getElementById('dashboard').style.display='none';
-  document.getElementById('loginScreen').style.display='block';
-});
-    
-    // On successful login
-if(users.find(u=>u.username===username && u.password===password)){
-    localStorage.setItem('loggedInUser', username); // save login
-    document.getElementById('loginScreen').style.display='none';
-    document.getElementById('dashboard').style.display='block';
-    showToast(`Welcome ${username}`);
-    updateEmployeeList();
-}
-
-// On page load, check if user is already logged in
+// Check on page load if user is already logged in
 window.addEventListener('load', () => {
     const loggedInUser = localStorage.getItem('loggedInUser');
-    if(loggedInUser){
-        document.getElementById('loginScreen').style.display='none';
-        document.getElementById('dashboard').style.display='block';
+    if (loggedInUser) {
+        loginFormDiv.style.display = 'none';
+        signUpFormDiv.style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
         showToast(`Welcome back ${loggedInUser}`);
         updateEmployeeList();
     }
 });
 
-// On logout
-document.getElementById('logoutBtn').addEventListener('click',()=>{
-    localStorage.removeItem('loggedInUser'); // remove login
-    document.getElementById('dashboard').style.display='none';
-    document.getElementById('loginScreen').style.display='block';
+// Logout
+document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.removeItem('loggedInUser'); // Remove persistent login
+    document.getElementById('dashboard').style.display = 'none';
+    loginFormDiv.style.display = 'block';
 });
 
 // ------------------------
