@@ -74,37 +74,49 @@ body { padding: 20px; transition: background-color 0.3s, color 0.3s; }
     </div>
 
     <!-- Employee Management -->
-    <div class="mb-4">
-        <h5>Employees</h5>
-        <form id="addEmployeeForm" class="row g-2 align-items-center mb-2">
-            <div class="col-md-2">
-                <input type="text" class="form-control" id="empId" placeholder="Employee ID"employees id">
-            </div>
-                <input type="text" class="form-control" id="empName" placeholder="Name" required>
-            </div>
-            <div class="col-md-2">
-                <input type="email" class="form-control" id="empEmail" placeholder="Email" required>
-            </div>
-            <div class="col-md-2">
-                <input type="text" class="form-control" id="empPhone" placeholder="Phone">
-            </div>
-            <div class="col-md-2">
-                <input type="text" class="form-control" id="empDept" placeholder="Department">
-            </div>
-            <div class="col-md-2">
-                <input type="text" class="form-control" id="empDesig" placeholder="Designation">
-            </div>
-            <div class="col-md-2">
-                <div class="col-md-2">
-                <input type="number" class="form-control" id="empSalary" placeholder="Salary">
-            </div>
-            <div class="col-md-2 mt-2">
-                <button class="btn btn-success w-100">Add Employee</button>
-            </div>
-        </form>
-        <input type="text" class="form-control mb-2" id="searchEmployee" placeholder="Search employee">
-        <div id="employeeTable"></div>
-    </div>
+<div class="mb-4">
+    <h5>Employees</h5>
+
+    <form id="addEmployeeForm" class="row g-2 align-items-center mb-2">
+
+        <div class="col-md-2">
+            <input type="text" class="form-control" id="empId" placeholder="Employee ID">
+        </div>
+
+        <div class="col-md-2">
+            <input type="text" class="form-control" id="empName" placeholder="Name" required>
+        </div>
+
+        <div class="col-md-2">
+            <input type="email" class="form-control" id="empEmail" placeholder="Email" required>
+        </div>
+
+        <div class="col-md-2">
+            <input type="text" class="form-control" id="empPhone" placeholder="Phone">
+        </div>
+
+        <div class="col-md-2">
+            <input type="text" class="form-control" id="empDept" placeholder="Department">
+        </div>
+
+        <div class="col-md-2">
+            <input type="text" class="form-control" id="empDesig" placeholder="Designation">
+        </div>
+
+        <div class="col-md-2">
+            <input type="number" class="form-control" id="empSalary" placeholder="Salary">
+        </div>
+
+        <div class="col-md-2 mt-2">
+            <button class="btn btn-success w-100">Add Employee</button>
+        </div>
+
+    </form>
+
+    <input type="text" class="form-control mb-2" id="searchEmployee" placeholder="Search employee">
+
+    <div id="employeeTable"></div>
+</div>
 
     <!-- Attendance -->
     <div class="mb-4">
