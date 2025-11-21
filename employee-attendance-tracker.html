@@ -79,9 +79,9 @@ body { padding: 20px; transition: background-color 0.3s, color 0.3s; }
 
     <form id="addEmployeeForm" class="row g-2 align-items-center mb-2">
 
- <div class="col-md-2">
-    <input type="text" class="form-control" id="empId" placeholder="Employee ID" readonly>
- </div>
+        <div class="col-md-2">
+            <input type="text" class="form-control" id="empId" placeholder="Employee ID" readonly>
+        </div>
         
         <div class="col-md-2">
             <input type="text" class="form-control" id="empName" placeholder="Name" required>
@@ -111,10 +111,17 @@ body { padding: 20px; transition: background-color 0.3s, color 0.3s; }
             <button class="btn btn-success w-100">Add Employee</button>
         </div>
 
-    <div id="employeeTable"></div>
-</div>
+    </form>
 
     <input type="text" class="form-control mb-2" id="searchEmployee" placeholder="Search employee">
+
+    <div id="employeeTable"></div>
+
+    <!-- Employee Details Page (Added) -->
+    <div id="employeeDetailsPage" style="display:none" class="mb-4">
+        <div id="employeeDetails"></div>
+        <button class="btn btn-secondary mt-2" onclick="backToList()">Back to List</button>
+    </div>
 
     <!-- Attendance -->
     <div class="mb-4">
@@ -173,8 +180,7 @@ body { padding: 20px; transition: background-color 0.3s, color 0.3s; }
                 <label class="small-muted">&nbsp;</label>
                 <button class="btn btn-success w-100">Calculate</button>
             </div>
-            <div id="employeeTable"></div>
-        </di>
+        </form>
 
         <div id="salaryBreakdownCard" class="card p-3 mb-3" style="display:none;">
             <h6>Salary Breakdown</h6>
@@ -239,6 +245,7 @@ function showToast(message,type='success'){
   document.getElementById('toastContainer').appendChild(div);
   setTimeout(()=>{document.getElementById(toastId).remove()},3000);
 }
+</script>
 
 // ------------------------
 // Dark Mode Toggle
