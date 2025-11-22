@@ -207,6 +207,14 @@ body { padding: 20px; transition: background-color 0.3s, color 0.3s; }
   </div>
 
 </div>
+    <div id="qrScannerModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:white; padding:15px; border-radius:10px; width:90%; max-width:350px;">
+        <video id="qrVideo" style="width:100%; border-radius:10px;"></video>
+        <button class="btn btn-danger w-100 mt-2" id="closeQR">Close</button>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
 
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
