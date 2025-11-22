@@ -406,11 +406,16 @@ function viewEmployee(id) {
 
 // Back to Employee List
 function backToList() {
-    document.getElementById('dashboard').style.display = 'block';  // Show main HR dashboard
-    document.getElementById('employeeDetailsPage').style.display = 'none'; // Hide employee details
-    document.getElementById('employeeListPage').style.display = 'none'; // Hide employee list completely
-}
+  // Hide Employee Details Page
+  document.getElementById('employeeDetailsPage').style.display = 'none';
 
+  // Hide Employee List Page
+  document.getElementById('employeeListPage').style.display = 'none';
+
+  // Show HR Dashboard
+  document.getElementById('dashboard').style.display = 'block';
+}
+    
 // Edit Employee
 function editEmployee(id) {
   const emp = employees.find(e => e.id == id);
