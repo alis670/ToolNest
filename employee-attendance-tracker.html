@@ -595,18 +595,70 @@ function stopQR() {
 
 closeQRBtn.addEventListener('click', stopQR);
 
-// Manual attendance button
-document.getElementById('manualAttendanceBtn').addEventListener('click',()=>{
-  const empId=selectEmpForAttendance.value;
-  if(!empId) return showToast('Select employee','danger');
-  const type=prompt("Enter 'present' or 'absent'");
-  if(type!=='present' && type!=='absent') return showToast('Invalid input','danger');
-  const date=new Date();
-  const key=`${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}`;
-  attendance[empId][key]={entry:type==='present'?'09:00:00':null,exit:type==='present'?'17:00:00':null};
-  buildCalendar(); updateDashboardMetrics();
-  showToast('Manual attendance updated!');
-});
+    <!---Manual Attendance Grid--->
+        
+function buildManualAttendanceGrid() {
+    const empId = selectEmpForAttendance.value;
+    const monthValue = attendanceMonth.value;
+    const container = document.getElementById('manualAttendanceGrid');
+    if (!empId || !monthValue) {
+        container.innerHTML = `<p class="text-muted">Select employee and month to edit attendance</p>`;
+        return;
+    }
+
+    const [year, month] = monthValue.split('-').map(Number);
+    const daysInMonth = new Date(year, month, 0).getDate();
+
+    container.innerHTML = `<h5>Manual Attendance (${monthValue})</h5>`;
+    const gridDiv = document.createElement('div');
+    gridDiv.style.display = 'flex';
+    gridDiv.style.flexWrap = 'wrap';
+
+    for (let i = 1; i <= daysInMonth; i++) {
+        const key = `${year}-${month}-${i}`;
+        const dayDiv = document.createElement('div');
+        dayDiv.style.width = '50px';
+        dayDiv.style.height = '50px';
+        dayDiv.style.border = '1px solid #ccc';
+        dayDiv.style.margin = '2px';
+        dayDiv.style.textAlign = 'center';
+        dayDiv.style.lineHeight = '50px';
+        dayDiv.style.borderRadius = '5px';
+        dayDiv.style.cursor = 'pointer';
+        dayDiv.style.fontSize = '12px';
+
+        dayDiv.textContent = i;
+
+        const att = attendance[empId][key];
+        if (att) {
+            if (att.entry && att.exit) dayDiv.style.backgroundColor = 'green';
+            else if (att.entry) dayDiv.style.backgroundColor = 'yellow';
+        }
+
+        // Dropdown on click
+        dayDiv.addEventListener('click', () => {
+            const type = prompt("Enter 'present', 'absent', or 'late' for this day:");
+            if (!['present', 'absent', 'late'].includes(type)) return showToast('Invalid input','danger');
+            attendance[empId][key] = {};
+            if (type === 'present') attendance[empId][key].entry = '09:00:00', attendance[empId][key].exit = '17:00:00';
+            else if (type === 'late') attendance[empId][key].entry = '10:00:00', attendance[empId][key].exit = '17:00:00';
+            // absent = no entry/exit
+
+            buildManualAttendanceGrid();
+            buildCalendar();
+            updateDashboardMetrics();
+            showToast('Attendance updated for day '+i);
+        });
+
+        gridDiv.appendChild(dayDiv);
+    }
+
+    container.appendChild(gridDiv);
+}
+
+// Call whenever month or employee changes
+attendanceMonth.addEventListener('change', buildManualAttendanceGrid);
+selectEmpForAttendance.addEventListener('change', buildManualAttendanceGrid);
 
 //-----------------------
 // Salary Calculation
