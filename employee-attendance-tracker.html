@@ -467,58 +467,138 @@ function deleteEmployee(id) {
   }
 }
     
-//-----------------------
-// Attendance
-//-----------------------
-const calendarDiv=document.getElementById('calendar');
-const attendanceMonth=document.getElementById('attendanceMonth');
+// -----------------------
+// Attendance - Modern QR & Calendar System
+// -----------------------
+const calendarDiv = document.getElementById('calendar');
+const attendanceMonth = document.getElementById('attendanceMonth');
+const qrScannerModal = document.getElementById('qrScannerModal');
+const qrVideo = document.getElementById('qrVideo');
+const closeQRBtn = document.getElementById('closeQR');
 
-function buildCalendar(){
-  const monthValue=attendanceMonth.value;
-  const empId=selectEmpForAttendance.value;
-  if(!monthValue||!empId) return;
-  const [year,month]=monthValue.split('-').map(Number);
-  const daysInMonth=new Date(year,month,0).getDate();
-  calendarDiv.innerHTML='';
-  for(let i=1;i<=daysInMonth;i++){
-    const d=new Date(year,month-1,i);
-    const key=`${year}-${month}-${i}`;
-    const div=document.createElement('div');
-    div.textContent=i;
-    const att=attendance[empId][key];
-    if(att){
-      if(att.entry && att.exit) div.classList.add('present');
-      else if(att.entry) div.classList.add('late');
+let qrStream = null;
+
+function buildCalendar() {
+    const monthValue = attendanceMonth.value;
+    const empId = selectEmpForAttendance.value;
+    if (!monthValue || !empId) {
+        calendarDiv.innerHTML = `<p class="text-muted">Select employee and month</p>`;
+        return;
     }
-    if(d.getDay()==0 && att && att.entry) div.classList.add('sunday-work');
-    calendarDiv.appendChild(div);
-  }
+
+    const [year, month] = monthValue.split('-').map(Number);
+    const daysInMonth = new Date(year, month, 0).getDate();
+    calendarDiv.innerHTML = '';
+
+    for (let i = 1; i <= daysInMonth; i++) {
+        const d = new Date(year, month - 1, i);
+        const key = `${year}-${month}-${i}`;
+        const div = document.createElement('div');
+        div.textContent = i;
+        div.classList.add('day-cell');
+        div.style.cursor = 'pointer';
+        div.style.border = '1px solid #ccc';
+        div.style.display = 'inline-block';
+        div.style.width = '40px';
+        div.style.height = '40px';
+        div.style.textAlign = 'center';
+        div.style.lineHeight = '40px';
+        div.style.margin = '2px';
+        div.style.borderRadius = '5px';
+
+        const att = attendance[empId][key];
+        if (att) {
+            if (att.entry && att.exit) div.style.backgroundColor = 'green';
+            else if (att.entry) div.style.backgroundColor = 'yellow';
+        }
+
+        // Manual attendance click
+        div.addEventListener('click', () => {
+            const type = prompt("Enter 'present', 'absent', or 'late' for this day:");
+            if (!['present', 'absent', 'late'].includes(type)) return showToast('Invalid input','danger');
+            attendance[empId][key] = {};
+            if (type === 'present') {
+                attendance[empId][key].entry = '09:00:00';
+                attendance[empId][key].exit = '17:00:00';
+            } else if (type === 'late') {
+                attendance[empId][key].entry = '10:00:00';
+                attendance[empId][key].exit = '17:00:00';
+            }
+            buildCalendar();
+            updateDashboardMetrics();
+            showToast('Manual attendance updated!');
+        });
+
+        calendarDiv.appendChild(div);
+    }
 }
 
-attendanceMonth.addEventListener('change',buildCalendar);
-selectEmpForAttendance.addEventListener('change',buildCalendar);
+attendanceMonth.addEventListener('change', buildCalendar);
+selectEmpForAttendance.addEventListener('change', buildCalendar);
 
-document.getElementById('scanEntry').addEventListener('click',()=>{
-  const empId=selectEmpForAttendance.value;
-  if(!empId) return showToast('Select employee','danger');
-  const date=new Date();
-  const key=`${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}`;
-  attendance[empId][key]=attendance[empId][key]||{};
-  attendance[empId][key].entry=date.toLocaleTimeString();
-  showToast(`Entry recorded: ${attendance[empId][key].entry}`);
-  buildCalendar(); updateDashboardMetrics();
+// -----------------------
+// QR Scan Entry / Auto Exit
+// -----------------------
+document.getElementById('scanEntry').addEventListener('click', async () => {
+    const empId = selectEmpForAttendance.value;
+    if (!empId) return showToast('Select employee', 'danger');
+
+    // Show QR modal
+    qrScannerModal.style.display = 'flex';
+
+    // Start camera
+    qrStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    qrVideo.srcObject = qrStream;
+    qrVideo.setAttribute('playsinline', true);
+    qrVideo.play();
+
+    const scanQRCode = () => {
+        if (qrVideo.readyState === qrVideo.HAVE_ENOUGH_DATA) {
+            const canvas = document.createElement('canvas');
+            canvas.width = qrVideo.videoWidth;
+            canvas.height = qrVideo.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(qrVideo, 0, 0, canvas.width, canvas.height);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, canvas.width, canvas.height);
+
+            if (code) {
+                const date = new Date();
+                const key = `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}`;
+                attendance[empId][key] = attendance[empId][key] || {};
+
+                if (!attendance[empId][key].entry) {
+                    attendance[empId][key].entry = date.toLocaleTimeString();
+                    showToast(`Entry recorded: ${attendance[empId][key].entry}`);
+                } else if (!attendance[empId][key].exit) {
+                    attendance[empId][key].exit = date.toLocaleTimeString();
+                    showToast(`Exit recorded: ${attendance[empId][key].exit}`);
+                } else {
+                    showToast('Already scanned for today', 'info');
+                }
+
+                buildCalendar();
+                updateDashboardMetrics();
+                stopQR();
+                return;
+            }
+        }
+        requestAnimationFrame(scanQRCode);
+    };
+
+    scanQRCode();
 });
 
-document.getElementById('scanExit').addEventListener('click',()=>{
-  const empId=selectEmpForAttendance.value;
-  if(!empId) return showToast('Select employee','danger');
-  const date=new Date();
-  const key=`${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}`;
-  if(!attendance[empId][key] || !attendance[empId][key].entry) return showToast('No entry today','danger');
-  attendance[empId][key].exit=date.toLocaleTimeString();
-  showToast(`Exit recorded: ${attendance[empId][key].exit}`);
-  buildCalendar(); updateDashboardMetrics();
-});
+// Close QR Scanner
+function stopQR() {
+    qrScannerModal.style.display = 'none';
+    if (qrStream) {
+        qrStream.getTracks().forEach(track => track.stop());
+        qrStream = null;
+    }
+}
+
+closeQRBtn.addEventListener('click', stopQR);
 
 // Manual attendance button
 document.getElementById('manualAttendanceBtn').addEventListener('click',()=>{
