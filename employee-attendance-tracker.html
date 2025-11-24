@@ -29,8 +29,8 @@
 
     <!-- Login Form -->
     <div id="loginSection">
-        <input type="text" id="adminUsername" placeholder="Username">
-        <input type="password" id="adminPassword" placeholder="Password">
+        <input type="text" id="loginEmailOrPhone" placeholder="Email or Phone">
+        <input type="password" id="loginPassword" placeholder="Password">
         <button id="loginBtn">Login</button>
         <span class="forgot" id="forgotPassword">Forgot Password?</span>
         <span class="toggleForm" id="goToSignup">Don't have an account? Signup</span>
@@ -38,7 +38,7 @@
 
     <!-- Signup Form -->
     <div id="signupSection">
-        <input type="text" id="signupUsername" placeholder="Username">
+        <input type="text" id="signupEmailOrPhone" placeholder="Email or Phone">
         <input type="password" id="signupPassword" placeholder="Password">
         <input type="password" id="signupConfirm" placeholder="Confirm Password">
         <button id="signupBtn">Signup</button>
@@ -47,6 +47,7 @@
 
     <!-- Reset Password Form -->
     <div id="resetPasswordSection">
+        <input type="text" id="resetEmailOrPhone" placeholder="Email or Phone">
         <input type="password" id="newPassword" placeholder="New Password">
         <input type="password" id="confirmPassword" placeholder="Confirm Password">
         <button id="resetBtn">Reset Password</button>
@@ -58,7 +59,7 @@
 
 <script>
     // Dummy Admin Storage
-    let admins = [{username:'admin', password:'admin123'}];
+    let admins = [{emailOrPhone:'admin@example.com', password:'admin123'}];
 
     const loginSection = document.getElementById('loginSection');
     const signupSection = document.getElementById('signupSection');
@@ -67,25 +68,25 @@
 
     // --- Login ---
     document.getElementById('loginBtn').addEventListener('click', () => {
-        const username = document.getElementById('adminUsername').value.trim();
-        const password = document.getElementById('adminPassword').value.trim();
+        const emailOrPhone = document.getElementById('loginEmailOrPhone').value.trim();
+        const password = document.getElementById('loginPassword').value.trim();
 
-        const user = admins.find(a => a.username === username && a.password === password);
+        const user = admins.find(a => a.emailOrPhone === emailOrPhone && a.password === password);
         if(user){
             alert('Login successful!');
             // TODO: redirect to dashboard
         } else {
-            alert('Invalid username or password!');
+            alert('Invalid email/phone or password!');
         }
     });
 
     // --- Signup ---
     document.getElementById('signupBtn').addEventListener('click', () => {
-        const username = document.getElementById('signupUsername').value.trim();
+        const emailOrPhone = document.getElementById('signupEmailOrPhone').value.trim();
         const password = document.getElementById('signupPassword').value.trim();
         const confirm = document.getElementById('signupConfirm').value.trim();
 
-        if(!username || !password || !confirm){
+        if(!emailOrPhone || !password || !confirm){
             alert('Fill all fields');
             return;
         }
@@ -93,11 +94,11 @@
             alert('Passwords do not match');
             return;
         }
-        if(admins.find(a=>a.username === username)){
-            alert('Username already exists');
+        if(admins.find(a=>a.emailOrPhone === emailOrPhone)){
+            alert('Email/Phone already exists');
             return;
         }
-        admins.push({username, password});
+        admins.push({emailOrPhone, password});
         alert('Signup successful! Please login.');
         signupSection.style.display = 'none';
         loginSection.style.display = 'block';
@@ -111,14 +112,15 @@
     });
 
     document.getElementById('resetBtn').addEventListener('click', () => {
+        const emailOrPhone = document.getElementById('resetEmailOrPhone').value.trim();
         const newPass = document.getElementById('newPassword').value.trim();
         const confirmPass = document.getElementById('confirmPassword').value.trim();
-        if(!newPass || !confirmPass){ alert('Fill all fields'); return; }
+
+        if(!emailOrPhone || !newPass || !confirmPass){ alert('Fill all fields'); return; }
         if(newPass !== confirmPass){ alert('Passwords do not match'); return; }
 
-        const username = document.getElementById('adminUsername').value.trim();
-        const user = admins.find(a => a.username === username);
-        if(!user){ alert('Username not found in login field'); return; }
+        const user = admins.find(a => a.emailOrPhone === emailOrPhone);
+        if(!user){ alert('Email/Phone not found'); return; }
 
         user.password = newPass;
         alert('Password reset successful!');
