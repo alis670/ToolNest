@@ -503,31 +503,7 @@ function buildCalendar() {
             if (att.entry && att.exit) div.style.backgroundColor = 'green';
             else if (att.entry) div.style.backgroundColor = 'yellow';
         }
-
-        // Manual attendance click
-        div.addEventListener('click', () => {
-            const type = prompt("Enter 'present', 'absent', or 'late' for this day:");
-            if (!['present', 'absent', 'late'].includes(type)) return showToast('Invalid input','danger');
-            attendance[empId][key] = {};
-            if (type === 'present') {
-                attendance[empId][key].entry = '09:00:00';
-                attendance[empId][key].exit = '17:00:00';
-            } else if (type === 'late') {
-                attendance[empId][key].entry = '10:00:00';
-                attendance[empId][key].exit = '17:00:00';
-            }
-            buildCalendar();
-            updateDashboardMetrics();
-            showToast('Manual attendance updated!');
-        });
-
-        calendarDiv.appendChild(div);
-    }
-}
-
-attendanceMonth.addEventListener('change', buildCalendar);
-selectEmpForAttendance.addEventListener('change', buildCalendar);
-
+        
 // -----------------------
 // QR Scan Entry / Auto Exit
 // -----------------------
@@ -591,6 +567,30 @@ function stopQR() {
 }
 
 closeQRBtn.addEventListener('click', stopQR);
+
+        // Manual attendance click
+        div.addEventListener('click', () => {
+            const type = prompt("Enter 'present', 'absent', or 'late' for this day:");
+            if (!['present', 'absent', 'late'].includes(type)) return showToast('Invalid input','danger');
+            attendance[empId][key] = {};
+            if (type === 'present') {
+                attendance[empId][key].entry = '09:00:00';
+                attendance[empId][key].exit = '17:00:00';
+            } else if (type === 'late') {
+                attendance[empId][key].entry = '10:00:00';
+                attendance[empId][key].exit = '17:00:00';
+            }
+            buildCalendar();
+            updateDashboardMetrics();
+            showToast('Manual attendance updated!');
+        });
+
+        calendarDiv.appendChild(div);
+    }
+}
+
+attendanceMonth.addEventListener('change', buildCalendar);
+selectEmpForAttendance.addEventListener('change', buildCalendar);
 
     <!---Manual Attendance Grid--->
     function buildManualAttendanceGrid() {
